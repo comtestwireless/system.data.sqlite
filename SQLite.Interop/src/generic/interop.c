@@ -1043,7 +1043,11 @@ SQLITE_API int WINAPI sqlite3_index_column_info_interop(sqlite3 *db, const char 
   for (n = 0; n < pIdx->nColumn; n++)
   {
     int cnum = pIdx->aiColumn[n];
+#if SQLITE_VERSION_NUMBER > 3036000
+    if (sqlite3StrICmp(pTab->aCol[cnum].zCnName, zColumnName) == 0)
+#else
     if (sqlite3StrICmp(pTab->aCol[cnum].zName, zColumnName) == 0)
+#endif
     {
       if ( sortOrder ) *sortOrder = pIdx->aSortOrder[n];
       if ( pzColl ) *pzColl = pIdx->azColl[n];

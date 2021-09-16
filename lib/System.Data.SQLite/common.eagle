@@ -1943,13 +1943,15 @@ namespace eval ::Eagle {
         }
 
         if {![info exists ::no(shimSQLiteDefineConstantConstraints)]} then {
-          foreach defineConstant [list \
+          set defineConstants [list \
               INTEROP_EXTENSION_FUNCTIONS INTEROP_FTS5_EXTENSION \
               INTEROP_JSON1_EXTENSION INTEROP_PERCENTILE_EXTENSION \
               INTEROP_REGEXP_EXTENSION INTEROP_TEST_EXTENSION \
               INTEROP_SESSION_EXTENSION INTEROP_SHA1_EXTENSION \
               INTEROP_TOTYPE_EXTENSION INTEROP_VIRTUAL_TABLE \
-              USE_INTEROP_DLL] {
+              USE_INTEROP_DLL]
+
+          foreach defineConstant $defineConstants {
             addConstraint [appendArgs \
                 [getSQLiteDefineConstantPrefix] $defineConstant]
           }
@@ -5859,7 +5861,7 @@ namespace eval ::Eagle {
         #       options, it will be assumed that it was enabled for the interop
         #       assembly if it was enabled for the managed assembly.
         #
-        foreach defineConstant [list \
+        set defineConstants [list \
             CHECK_STATE COUNT_HANDLE DEBUG INTEROP_CODEC INTEROP_DEBUG \
             INTEROP_EXTENSION_FUNCTIONS INTEROP_FTS5_EXTENSION \
             INTEROP_INCLUDE_CEROD INTEROP_INCLUDE_EXTRA INTEROP_INCLUDE_SEE \
@@ -5875,7 +5877,9 @@ namespace eval ::Eagle {
             THROW_ON_DISPOSED TRACE TRACE_CONNECTION TRACE_DETECTION \
             TRACE_HANDLE TRACE_PRELOAD TRACE_SHARED TRACE_STATEMENT \
             TRACE_WARNING TRACK_MEMORY_BYTES USE_ENTITY_FRAMEWORK_6 \
-            USE_INTEROP_DLL USE_PREPARE_V2 WINDOWS] {
+            USE_INTEROP_DLL USE_PREPARE_V2 WINDOWS]
+
+        foreach defineConstant $defineConstants {
           #
           # NOTE: Check if the compile-time option is listed in the list of
           #       "define constants" kept track of by the managed assembly.
@@ -5888,11 +5892,13 @@ namespace eval ::Eagle {
         #       test constraints were enabled for the interop assembly and/or
         #       for the SQLite core library.
         #
-        foreach compileOption [list \
+        set compileOptions [list \
             CODEC EXTENSION_FUNCTIONS HAS_CODEC INCLUDE_CEROD INCLUDE_EXTRA \
             INCLUDE_SEE INCLUDE_ZIPVFS JSON1_EXTENSION LEGACY_CLOSE LOG \
             PERCENTILE_EXTENSION REGEXP_EXTENSION SESSION_EXTENSION \
-            SHA1_EXTENSION TEST_EXTENSION TOTYPE_EXTENSION VIRTUAL_TABLE] {
+            SHA1_EXTENSION TEST_EXTENSION TOTYPE_EXTENSION VIRTUAL_TABLE]
+
+        foreach compileOption $compileOptions {
           #
           # NOTE: Check if the compile-time option is listed in the list
           #       kept track of by the interop assembly and/or the SQLite

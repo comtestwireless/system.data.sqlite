@@ -54,13 +54,13 @@ runTest {test tkt-0e48e80333-1.1 {unhook delegates on pooled close} -setup {
     }
 
     object load System.Data.SQLite
-    set ::test_channel stdout
+    set test_channel stdout
 
     setupDb [set fileName tkt-0e48e80333-1.1.db]
     sql execute $db {CREATE TABLE t1(x);}
     cleanupDb $fileName db true false false
 
-    set ::result ""
+    set result ""
 
     set count 10
 
@@ -81,7 +81,7 @@ runTest {test tkt-0e48e80333-1.1 {unhook delegates on pooled close} -setup {
       cleanupDb $fileName db true false false
     }
 
-    if {$::result eq [lrepeat $count $sql False]} then {
+    if {$result eq [lrepeat $count $sql False]} then {
       exit Success
     } else {
       exit Failure
@@ -153,7 +153,7 @@ runTest {test tkt-0e48e80333-1.2 {delegate MDA on pooled close} -setup {
     package require Eagle.Test
     package require System.Data.SQLite.Test
 
-    set ::test_channel ""; # disable [tputs]
+    set test_channel ""; # disable [tputs]
 
     set id [object invoke Interpreter.GetActive NextId]
     set dataSource [file join [getDatabaseDirectory] $fileName]

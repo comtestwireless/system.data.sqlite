@@ -4897,7 +4897,7 @@ namespace System.Data.SQLite
           throw;
         }
       }
-      catch (SQLiteException)
+      catch (Exception) /* NOTE: Must catch ALL. */
       {
         Close();
         throw;

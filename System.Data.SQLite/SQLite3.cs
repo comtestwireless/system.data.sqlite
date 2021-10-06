@@ -75,6 +75,7 @@ namespace System.Data.SQLite
     /// </summary>
     protected internal SQLiteConnectionHandle _sql;
     protected string _fileName;
+    private int _maxPoolSize;
     protected SQLiteConnectionFlags _flags;
     private bool _setLogCallback;
     protected bool _usePool;
@@ -1053,6 +1054,7 @@ namespace System.Data.SQLite
       if (_sql != null)
           throw new SQLiteException("connection handle is still active");
 
+      _maxPoolSize = maxPoolSize;
       _usePool = usePool;
 
       //

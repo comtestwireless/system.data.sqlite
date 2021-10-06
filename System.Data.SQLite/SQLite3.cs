@@ -75,6 +75,7 @@ namespace System.Data.SQLite
     /// </summary>
     protected internal SQLiteConnectionHandle _sql;
     protected string _fileName;
+    protected string _returnToFileName;
     protected int _maxPoolSize;
     protected SQLiteConnectionFlags _flags;
     private bool _setLogCallback;
@@ -173,6 +174,7 @@ namespace System.Data.SQLite
         {
             _sql = new SQLiteConnectionHandle(db, ownHandle);
             _fileName = fileName;
+            _returnToFileName = fileName;
 
             SQLiteConnection.OnChanged(null, new ConnectionEventArgs(
                 SQLiteConnectionEventType.NewCriticalHandle, null,
@@ -266,8 +268,9 @@ namespace System.Data.SQLite
     public override string ToString()
     {
         return HelperMethods.StringFormat(
-            CultureInfo.InvariantCulture, "fileName = {0}, flags = {1}",
-            _fileName, _flags);
+            CultureInfo.InvariantCulture,
+            "fileName = {0}, returnToFileName = {1}, flags = {2}",
+            _fileName, _returnToFileName, _flags);
     }
 #endif
 
@@ -354,12 +357,12 @@ namespace System.Data.SQLite
                   DisposeModules();
 #endif
 
-                  SQLiteConnectionPool.Add(_fileName, _sql, _poolVersion);
+                  SQLiteConnectionPool.Add(_returnToFileName, _sql, _poolVersion);
 
                   SQLiteConnection.OnChanged(null, new ConnectionEventArgs(
                       SQLiteConnectionEventType.ClosedToPool, null, null,
-                      null, null, _sql, _fileName, new object[] {
-                      typeof(SQLite3), !disposing, _fileName, _poolVersion }));
+                      null, null, _sql, _returnToFileName, new object[] {
+                      typeof(SQLite3), !disposing, _returnToFileName, _poolVersion }));
 
 #if !NET_COMPACT_20 && TRACE_CONNECTION
                   Trace.WriteLine(HelperMethods.StringFormat(
@@ -1070,6 +1073,7 @@ namespace System.Data.SQLite
           _usePool = false;
 
       _fileName = strFilename;
+      _returnToFileName = strFilename;
       _flags = connectionFlags;
 
       if (usePool)

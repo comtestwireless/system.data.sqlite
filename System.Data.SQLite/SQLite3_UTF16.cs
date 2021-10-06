@@ -159,6 +159,7 @@ namespace System.Data.SQLite
           _usePool = false;
 
       _fileName = strFilename;
+      _returnToFileName = strFilename;
       _flags = connectionFlags;
 
       if (usePool)

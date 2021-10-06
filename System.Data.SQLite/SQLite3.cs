@@ -79,6 +79,7 @@ namespace System.Data.SQLite
     protected SQLiteConnectionFlags _flags;
     private bool _setLogCallback;
     protected bool _usePool;
+    private bool _returnToPool;
     protected int _poolVersion;
     private int _cancelCount;
 
@@ -322,7 +323,7 @@ namespace System.Data.SQLite
 
       retry:
 
-          if (_usePool)
+          if (_returnToPool || _usePool)
           {
               if (SQLiteBase.ResetConnection(_sql, _sql, !disposing) &&
                   UnhookNativeCallbacks(true, !disposing))
@@ -381,7 +382,9 @@ namespace System.Data.SQLite
                   //       therefore, just use the normal disposal
                   //       procedure on it.
                   //
+                  _returnToPool = false;
                   _usePool = false;
+
                   goto retry;
               }
           }
@@ -1055,6 +1058,7 @@ namespace System.Data.SQLite
           throw new SQLiteException("connection handle is still active");
 
       _maxPoolSize = maxPoolSize;
+      _returnToPool = false;
       _usePool = usePool;
 
       //

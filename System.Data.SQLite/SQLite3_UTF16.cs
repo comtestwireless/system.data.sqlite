@@ -147,7 +147,17 @@ namespace System.Data.SQLite
       if (_sql != null)
           throw new SQLiteException("connection handle is still active");
 
+      _maxPoolSize = maxPoolSize;
       _usePool = usePool;
+
+      //
+      // BUGFIX: Do not allow a connection into the pool if it was opened
+      //         with flags that are incompatible with the default flags
+      //         (e.g. read-only).
+      //
+      if (_usePool && !IsAllowedToUsePool(openFlags))
+          _usePool = false;
+
       _fileName = strFilename;
       _flags = connectionFlags;
 

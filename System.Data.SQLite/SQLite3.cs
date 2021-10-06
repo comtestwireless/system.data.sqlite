@@ -75,7 +75,7 @@ namespace System.Data.SQLite
     /// </summary>
     protected internal SQLiteConnectionHandle _sql;
     protected string _fileName;
-    private int _maxPoolSize;
+    protected int _maxPoolSize;
     protected SQLiteConnectionFlags _flags;
     private bool _setLogCallback;
     protected bool _usePool;
@@ -1030,7 +1030,7 @@ namespace System.Data.SQLite
     /// Non-zero if the connection should (eventually) be allowed into the
     /// connection pool; otherwise, zero.
     /// </returns>
-    private static bool IsAllowedToUsePool(
+    protected static bool IsAllowedToUsePool(
         SQLiteOpenFlagsEnum openFlags
         )
     {

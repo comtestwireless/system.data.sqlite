@@ -385,6 +385,7 @@ namespace System.Data.SQLite
                   //       therefore, just use the normal disposal
                   //       procedure on it.
                   //
+                  _returnToFileName = _fileName;
                   _returnToPool = false;
                   _usePool = false;
 
@@ -3396,7 +3397,9 @@ namespace System.Data.SQLite
 
       if (_usePool)
       {
+        _returnToFileName = _fileName;
         _usePool = false;
+        _returnToPool = false;
 
 #if !NET_COMPACT_20 && TRACE_CONNECTION
         Trace.WriteLine(HelperMethods.StringFormat(

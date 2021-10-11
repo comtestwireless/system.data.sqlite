@@ -2760,6 +2760,25 @@ namespace System.Data.SQLite
   }
 
   /// <summary>
+  /// The possible return codes for the busy callback.
+  /// </summary>
+  public enum SQLiteBusyReturnCode /* int */
+  {
+      /// <summary>
+      /// Stop invoking the busy callback and return
+      /// <see cref="SQLiteErrorCode.Busy" /> to the
+      /// caller.
+      /// </summary>
+      Stop = 0,
+
+      /// <summary>
+      /// Retry the associated operation and invoke
+      /// the busy callback again, if necessary.
+      /// </summary>
+      Retry = 1
+  }
+
+  /// <summary>
   /// The possible return codes for the progress callback.
   /// </summary>
   public enum SQLiteProgressReturnCode /* int */

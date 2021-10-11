@@ -1643,6 +1643,7 @@ namespace System.Data.SQLite
 
     internal int _version;
 
+    private event SQLiteBusyEventHandler _busyHandler;
     private event SQLiteProgressEventHandler _progressHandler;
     private event SQLiteAuthorizerEventHandler _authorizerHandler;
     private event SQLiteUpdateEventHandler _updateHandler;
@@ -1650,6 +1651,7 @@ namespace System.Data.SQLite
     private event SQLiteTraceEventHandler _traceHandler;
     private event EventHandler _rollbackHandler;
 
+    private SQLiteBusyCallback _busyCallback;
     private SQLiteProgressCallback _progressCallback;
     private SQLiteAuthorizerCallback _authorizerCallback;
     private SQLiteUpdateCallback _updateCallback;
@@ -4849,6 +4851,9 @@ namespace System.Data.SQLite
               }
           }
 
+          if (_busyHandler != null)
+              _sql.SetBusyHook(_busyCallback);
+
           if (_progressHandler != null)
               _sql.SetProgressHook(_progressOps, _progressCallback);
 
@@ -7089,6 +7094,40 @@ namespace System.Data.SQLite
 
     /// <summary>
     /// This event is raised periodically during long running queries.  Changing
+    /// the value of the <see cref="BusyEventArgs.ReturnCode" /> property will
+    /// determine if the database operation will be retried or stopped.  For the
+    /// entire duration of the event, the associated connection and statement
+    /// objects must not be modified, either directly or indirectly, by the
+    /// called code.
+    /// </summary>
+    public event SQLiteBusyEventHandler Busy
+    {
+        add
+        {
+            CheckDisposed();
+
+            if (_busyHandler == null)
+            {
+                _busyCallback = new SQLiteBusyCallback(BusyCallback);
+                if (_sql != null) _sql.SetBusyHook(_busyCallback);
+            }
+            _busyHandler += value;
+        }
+        remove
+        {
+            CheckDisposed();
+
+            _busyHandler -= value;
+            if (_busyHandler == null)
+            {
+                if (_sql != null) _sql.SetBusyHook(null);
+                _busyCallback = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// This event is raised periodically during long running queries.  Changing
     /// the value of the <see cref="ProgressEventArgs.ReturnCode" /> property will
     /// determine if the operation in progress will continue or be interrupted.
     /// For the entire duration of the event, the associated connection and
@@ -7183,6 +7222,53 @@ namespace System.Data.SQLite
           _updateCallback = null;
         }
       }
+    }
+
+    private SQLiteBusyReturnCode BusyCallback(
+        IntPtr pUserData, /* NOT USED: Always IntPtr.Zero. */
+        int count
+        )
+    {
+        try
+        {
+            BusyEventArgs eventArgs = new BusyEventArgs(
+                pUserData, count, SQLiteBusyReturnCode.Retry);
+
+            if (_busyHandler != null)
+                _busyHandler(this, eventArgs);
+
+            return eventArgs.ReturnCode;
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Busy", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+
+        //
+        // NOTE: Should throwing an exception interrupt the operation?
+        //
+        if (HelperMethods.HasFlags(
+                _flags, SQLiteConnectionFlags.StopOnException))
+        {
+            return SQLiteBusyReturnCode.Stop;
+        }
+        else
+        {
+            return SQLiteBusyReturnCode.Retry;
+        }
     }
 
     private SQLiteProgressReturnCode ProgressCallback(
@@ -7533,6 +7619,11 @@ namespace System.Data.SQLite
 #if !PLATFORM_COMPACTFRAMEWORK
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
+  internal delegate SQLiteBusyReturnCode SQLiteBusyCallback(IntPtr pUserData, int count);
+
+#if !PLATFORM_COMPACTFRAMEWORK
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+#endif
   internal delegate SQLiteProgressReturnCode SQLiteProgressCallback(IntPtr pUserData);
 
 #if !PLATFORM_COMPACTFRAMEWORK
@@ -7571,6 +7662,13 @@ namespace System.Data.SQLite
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
   internal delegate void SQLiteRollbackCallback(IntPtr puser);
+
+  /// <summary>
+  /// </summary>
+  /// <param name="sender">The connection performing the operation.</param>
+  /// <param name="e">A <see cref="BusyEventArgs" /> that contains the event
+  /// data.</param>
+  public delegate void SQLiteBusyEventHandler(object sender, BusyEventArgs e);
 
   /// <summary>
   /// Raised each time the number of virtual machine instructions is
@@ -7659,6 +7757,66 @@ namespace System.Data.SQLite
     bool retry
   );
   #endregion
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+
+  /// <summary>
+  /// The event data associated with "database is busy" events.
+  /// </summary>
+  public class BusyEventArgs : EventArgs
+  {
+      /// <summary>
+      /// The user-defined native data associated with this event.  Currently,
+      /// this will always contain the value of <see cref="IntPtr.Zero" />.
+      /// </summary>
+      public readonly IntPtr UserData;
+
+      /// <summary>
+      /// The number of times the current database operation has been retried
+      /// so far.
+      /// </summary>
+      public readonly int Count;
+
+      /// <summary>
+      /// The return code for the current call into the busy callback.
+      /// </summary>
+      public SQLiteBusyReturnCode ReturnCode;
+
+      /// <summary>
+      /// Constructs an instance of this class with default property values.
+      /// </summary>
+      private BusyEventArgs()
+      {
+          this.UserData = IntPtr.Zero;
+          this.Count = 0;
+          this.ReturnCode = SQLiteBusyReturnCode.Retry;
+      }
+
+      /// <summary>
+      /// Constructs an instance of this class with specific property values.
+      /// </summary>
+      /// <param name="pUserData">
+      /// The user-defined native data associated with this event.
+      /// </param>
+      /// <param name="count">
+      /// The number of times the current database operation has been retried
+      /// so far.
+      /// </param>
+      /// <param name="returnCode">
+      /// The busy return code.
+      /// </param>
+      internal BusyEventArgs(
+          IntPtr pUserData,
+          int count,
+          SQLiteBusyReturnCode returnCode
+          )
+          : this()
+      {
+          this.UserData = pUserData;
+          this.Count = count;
+          this.ReturnCode = returnCode;
+      }
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
 

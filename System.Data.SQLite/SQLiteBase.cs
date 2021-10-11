@@ -476,6 +476,7 @@ namespace System.Data.SQLite
     internal abstract void ChangePassword(byte[] newPasswordBytes, bool asText);
 #endif
 
+    internal abstract void SetBusyHook(SQLiteBusyCallback func);
     internal abstract void SetProgressHook(int nOps, SQLiteProgressCallback func);
     internal abstract void SetAuthorizerHook(SQLiteAuthorizerCallback func);
     internal abstract void SetUpdateHook(SQLiteUpdateCallback func);
@@ -1362,6 +1363,14 @@ namespace System.Data.SQLite
       /// SQLite core library.
       /// </summary>
       NoCoreFunctions = 0x2000000000000,
+
+      /// <summary>
+      /// If an exception is caught when raising the
+      /// <see cref="SQLiteConnection.Busy" /> event, the operation
+      /// should be stopped.  If this is not specified, the operation
+      /// will be retried.
+      /// </summary>
+      StopOnException = 0x4000000000000,
 
       /// <summary>
       /// When binding parameter values or returning column values, always

@@ -3411,6 +3411,11 @@ namespace System.Data.SQLite
     }
 #endif
 
+    internal override void SetBusyHook(SQLiteBusyCallback func)
+    {
+        UnsafeNativeMethods.sqlite3_busy_handler(_sql, func, IntPtr.Zero);
+    }
+
     internal override void SetProgressHook(int nOps, SQLiteProgressCallback func)
     {
         UnsafeNativeMethods.sqlite3_progress_handler(_sql, nOps, func, IntPtr.Zero);
@@ -3721,6 +3726,40 @@ namespace System.Data.SQLite
 #endif
 
             AppendError(builder, "failed to unset authorizer hook");
+            rc = SQLiteErrorCode.Error;
+
+            result = false;
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+        #region Busy Hook (Per-Connection)
+        try
+        {
+            SetBusyHook(null); /* throw */
+        }
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+        catch (Exception e)
+#else
+        catch (Exception)
+#endif
+        {
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+            try
+            {
+                Trace.WriteLine(HelperMethods.StringFormat(
+                    CultureInfo.CurrentCulture,
+                    "Failed to unset busy hook: {0}",
+                    e)); /* throw */
+            }
+            catch
+            {
+                // do nothing.
+            }
+#endif
+
+            AppendError(builder, "failed to unset busy hook");
             rc = SQLiteErrorCode.Error;
 
             result = false;

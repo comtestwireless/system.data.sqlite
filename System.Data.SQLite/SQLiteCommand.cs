@@ -29,7 +29,7 @@ namespace System.Data.SQLite
     /// <see cref="Execute(string,SQLiteExecuteType,CommandBehavior,string,object[])" />
     /// methods.
     /// </summary>
-    private static readonly string DefaultConnectionString = "Data Source=:memory:;";
+    internal static readonly string DefaultConnectionString = "Data Source=:memory:;";
 
     /// <summary>
     /// The command text this command is based on

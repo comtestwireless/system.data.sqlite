@@ -249,10 +249,10 @@ runTest {test tkt-0e48e80333-1.2 {delegate MDA on pooled close} -setup {
             while (true)
             {
               if (Interlocked.CompareExchange(ref count, 0, 0) >= ${count(3)})
-                  break;
+                break;
 
               if (DateTime.UtcNow.Subtract(start).TotalSeconds >= ${count(4)})
-                  break;
+                break;
 
               Thread.Sleep(${count(5)});
             }

@@ -1,0 +1,589 @@
+###############################################################################
+#
+# busy.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test busy-1.1 {busy with retry} -setup {
+  setupDb [set fileName busy-1.1.db]
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER);
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+    INSERT INTO t1 (x) VALUES(4);
+    SELECT x FROM t1 ORDER BY x;
+  }
+
+  set sql(1) { \
+    BEGIN EXCLUSIVE TRANSACTION; \
+    INSERT INTO t1 (x) VALUES(5); \
+    INSERT INTO t1 (x) VALUES(6); \
+    INSERT INTO t1 (x) VALUES(7); \
+    INSERT INTO t1 (x) VALUES(8); \
+    COMMIT TRANSACTION; \
+  }
+
+  set sql(2) { \
+    SELECT x FROM t1 ORDER BY x; \
+  }
+
+  set count(1) 1500; # main thread lock milliseconds
+  set count(2) [expr {($count(1) * 1.25) / 1000.0}]; # timeout in seconds
+  set count(3) 100; # event loop sleep milliseconds
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+    using System.Threading;
+    using Eagle._Components.Public;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        private static int count = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void MyBusyHandler(
+          object sender,
+          BusyEventArgs e
+          )
+        {
+          Interlocked.Increment(ref count);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void BusyWaitCallback(
+          object state
+          )
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties]"))
+          {
+            connection.Busy += MyBusyHandler;
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(1)}",
+                connection))
+            {
+              command.CommandTimeout = 0;
+              command.ExecuteNonQuery();
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static int Start(
+          Interpreter interpreter
+          )
+        {
+          ThreadPool.QueueUserWorkItem(
+              new WaitCallback(BusyWaitCallback));
+
+          DateTime start = DateTime.UtcNow;
+
+          while (true)
+          {
+            if (DateTime.UtcNow.Subtract(start).TotalSeconds >= ${count(2)})
+              break;
+
+            Result result = null;
+
+            if ((interpreter != null) && (interpreter.EvaluateScript(
+                "update", ref result) != ReturnCode.Ok))
+            {
+              Utility.Complain(interpreter, ReturnCode.Error, result);
+              break;
+            }
+
+            Thread.Sleep(${count(3)});
+          }
+
+          return Interlocked.CompareExchange(ref count, 0, 0);
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+
+  sql execute $db {BEGIN EXCLUSIVE TRANSACTION;}
+  after $count(1) [list sql execute $db {COMMIT TRANSACTION;}]
+
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Start ""
+      } result] : [set result ""]}] $result \
+      [expr {[string is integer -strict $result] && $result > 0 ? 1 : 0}] \
+      [llength [after info]] \
+      [vwait -force -timeout $test_timeout -- forever] \
+      [sql execute -execute reader -format list $db $sql(2)]
+} -cleanup {
+  catch {foreach i [after info] {after cancel $i}}
+
+  cleanupDb $fileName
+
+  unset -nocomplain result results errors code i count sql
+  unset -nocomplain dataSource id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result {^Ok\
+System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \d+ 1 0 False \{1 2 3 4 5 6\
+7 8\}$}}
+
+###############################################################################
+
+runTest {test busy-1.2 {busy with stop} -setup {
+  setupDb [set fileName busy-1.2.db]
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER);
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+    INSERT INTO t1 (x) VALUES(4);
+    SELECT x FROM t1 ORDER BY x;
+  }
+
+  set sql(1) { \
+    BEGIN EXCLUSIVE TRANSACTION; \
+    INSERT INTO t1 (x) VALUES(5); \
+    INSERT INTO t1 (x) VALUES(6); \
+    INSERT INTO t1 (x) VALUES(7); \
+    INSERT INTO t1 (x) VALUES(8); \
+    COMMIT TRANSACTION; \
+  }
+
+  set sql(2) { \
+    SELECT x FROM t1 ORDER BY x; \
+  }
+
+  set count(1) 1500; # main thread lock milliseconds
+  set count(2) [expr {($count(1) * 0.5) / 1000.0}]; # timeout in seconds
+  set count(3) 100; # event loop sleep milliseconds
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+    using System.Threading;
+    using Eagle._Components.Public;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        private static int count = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void MyBusyHandler(
+          object sender,
+          BusyEventArgs e
+          )
+        {
+          Interlocked.Increment(ref count);
+          e.ReturnCode = SQLiteBusyReturnCode.Stop;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void BusyWaitCallback(
+          object state
+          )
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties]"))
+          {
+            connection.Busy += MyBusyHandler;
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(1)}",
+                connection))
+            {
+              command.CommandTimeout = 0;
+
+              try
+              {
+                command.ExecuteNonQuery();
+              }
+              catch (SQLiteException)
+              {
+                // do nothing.
+              }
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static int Start(
+          Interpreter interpreter
+          )
+        {
+          ThreadPool.QueueUserWorkItem(
+              new WaitCallback(BusyWaitCallback));
+
+          DateTime start = DateTime.UtcNow;
+
+          while (true)
+          {
+            if (DateTime.UtcNow.Subtract(start).TotalSeconds >= ${count(2)})
+              break;
+
+            Result result = null;
+
+            if ((interpreter != null) && (interpreter.EvaluateScript(
+                "update", ref result) != ReturnCode.Ok))
+            {
+              Utility.Complain(interpreter, ReturnCode.Error, result);
+              break;
+            }
+
+            Thread.Sleep(${count(3)});
+          }
+
+          return Interlocked.CompareExchange(ref count, 0, 0);
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+
+  sql execute $db {BEGIN EXCLUSIVE TRANSACTION;}
+  after $count(1) [list sql execute $db {COMMIT TRANSACTION;}]
+
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Start ""
+      } result] : [set result ""]}] $result \
+      [expr {[string is integer -strict $result] && $result > 0 ? 1 : 0}] \
+      [llength [after info]] \
+      [vwait -force -timeout $test_timeout -- forever] \
+      [sql execute -execute reader -format list $db $sql(2)]
+} -cleanup {
+  catch {foreach i [after info] {after cancel $i}}
+
+  cleanupDb $fileName
+
+  unset -nocomplain result results errors code i count sql
+  unset -nocomplain dataSource id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result {^Ok\
+System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \d+ 1 1 False \{1 2 3 4\}$}}
+
+###############################################################################
+
+runTest {test busy-1.3 {busy with exception (retry)} -setup {
+  setupDb [set fileName busy-1.3.db]
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER);
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+    INSERT INTO t1 (x) VALUES(4);
+    SELECT x FROM t1 ORDER BY x;
+  }
+
+  set sql(1) { \
+    BEGIN EXCLUSIVE TRANSACTION; \
+    INSERT INTO t1 (x) VALUES(5); \
+    INSERT INTO t1 (x) VALUES(6); \
+    INSERT INTO t1 (x) VALUES(7); \
+    INSERT INTO t1 (x) VALUES(8); \
+    COMMIT TRANSACTION; \
+  }
+
+  set sql(2) { \
+    SELECT x FROM t1 ORDER BY x; \
+  }
+
+  set count(1) 1500; # main thread lock milliseconds
+  set count(2) [expr {($count(1) * 1.25) / 1000.0}]; # timeout in seconds
+  set count(3) 100; # event loop sleep milliseconds
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+    using System.Threading;
+    using Eagle._Components.Public;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        private static int count = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void MyBusyHandler(
+          object sender,
+          BusyEventArgs e
+          )
+        {
+          Interlocked.Increment(ref count);
+          throw new Exception();
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void BusyWaitCallback(
+          object state
+          )
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties]"))
+          {
+            connection.Busy += MyBusyHandler;
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(1)}",
+                connection))
+            {
+              command.CommandTimeout = 0;
+              command.ExecuteNonQuery();
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static int Start(
+          Interpreter interpreter
+          )
+        {
+          ThreadPool.QueueUserWorkItem(
+              new WaitCallback(BusyWaitCallback));
+
+          DateTime start = DateTime.UtcNow;
+
+          while (true)
+          {
+            if (DateTime.UtcNow.Subtract(start).TotalSeconds >= ${count(2)})
+              break;
+
+            Result result = null;
+
+            if ((interpreter != null) && (interpreter.EvaluateScript(
+                "update", ref result) != ReturnCode.Ok))
+            {
+              Utility.Complain(interpreter, ReturnCode.Error, result);
+              break;
+            }
+
+            Thread.Sleep(${count(3)});
+          }
+
+          return Interlocked.CompareExchange(ref count, 0, 0);
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+
+  sql execute $db {BEGIN EXCLUSIVE TRANSACTION;}
+  after $count(1) [list sql execute $db {COMMIT TRANSACTION;}]
+
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Start ""
+      } result] : [set result ""]}] $result \
+      [expr {[string is integer -strict $result] && $result > 0 ? 1 : 0}] \
+      [llength [after info]] \
+      [vwait -force -timeout $test_timeout -- forever] \
+      [sql execute -execute reader -format list $db $sql(2)]
+} -cleanup {
+  catch {foreach i [after info] {after cancel $i}}
+
+  cleanupDb $fileName
+
+  unset -nocomplain result results errors code i count sql
+  unset -nocomplain dataSource id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result {^Ok\
+System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \d+ 1 0 False \{1 2 3 4 5 6\
+7 8\}$}}
+
+###############################################################################
+
+runTest {test busy-1.4 {busy with exception (stop)} -setup {
+  setupDb [set fileName busy-1.4.db]
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER);
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+    INSERT INTO t1 (x) VALUES(4);
+    SELECT x FROM t1 ORDER BY x;
+  }
+
+  set sql(1) { \
+    BEGIN EXCLUSIVE TRANSACTION; \
+    INSERT INTO t1 (x) VALUES(5); \
+    INSERT INTO t1 (x) VALUES(6); \
+    INSERT INTO t1 (x) VALUES(7); \
+    INSERT INTO t1 (x) VALUES(8); \
+    COMMIT TRANSACTION; \
+  }
+
+  set sql(2) { \
+    SELECT x FROM t1 ORDER BY x; \
+  }
+
+  set count(1) 1500; # main thread lock milliseconds
+  set count(2) [expr {($count(1) * 0.5) / 1000.0}]; # timeout in seconds
+  set count(3) 100; # event loop sleep milliseconds
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+    using System.Threading;
+    using Eagle._Components.Public;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        private static int count = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void MyBusyHandler(
+          object sender,
+          BusyEventArgs e
+          )
+        {
+          Interlocked.Increment(ref count);
+          throw new Exception();
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void BusyWaitCallback(
+          object state
+          )
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties StopOnException]"))
+          {
+            connection.Busy += MyBusyHandler;
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(1)}",
+                connection))
+            {
+              command.CommandTimeout = 0;
+
+              try
+              {
+                command.ExecuteNonQuery();
+              }
+              catch (SQLiteException)
+              {
+                // do nothing.
+              }
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static int Start(
+          Interpreter interpreter
+          )
+        {
+          ThreadPool.QueueUserWorkItem(
+              new WaitCallback(BusyWaitCallback));
+
+          DateTime start = DateTime.UtcNow;
+
+          while (true)
+          {
+            if (DateTime.UtcNow.Subtract(start).TotalSeconds >= ${count(2)})
+              break;
+
+            Result result = null;
+
+            if ((interpreter != null) && (interpreter.EvaluateScript(
+                "update", ref result) != ReturnCode.Ok))
+            {
+              Utility.Complain(interpreter, ReturnCode.Error, result);
+              break;
+            }
+
+            Thread.Sleep(${count(3)});
+          }
+
+          return Interlocked.CompareExchange(ref count, 0, 0);
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+
+  sql execute $db {BEGIN EXCLUSIVE TRANSACTION;}
+  after $count(1) [list sql execute $db {COMMIT TRANSACTION;}]
+
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Start ""
+      } result] : [set result ""]}] $result \
+      [expr {[string is integer -strict $result] && $result > 0 ? 1 : 0}] \
+      [llength [after info]] \
+      [vwait -force -timeout $test_timeout -- forever] \
+      [sql execute -execute reader -format list $db $sql(2)]
+} -cleanup {
+  catch {foreach i [after info] {after cancel $i}}
+
+  cleanupDb $fileName
+
+  unset -nocomplain result results errors code i count sql
+  unset -nocomplain dataSource id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result {^Ok\
+System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \d+ 1 1 False \{1 2 3 4\}$}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

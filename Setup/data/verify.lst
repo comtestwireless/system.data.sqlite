@@ -814,6 +814,7 @@ set sds_manifests(source) {
   Tests/authorizer.eagle
   Tests/backup.eagle
   Tests/basic.eagle
+  Tests/busy.eagle
   Tests/data/
   Tests/data/Installer_Test_Vs2005.log
   Tests/data/Installer_Test_Vs2008.log

@@ -41,8 +41,18 @@ set version(revision)          5
 #       must be kept synchronized with the version numbers for the associated
 #       source code and property files.
 #
-set version(core,full) 3.36.0.0
-set version(core,short) 3.36.0
+set version(core,full) 3.37.0.0
+set version(core,short) 3.37.0
+set version(core,tag) trunk; # NOTE: May be same as "short".
+
+#
+# NOTE: What is the full URI for the included SQLite core library version?
+#
+set version(core,uri) [appendArgs (?: \
+    "https://www\\.sqlite\\.org/(?:draft/)?releaselog/" \
+    [string map [list . _] $version(core,short)] "\\.html" | \
+    "https://www\\.sqlite\\.org/src/info/\[0-9a-f\]{10,64}" \
+    )]
 
 ###############################################################################
 
@@ -257,13 +267,11 @@ unset -nocomplain patterns
 
 lappend patterns \
     [appendArgs \
-        "Using <a href=\"https://www\\.sqlite\\.org/(?:draft/)?releaselog/" \
-        [string map [list . _] $version(core,short)] "\\.html\">SQLite " \
-        [string map [list . \\.] $version(core,short)] </a>] \
+        "Using <a href=\"" $version(core,uri) "\">SQLite " \
+        [string map [list . \\.] $version(core,tag)] </a>] \
     [appendArgs \
-        " to <a href=\"https://www\\.sqlite\\.org/(?:draft/)?releaselog/" \
-        [string map [list . _] $version(core,short)] "\\.html\">SQLite " \
-        [string map [list . \\.] $version(core,short)] </a>] \
+        " to <a href=\"" $version(core,uri) "\">SQLite " \
+        [string map [list . \\.] $version(core,tag)] </a>] \
     [appendArgs Version " " [string map [list . \\.] $version(full)] " "] \
     [appendArgs <b> [string map [list . \\.] $version(full)] " - "] \
     [appendArgs Version= [string map [list . \\.] $version(full)] ,]
@@ -281,9 +289,8 @@ lappend patterns \
 
 lappend patterns \
     [appendArgs \
-        " to <a href=\"https://www\\.sqlite\\.org/(?:draft/)?releaselog/" \
-        [string map [list . _] $version(core,short)] "\\.html\">SQLite " \
-        [string map [list . \\.] $version(core,short)] </a>] \
+        " to <a href=\"" $version(core,uri) "\">SQLite " \
+        [string map [list . \\.] $version(core,tag)] </a>] \
     [appendArgs <b> [string map [list . \\.] $version(full)] " - "]
 
 ###############################################################################
@@ -1206,9 +1213,8 @@ lappend patterns \
 ###############################################################################
 
 lappend patterns \
-    [appendArgs " to \\\[https://www\\.sqlite\\.org/(?:draft/)?releaselog/" \
-        [string map [list . _] $version(core,short)] "\\.html|SQLite " \
-        [string map [list . \\.] $version(core,short)] \\\]] \
+    [appendArgs " to \\\[" $version(core,uri) "\\\|SQLite " \
+        [string map [list . \\.] $version(core,tag)] \\\]] \
     [appendArgs <b> [string map [list . \\.] $version(full)] " - "]
 
 ###############################################################################

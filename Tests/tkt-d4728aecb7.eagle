@@ -112,7 +112,7 @@ runTest {test tkt-d4728aecb7-1.2 {tokens in XML configuration file} -setup \
 
   set result
 } -cleanup {
-  catch {file delete $fileName}
+  catch {cleanupFile $fileName}
 
   unset -nocomplain result fileName
 

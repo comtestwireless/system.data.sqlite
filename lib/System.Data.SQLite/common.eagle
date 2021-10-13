@@ -3629,6 +3629,12 @@ namespace eval ::Eagle {
       }
 
       #
+      # NOTE: This procecure is now done with the database connection.  The
+      #       caller should be as well; therefore, unset it now.
+      #
+      unset -nocomplain db
+
+      #
       # NOTE: First, see if our caller has requested an in-memory database.
       #
       set isMemory [isMemoryDb $fileName]

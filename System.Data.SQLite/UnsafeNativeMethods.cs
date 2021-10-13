@@ -2851,8 +2851,8 @@ namespace System.Data.SQLite
 
       #region Native SQLite Library Helper Methods
       /// <summary>
-      /// Determines the file name (without any directory information)
-      /// for the native SQLite library that was loaded by this class.
+      /// Determines the (possibly fully qualified) file name for the native
+      /// SQLite library that was loaded by this class.
       /// </summary>
       /// <returns>
       /// The file name for the native SQLite library that was loaded by

@@ -331,6 +331,37 @@ namespace System.Data.SQLite
 #endif
     }
 
+    internal override string ColumnType(SQLiteStatement stmt, int index, ref TypeAffinity nAffinity)
+    {
+        int len;
+#if !SQLITE_STANDARD
+        len = 0;
+        IntPtr p = UnsafeNativeMethods.sqlite3_column_decltype16_interop(stmt._sqlite_stmt, index, ref len);
+#else
+        len = -1;
+        IntPtr p = UnsafeNativeMethods.sqlite3_column_decltype16(stmt._sqlite_stmt, index);
+#endif
+        nAffinity = ColumnAffinity(stmt, index);
+
+        if ((p != IntPtr.Zero) && ((len > 0) || (len == -1)))
+        {
+            string declType = UTF16ToString(p, len);
+
+            if (!String.IsNullOrEmpty(declType))
+                return declType;
+        }
+
+        string[] ar = stmt.TypeDefinitions;
+
+        if (ar != null)
+        {
+            if (index < ar.Length && ar[index] != null)
+                return ar[index];
+        }
+
+        return String.Empty;
+    }
+
     internal override string GetText(SQLiteStatement stmt, int index)
     {
 #if !SQLITE_STANDARD

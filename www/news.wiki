@@ -60,6 +60,7 @@
 <ul>
     <li>Updated to [https://www.sqlite.org/src/info/02656760406add06|SQLite trunk].</li>
     <li>Add Busy event to the SQLiteConnection class. Pursuant to forum post [https://www.sqlite.org/forum/forumpost/08a52f61fc|08a52f61fc].</li>
+    <li>Fix metadata UTF-16 string length calculations on Linux. Fix for forum post [https://www.sqlite.org/forum/forumpost/eeaefb84ec|eeaefb84ec].</li>
 </ul>
 <p>
     <b>1.0.115.0 - August 25, 2021</b>

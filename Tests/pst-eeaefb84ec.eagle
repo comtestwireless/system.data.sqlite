@@ -1,0 +1,77 @@
+###############################################################################
+#
+# pst-eeaefb84ec.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+set character(1) \U1F5FD; # NOTE: This is little-endian.
+set character(2) \U1F409; # NOTE: This is little-endian.
+
+###############################################################################
+
+runTest {test pst-eeaefb84ec-1.1 {UTF-16 string lengths} -setup {
+  set fileName pst-eeaefb84ec-1.1.db
+  setupDb $fileName "" "" "" "" UseUTF16Encoding=True
+} -body {
+  sql execute $db [appendArgs \
+      "CREATE TABLE t1(x TEXT, \"" $character(1) "\" \"" \
+      $character(2) "\");"]
+
+  sql execute $db [appendArgs \
+      "INSERT INTO t1 (x, \"" $character(1) "\") VALUES(?, ?);"] \
+      [list param1 String $character(1)] [list param2 String x]
+
+  set dataReader [sql execute -execute reader -format datareader \
+      -alias $db [appendArgs "SELECT x, \"" $character(1) "\" FROM t1;"]]
+
+  set result [list]
+
+  lappend result [sql execute -execute scalar $db "PRAGMA encoding;"]
+
+  while {[$dataReader Read]} {
+    lappend result \
+        [list [$dataReader GetName 0] [$dataReader GetOrdinal x] \
+            [$dataReader GetDataTypeName 0] [$dataReader GetDatabaseName 0] \
+            [$dataReader GetTableName 0] [$dataReader GetOriginalName 0] \
+            [$dataReader Item x]] \
+        [list [$dataReader GetName 1] [$dataReader GetOrdinal $character(1)] \
+            [$dataReader GetDataTypeName 1] [$dataReader GetDatabaseName 1] \
+            [$dataReader GetTableName 1] [$dataReader GetOriginalName 1] \
+            [$dataReader Item $character(1)]]
+  }
+
+  set result
+} -cleanup {
+  unset -nocomplain dataReader
+
+  cleanupDb $fileName
+
+  unset -nocomplain result db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite} -result [list UTF-16le [list x 0 TEXT main t1 x \
+$character(1)] [list $character(1) 1 $character(2) main t1 $character(1) x]]}
+
+###############################################################################
+
+unset -nocomplain character
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

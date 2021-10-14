@@ -44,6 +44,7 @@
 #define VOLATILE volatile
 #endif
 #else
+#define VOLATILE volatile
 typedef long LONG;
 #define InterlockedIncrement(p) (*((LONG*)(p)))++
 #define InterlockedDecrement(p) (*((LONG*)(p)))--
@@ -190,6 +191,32 @@ static const char * const azInteropCompileOpt[] = {
   "VIRTUAL_TABLE",
 #endif
 };
+
+/*
+** Returns the number of 16-bit code points present in the specified
+** string pointer, stopping when a zero terminator is found.  If the
+** string pointer is NULL, the return value is undefined.
+*/
+size_t u16_str_len(const u16 *str){
+  size_t len = 0;
+  if( str!=NULL ){ while( (*str)!=0 ){ str++; len++; } }
+  return len;
+}
+
+/*
+** Returns the number of code points present in the specified string
+** pointer, stopping when a zero terminator is found.  If the string
+** pointer is NULL, the return value is undefined.
+*/
+size_t utf16_str_len(const void *str){
+  assert( sizeof(u16)==2 );
+#if SQLITE_OS_WIN
+  assert( sizeof(wchar_t)==sizeof(u16) );
+  return wcslen((wchar_t *)str);
+#else
+  return u16_str_len((u16 *)str);
+#endif
+}
 
 /*
 ** Given the name of a compile-time option, return true if that option
@@ -568,16 +595,16 @@ SQLITE_API int WINAPI sqlite3_prepare16_interop(sqlite3 *db, const void *sql, in
 #endif
 
 #if SQLITE_VERSION_NUMBER >= 3003009
-  n = sqlite3_prepare16_v2(db, sql, nchars * sizeof(wchar_t), ppstmt, pztail);
+  n = sqlite3_prepare16_v2(db, sql, nchars * sizeof(u16), ppstmt, pztail);
 #else
-  n = sqlite3_prepare16(db, sql, nchars * sizeof(wchar_t), ppstmt, pztail);
+  n = sqlite3_prepare16(db, sql, nchars * sizeof(u16), ppstmt, pztail);
 #endif
 
 #if defined(INTEROP_DEBUG) && (INTEROP_DEBUG & INTEROP_DEBUG_PREPARE16)
   sqlite3InteropDebug("[%d] sqlite3_prepare_interop(): sqlite3_prepare16(%p, \"%s\", %d, %p) returned %d.\n", GETPID(), db, sql, nchars, ppstmt, n);
 #endif
 
-  if (plen) *plen = (pztail && *pztail) ? wcslen((wchar_t *)*pztail) * sizeof(wchar_t) : 0;
+  if (plen) *plen = (pztail && *pztail) ? utf16_str_len(*pztail) * sizeof(u16) : 0;
 
   return n;
 }
@@ -682,7 +709,7 @@ SQLITE_API const char * WINAPI sqlite3_column_name_interop(sqlite3_stmt *stmt, i
 SQLITE_API const void * WINAPI sqlite3_column_name16_interop(sqlite3_stmt *stmt, int iCol, int *plen)
 {
   const void *pval = sqlite3_column_name16(stmt, iCol);
-  if (plen) *plen = pval ? wcslen((wchar_t *)pval) * sizeof(wchar_t) : 0;
+  if (plen) *plen = pval ? utf16_str_len(pval) * sizeof(u16) : 0;
   return pval;
 }
 
@@ -696,7 +723,7 @@ SQLITE_API const char * WINAPI sqlite3_column_decltype_interop(sqlite3_stmt *stm
 SQLITE_API const void * WINAPI sqlite3_column_decltype16_interop(sqlite3_stmt *stmt, int iCol, int *plen)
 {
   const void *pval = sqlite3_column_decltype16(stmt, iCol);
-  if (plen) *plen = pval ? wcslen((wchar_t *)pval) * sizeof(wchar_t) : 0;
+  if (plen) *plen = pval ? utf16_str_len(pval) * sizeof(u16) : 0;
   return pval;
 }
 
@@ -978,7 +1005,7 @@ SQLITE_API const char * WINAPI sqlite3_column_database_name_interop(sqlite3_stmt
 SQLITE_API const void * WINAPI sqlite3_column_database_name16_interop(sqlite3_stmt *stmt, int iCol, int *plen)
 {
   const void *pval = sqlite3_column_database_name16(stmt, iCol);
-  if (plen) *plen = pval ? wcslen((wchar_t *)pval) * sizeof(wchar_t) : 0;
+  if (plen) *plen = pval ? utf16_str_len(pval) * sizeof(u16) : 0;
   return pval;
 }
 
@@ -992,7 +1019,7 @@ SQLITE_API const char * WINAPI sqlite3_column_table_name_interop(sqlite3_stmt *s
 SQLITE_API const void * WINAPI sqlite3_column_table_name16_interop(sqlite3_stmt *stmt, int iCol, int *plen)
 {
   const void *pval = sqlite3_column_table_name16(stmt, iCol);
-  if (plen) *plen = pval ? wcslen((wchar_t *)pval) * sizeof(wchar_t) : 0;
+  if (plen) *plen = pval ? utf16_str_len(pval) * sizeof(u16) : 0;
   return pval;
 }
 
@@ -1006,7 +1033,7 @@ SQLITE_API const char * WINAPI sqlite3_column_origin_name_interop(sqlite3_stmt *
 SQLITE_API const void * WINAPI sqlite3_column_origin_name16_interop(sqlite3_stmt *stmt, int iCol, int *plen)
 {
   const void *pval = sqlite3_column_origin_name16(stmt, iCol);
-  if (plen) *plen = pval ? wcslen((wchar_t *)pval) * sizeof(wchar_t) : 0;
+  if (plen) *plen = pval ? utf16_str_len(pval) * sizeof(u16) : 0;
   return pval;
 }
 

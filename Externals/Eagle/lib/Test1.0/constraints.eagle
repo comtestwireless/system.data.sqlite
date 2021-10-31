@@ -45,8 +45,8 @@ namespace eval ::Eagle {
         CACHE_ARGUMENTLIST_TOSTRING CACHE_DICTIONARY CACHE_RESULT_TOSTRING \
         CACHE_STATISTICS CACHE_STRINGLIST_TOSTRING CALLBACK_QUEUE CAS_POLICY \
         CERTIFICATE_PLUGIN CERTIFICATE_POLICY CERTIFICATE_RENEWAL \
-        CODE_ANALYSIS COM_TYPE_CACHE CONFIGURATION CONSOLE DAEMON DATA \
-        DEAD_CODE DEBUG DEBUGGER DEBUGGER_ARGUMENTS DEBUGGER_ENGINE \
+        CODE_ANALYSIS COMPRESSION COM_TYPE_CACHE CONFIGURATION CONSOLE DAEMON \
+        DATA DEAD_CODE DEBUG DEBUGGER DEBUGGER_ARGUMENTS DEBUGGER_ENGINE \
         DEBUGGER_EXECUTE DEBUGGER_EXPRESSION DEBUGGER_VARIABLE DEBUG_TRACE \
         DEBUG_WRITE DEMO_EDITION DRAWING DYNAMIC EAGLE EMBEDDED_LIBRARY \
         EMBED_CERTIFICATES EMIT ENTERPRISE_LOCKDOWN EXECUTE_CACHE \
@@ -170,7 +170,8 @@ namespace eval ::Eagle {
     }
 
     if {$force || ![info exists ::no(dotNetCoreVersions)]} then {
-      return [list [list 2 0] [list 2 1] [list 2 2] [list 3 0]]
+      return [list [list 2 0] [list 2 1] [list 2 2] [list 3 0] \
+          [list 3 1] [list 5 0]]
     } else {
       return [list]
     }
@@ -3203,18 +3204,18 @@ namespace eval ::Eagle {
     tputs $channel no\n
   }
 
-  proc checkForCompileOption { channel option } {
+  proc checkForCompileOption { channel name } {
     tputs $channel [appendArgs "---- checking for compile option \"" \
-        $option "\"... "]
+        $name "\"... "]
 
     if {[isEagle]} then {
       if {[info exists ::eagle_platform(compileOptions)] && \
           [lsearch -exact -nocase $::eagle_platform(compileOptions) \
-              $option] != -1} then {
+              $name] != -1} then {
         #
         # NOTE: Yes, support for the Eagle compile option is present.
         #
-        addConstraint [appendArgs compile. $option]
+        addConstraint [appendArgs compile. $name]
 
         tputs $channel yes\n
       } else {
@@ -3232,11 +3233,11 @@ namespace eval ::Eagle {
             ::eagle_platform(compileOptions)] ? \
             $::eagle_platform(compileOptions) : [list]}]]
 
-        if {[lsearch -exact $options $option] != -1} then {
+        if {[lsearch -exact $options $name] != -1} then {
           #
           # NOTE: Yes, support for the Eagle compile option is present.
           #
-          addConstraint [appendArgs compile. $option]
+          addConstraint [appendArgs compile. $name]
 
           tputs $channel yes\n
 
@@ -3247,6 +3248,126 @@ namespace eval ::Eagle {
         }
       }
 
+      tputs $channel no\n
+    }
+  }
+
+  proc checkForBuildType { channel name } {
+    tputs $channel [appendArgs "---- checking for build type \"" \
+        $name "\"... "]
+
+    if {[isEagle]} then {
+      if {[string length $name] > 0} then {
+        if {[info exists ::eagle_platform(text)] && \
+            $name eq $::eagle_platform(text)} then {
+          addConstraint [appendArgs buildTypeText. $name]
+          addConstraint [appendArgs buildType. $name]
+
+          tputs $channel [appendArgs \
+              "yes (" $name ", found via text)\n"]
+        } elseif {[info exists ::eagle_platform(suffix)] && \
+            $name eq $::eagle_platform(suffix)} then {
+          addConstraint [appendArgs buildTypeSuffix. $name]
+          addConstraint [appendArgs buildType. $name]
+
+          tputs $channel [appendArgs \
+              "yes (" $name ", found via suffix)\n"]
+        } else {
+          tputs $channel no\n
+        }
+      } else {
+        if {(![info exists ::eagle_platform(text)] || \
+              [string length $::eagle_platform(text)] == 0) && \
+            (![info exists ::eagle_platform(suffix)] || \
+              [string length $::eagle_platform(suffix)] == 0)} then {
+          addConstraint buildType.Default
+
+          tputs $channel yes\n
+        } else {
+          tputs $channel no\n
+        }
+      }
+    } else {
+      if {[llength [info commands eagle]] > 0} then {
+        if {[eagle [list info exists ::eagle_platform(text)]]} then {
+          set text [eagle [list set ::eagle_platform(text)]]
+        }
+
+        if {[eagle [list info exists ::eagle_platform(suffix)]]} then {
+          set suffix [eagle [list set ::eagle_platform(suffix)]]
+        }
+
+        if {[string length $name] > 0} then {
+          if {[info exists text] && $name eq $text} then {
+            addConstraint [appendArgs buildTypeText. $name]
+            addConstraint [appendArgs buildType. $name]
+
+            tputs $channel [appendArgs \
+                "yes (" $name ", found via text)\n"]
+
+            #
+            # NOTE: We are done here, return now.
+            #
+            return
+          } elseif {[info exists suffix] && $name eq $suffix} then {
+            addConstraint [appendArgs buildTypeSuffix. $name]
+            addConstraint [appendArgs buildType. $name]
+
+            tputs $channel [appendArgs \
+                "yes (" $name ", found via suffix)\n"]
+
+            #
+            # NOTE: We are done here, return now.
+            #
+            return
+          }
+        } else {
+          if {(![info exists text] || \
+                [string length $text] == 0) && \
+              (![info exists suffix] || \
+                [string length $suffix] == 0)} then {
+            addConstraint buildType.Default
+
+            tputs $channel yes\n
+
+            #
+            # NOTE: We are done here, return now.
+            #
+            return
+          }
+        }
+      }
+
+      tputs $channel no\n
+    }
+  }
+
+  proc checkForKnownBuildTypes { channel } {
+    #
+    # NOTE: Check for all "known" build types.
+    #
+    tputs $channel "---- checking for known build types... "
+
+    set buildTypes [getKnownBuildTypes]
+    lappend buildTypes ""; # HACK: Add default build type.
+
+    if {[llength $buildTypes] > 0} then {
+      tputs $channel [appendArgs "yes (" [llength $buildTypes] ")\n"]
+
+      foreach buildType $buildTypes {
+        if {[string length $buildType] > 0} then {
+          if {[info exists [appendArgs ::no(buildType. $buildType )]]} then {
+            continue
+          }
+        } else {
+          if {[info exists ::no(buildType.Default)]} then {
+            continue
+          }
+        }
+
+        checkForBuildType $channel $buildType
+      }
+    } else {
       tputs $channel no\n
     }
   }
@@ -3327,6 +3448,81 @@ namespace eval ::Eagle {
       }
 
       return $count
+    }
+
+    proc getUnicodeCategoryCode { category } {
+      array set codes [list \
+          UppercaseLetter            Lu \
+          LowercaseLetter            Ll \
+          TitlecaseLetter            Lt \
+          ModifierLetter             Lm \
+          OtherLetter                Lo \
+          NonSpacingMark             Mn \
+          SpacingCombiningMark       Mc \
+          EnclosingMark              Me \
+          DecimalDigitNumber         Nd \
+          LetterNumber               Nl \
+          OtherNumber                No \
+          SpaceSeparator             Zs \
+          LineSeparator              Zl \
+          ParagraphSeparator         Zp \
+          Control                    Cc \
+          Format                     Cf \
+          Surrogate                  Cs \
+          PrivateUse                 Co \
+          ConnectorPunctuation       Pc \
+          DashPunctuation            Pd \
+          OpenPunctuation            Ps \
+          ClosePunctuation           Pe \
+          InitialQuotePunctuation    Pi \
+          FinalQuotePunctuation      Pf \
+          OtherPunctuation           Po \
+          MathSymbol                 Sm \
+          CurrencySymbol             Sc \
+          ModifierSymbol             Sk \
+          OtherSymbol                So \
+          OtherNotAssigned           Cn]
+
+      if {[info exists codes($category)]} then {
+        return $codes($category)
+      } else {
+        return Xx; # NOTE: Unknown.
+      }
+    }
+
+    proc checkForUnicodeCategory { channel character wantCode } {
+      set ordinal [string ordinal $character 0]
+
+      tputs $channel [appendArgs \
+          "---- checking for Unicode category of \"" \
+          [format U+%04X $ordinal] "\"... "]
+
+      if {[catch {
+        object invoke Char GetUnicodeCategory $character 0
+      } category] == 0} then {
+        set haveCode [getUnicodeCategoryCode $category]
+
+        addConstraint [appendArgs \
+            unicodeCategory_ [format U%04X $ordinal] \
+            _ $haveCode]
+
+        if {$haveCode eq $wantCode} then {
+          tputs $channel [appendArgs \
+              "yes (" $category " ==> " $haveCode \
+              ", CORRECT)\n"]
+        } else {
+          tputs $channel [appendArgs \
+              "yes (" $category " ==> " $haveCode \
+              ", INCORRECT, WANT " $wantCode ")\n"]
+        }
+
+        #
+        # NOTE: We are done here, return now.
+        #
+        return
+      }
+
+      tputs $channel no\n
     }
 
     proc checkForGlobalTip285 { channel } {
@@ -4527,7 +4723,7 @@ namespace eval ::Eagle {
         #
         # NOTE: Yes, support for object reference count tracking is present.
         #
-        addConstraint refCount
+        addConstraint referenceCounts
 
         tputs $channel yes\n
       } else {
@@ -6520,7 +6716,8 @@ namespace eval ::Eagle {
         checkForMemoryIntensive checkForStackIntensive checkForStackSize \
         checkForInteractive checkForInteractiveCommand \
         checkForUserInteraction checkForNetwork checkForInternet \
-        checkForCompileOption checkForKnownCompileOptions] false false
+        checkForCompileOption checkForBuildType checkForKnownBuildTypes \
+        checkForKnownCompileOptions] false false
 
     ###########################################################################
     ############################## END Tcl ONLY ###############################

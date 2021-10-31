@@ -1350,6 +1350,25 @@ if {![info exists no([file tail [info script]])]} then {
         "---- start of Eagle specific test constraints...\n"
 
     #
+    # NOTE: Check various Unicode character categories against
+    #       the official standard (and the non-standard values
+    #       that were used in previous versions of .NET).
+    #
+    if {![info exists no(unicodeCategory)]} then {
+      checkForUnicodeCategory $test_channel \u0009 Cc; # "HT"
+      checkForUnicodeCategory $test_channel \u00A7 So; # "SECT"
+      checkForUnicodeCategory $test_channel \u00A7 Po; # "SECT"
+      checkForUnicodeCategory $test_channel \u00AA Ll; # "ORDF"
+      checkForUnicodeCategory $test_channel \u00AA Lo; # "ORDF"
+      checkForUnicodeCategory $test_channel \u00AD Pd; # "SHY"
+      checkForUnicodeCategory $test_channel \u00AD Cf; # "SHY"
+      checkForUnicodeCategory $test_channel \u00B6 So; # "PARA"
+      checkForUnicodeCategory $test_channel \u00B6 Po; # "PARA"
+      checkForUnicodeCategory $test_channel \u00BA Ll; # "ORDM"
+      checkForUnicodeCategory $test_channel \u00BA Lo; # "ORDM"
+    }
+
+    #
     # NOTE: Do [interp cancel] and [interp resetcancel] support
     #       the -global option?
     #
@@ -1669,12 +1688,32 @@ if {![info exists no([file tail [info script]])]} then {
     # NOTE: Has object handle reference count tracking support been disabled
     #       (at compile-time)?
     #
-    if {![info exists no(refCount)]} then {
+    if {![info exists no(referenceCounts)]} then {
       #
       # NOTE: For tests "excel-*", "object-2.*", "object-7.1", "object-8.*",
       #       and "object-98.*".
       #
       checkForReferenceCountTracking $test_channel
+    }
+
+    #
+    # NOTE: Has build type testing support been disabled?
+    #
+    if {![info exists no(buildTypes)]} then {
+      #
+      # NOTE: Has "known" build type testing support been disabled?
+      #
+      if {![info exists no(knownBuildTypes)]} then {
+        #
+        # NOTE: Check for all "known" compile options.
+        #
+        checkForKnownBuildTypes $test_channel
+      } else {
+        #
+        # NOTE: Nothing is currently done here.  All supported build
+        #       types are considered "well-known".
+        #
+      }
     }
 
     #
@@ -3346,6 +3385,26 @@ if {![info exists no([file tail [info script]])]} then {
         "---- start of Tcl specific test constraints...\n"
 
     #
+    # NOTE: Has build type testing support been disabled?
+    #
+    if {![info exists no(buildTypes)]} then {
+      #
+      # NOTE: Has "known" build type testing support been disabled?
+      #
+      if {![info exists no(knownBuildTypes)]} then {
+        #
+        # NOTE: Check for all "known" compile options.
+        #
+        checkForKnownBuildTypes $test_channel
+      } else {
+        #
+        # NOTE: Nothing is currently done here.  All supported build
+        #       types are considered "well-known".
+        #
+      }
+    }
+
+    #
     # NOTE: Has compile/runtime option testing support been disabled?
     #
     if {![info exists no(compileOptions)]} then {
@@ -3686,10 +3745,14 @@ if {![info exists no([file tail [info script]])]} then {
     }
 
     #
-    # NOTE: For test "interp-1.10".
+    # NOTE: For tests "interp-1.10.*" and "interp-1.11.*".
     #
     if {![info exists no(settings.xml)]} then {
       checkForFile $test_channel [file join $test_data_path settings.xml]
+    }
+
+    if {![info exists no(settings.ini)]} then {
+      checkForFile $test_channel [file join $test_data_path settings.ini]
     }
 
     #
@@ -4456,6 +4519,7 @@ if {![info exists no([file tail [info script]])]} then {
     checkForOperatingSystemUpdate $test_channel "May 2020 Update"
     checkForOperatingSystemUpdate $test_channel "October 2020 Update"
     checkForOperatingSystemUpdate $test_channel "May 2021 Update"
+    checkForOperatingSystemUpdate $test_channel "22000 RTM 21H2"
   }
 
   #############################################################################
@@ -4633,6 +4697,16 @@ if {![info exists no([file tail [info script]])]} then {
   # NOTE: Load the test settings file(s) now, if any.
   #
   loadTestSettings $test_channel
+
+  #
+  # NOTE: Next, before doing *anything* else, remove all global variables
+  #       that are not built-in, specifically allowed for use within the
+  #       test suite, or specifically reserved for user-defined overrides.
+  #
+  if {![info exists no(cleanState)]} then {
+    tputs $test_channel [appendArgs "---- cleaned up global state: " \
+        [formatList [cleanState] <none>] \n]
+  }
 
   #
   # NOTE: Show when the tests actually began (now).

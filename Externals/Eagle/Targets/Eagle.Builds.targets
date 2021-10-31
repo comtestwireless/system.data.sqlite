@@ -262,6 +262,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx45</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -321,6 +322,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx451</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -382,6 +384,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx452</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -443,6 +446,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx46</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -502,6 +506,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx461</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -561,6 +566,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx462</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -622,6 +628,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx47</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -683,6 +690,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx471</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -744,6 +752,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx472</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -805,6 +814,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleCasPolicy Condition="'$(EagleCasPolicy)' == ''">true</EagleCasPolicy>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetFx48</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleEmbeddedLibrary Condition="'$(EagleEmbeddedLibrary)' == ''">true</EagleEmbeddedLibrary>
@@ -863,6 +873,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleConfiguration Condition="'$(EagleConfiguration)' == ''">false</EagleConfiguration>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetStandard20</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleDrawing Condition="'$(EagleDrawing)' == ''">false</EagleDrawing>
@@ -920,6 +931,7 @@
     <EagleAuthenticodeSign32BitOnly Condition="'$(EagleAuthenticodeSign32BitOnly)' == ''">true</EagleAuthenticodeSign32BitOnly>
     <EagleCacheDictionary Condition="'$(EagleCacheDictionary)' == ''">true</EagleCacheDictionary>
     <EagleConfiguration Condition="'$(EagleConfiguration)' == ''">false</EagleConfiguration>
+    <EagleCompression Condition="'$(EagleCompression)' == ''">true</EagleCompression>
     <EagleConfigurationSuffix Condition="'$(EagleConfigurationSuffix)' == ''">NetStandard21</EagleConfigurationSuffix>
     <EagleDebuggerExpression Condition="'$(EagleDebuggerExpression)' == ''">false</EagleDebuggerExpression>
     <EagleDrawing Condition="'$(EagleDrawing)' == ''">false</EagleDrawing>

@@ -919,6 +919,14 @@
     <EagleMonoLegacy Condition="'$(EagleMonoLegacy)' == ''">true</EagleMonoLegacy>
 
     <!--
+        NOTE: Allow use of System.IO.Compression.FileSystem?  By default, this
+              is disabled because it is not available until the .NET Framework
+              4.5.  If this is enabled, functionality related to handling zip
+              files will be included.
+    -->
+    <EagleCompression Condition="'$(EagleCompression)' == ''">false</EagleCompression>
+
+    <!--
         NOTE: Allow use of System.Configuration?  By default, this is enabled.
               If this is disabled, some features will be unavailable.
     -->

@@ -20,6 +20,215 @@
 #       namespace if this script actually ends up being evaluated in Tcl.
 #
 namespace eval ::Eagle {
+  proc getKnownTclVariables {} {
+    #
+    # HACK: If the caller is not the global frame (somehow?), then return
+    #       nothing, as we can only handle global variables.
+    #
+    if {[uplevel 1 [list info level]] != 0} then {
+      return [list]
+    }
+
+    #
+    # HACK: This is the list of documented global variables that are used
+    #       by the Tcl core library and/or its shell (on any platform).
+    #       Please refer to the following web pages:
+    #
+    #       https://www.tcl.tk/man/tcl/TclCmd/tclvars.htm
+    #       https://wiki.tcl.tk/tclvars
+    #
+    return [list \
+        argc \
+        argv \
+        argv0 \
+        auto_execs \
+        auto_index \
+        auto_noexec \
+        auto_noload \
+        auto_oldpath \
+        auto_path \
+        env \
+        errorCode \
+        errorInfo \
+        tclDefaultLibrary \
+        tcl_interactive \
+        tcl_libpath \
+        tcl_library \
+        tcl_patchLevel \
+        tcl_pkgPath \
+        tcl_platform \
+        tcl_precision \
+        tcl_rcFileName \
+        tcl_rcRsrcName \
+        tcl_traceCompile \
+        tcl_traceExec \
+        tcl_version \
+        tcl_wordchars \
+        tcl_nonwordchars \
+        unknown_pending]
+  }
+
+  proc getKnownTestVariables {} {
+    #
+    # HACK: If the caller is not the global frame (somehow?), then return
+    #       nothing, as we can only handle global variables.
+    #
+    if {[uplevel 1 [list info level]] != 0} then {
+      return [list]
+    }
+
+    return [list \
+        path \
+        test_all_path \
+        test_base_cops \
+        test_base_cops_multipliers \
+        test_break_on_leak \
+        test_channel \
+        test_configuration \
+        test_constraints \
+        test_cops \
+        test_data_path \
+        test_database \
+        test_database_subst \
+        test_database_table \
+        test_database_type \
+        test_exit_on_complete \
+        test_file \
+        test_flags \
+        test_home_path \
+        test_host \
+        test_join_timeout \
+        test_listed_leaks \
+        test_log \
+        test_log_id \
+        test_log_path \
+        test_log_queue \
+        test_log_sentry \
+        test_long_timeout \
+        test_machine \
+        test_mdas \
+        test_name_prefix \
+        test_package_path \
+        test_path \
+        test_platform \
+        test_port \
+        test_puts_state \
+        test_random_order \
+        test_repository_file \
+        test_repository_url \
+        test_run_id \
+        test_script \
+        test_settings_path \
+        test_statistics \
+        test_stop_on_failure \
+        test_stop_on_leak \
+        test_stress_count \
+        test_suffix \
+        test_suite \
+        test_suite_errors \
+        test_suite_file \
+        test_suite_running \
+        test_tclsh \
+        test_tclsh_verbose \
+        test_threshold \
+        test_timeout \
+        test_timestamp \
+        test_uncounted_leaks \
+        test_visual_studio \
+        test_verbose \
+        test_volume \
+        test_wait \
+        test_well_known \
+        test_wix]
+  }
+
+  proc getKnownOtherVariables {} {
+    #
+    # HACK: If the caller is not the global frame (somehow?), then return
+    #       nothing, as we can only handle global variables.
+    #
+    if {[uplevel 1 [list info level]] != 0} then {
+      return [list]
+    }
+
+    return [list \
+        base_path \
+        bin_file \
+        bin_path \
+        core_bin_path \
+        core_lib_path \
+        key_path \
+        lib_path \
+        native_lib_path \
+        no \
+        root_path]
+  }
+
+  proc cleanState {
+          {namespaceName ""} {excludePatterns ""} {noTest false}
+          {noOther false} } {
+    set result [list]
+
+    if {[string length $namespaceName] > 0} then {
+      set command(all) [list \
+          info vars [appendArgs $namespaceName ::*]]
+
+      if {[isEagle]} then {
+        set command(sys) [list \
+            info sysvars [appendArgs $namespaceName ::*]]
+      } else {
+        #
+        # BUGBUG: There are no documented built-in
+        #         script variables that reside in
+        #         non-global namespaces within the
+        #         native Tcl implementation.
+        #
+        # TODO: This may change in the future.
+        #
+        set command(sys) [list]
+      }
+    } else {
+      set command(all) [list info vars]
+
+      if {[isEagle]} then {
+        set command(sys) [list info sysvars]
+      } else {
+        set command(sys) [list getKnownTclVariables]
+      }
+    }
+
+    set varNames(all) [uplevel 1 $command(all)]
+    set varNames(sys) [uplevel 1 $command(sys)]
+
+    if {!$noTest} then {
+      eval lappend varNames(sys) [uplevel 1 getKnownTestVariables]
+    }
+
+    if {!$noOther} then {
+      eval lappend varNames(sys) [uplevel 1 getKnownOtherVariables]
+    }
+
+    foreach varName $varNames(all) {
+      if {[inverseLsearchGlob false $excludePatterns $varName] == -1 && \
+          [lsearch -exact $varNames(sys) $varName] == -1} then {
+        #
+        # NOTE: Remove the variable from the target call frame, ignoring
+        #       any errors and then add the variable name to the overall
+        #       result of this procedure.
+        #
+        if {[catch {
+          uplevel 1 [list unset -nocomplain $varName]
+        } error] == 0} then {
+          lappend result [list $varName ok]
+        } else {
+          lappend result [list $varName error $error]
+        }
+      }
+    }
+
+    return $result
+  }
+
   proc dumpState { {namespaceName ""} } {
     set result [list]
 
@@ -30,7 +239,9 @@ namespace eval ::Eagle {
       set command [list info vars]
     }
 
-    foreach varName [lsort [uplevel 1 $command]] {
+    set varNames [lsort [uplevel 1 $command]]
+
+    foreach varName $varNames {
       if {[uplevel 1 [list array exists $varName]]} then {
         lappend result $varName [list \
             array [uplevel 1 [list array get $varName]]]
@@ -1036,8 +1247,8 @@ namespace eval ::Eagle {
       #       representing the TimeSpan instance created based on that
       #       same number of seconds.
       #
-      return [appendArgs $seconds " seconds (" [$timeSpan ToString] \
-          " elapsed time)"]
+      return [appendArgs $seconds " seconds (" \
+          [getStringFromObjectHandle $timeSpan] " elapsed time)"]
     } else {
       #
       # NOTE: Unfortunately, there is no built-in native Tcl command
@@ -2590,7 +2801,7 @@ namespace eval ::Eagle {
           1.0.6018.45959 1.0.6119.57133 1.0.6120.16902 1.0.6234.51946 \
           1.0.6483.12345 1.0.6543.58654 1.0.6781.49000 1.0.6781.49042 \
           1.0.6848.11041 1.0.7213.50727 1.0.7579.30319 1.0.7790.43198 \
-          1.0.7897.33333 1.0.7900.33333]
+          1.0.7897.33333 1.0.7900.33333 1.0.7945.33333]
     } else {
       return [list]
     }
@@ -5761,7 +5972,8 @@ namespace eval ::Eagle {
     #       namespace as well.
     #
     exportAndImportPackageCommands [namespace current] [list \
-        dumpState needTestDoEvents testDoEvents trawputs \
+        getKnownTclVariables getKnownTestVariables getKnownOtherVariables \
+        cleanState dumpState needTestDoEvents testDoEvents trawputs \
         doesTestOutputRepeat toneputs tputs ttclLog doesTestLogFileExist \
         getTestLogStartSentry readTestLogStartSentry \
         extractTestRunIdFromLogStartSentry doesTestLogHaveStartSentry \

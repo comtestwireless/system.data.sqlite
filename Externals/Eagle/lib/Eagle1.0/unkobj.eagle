@@ -84,12 +84,13 @@ namespace eval ::Eagle {
         #       caller) and attempt to invoke the specified static object
         #       method with the final list of merged arguments.
         #
-        return [uplevel [expr {$level + 1}] [$arguments3 ToString]]
+        return [uplevel [expr {$level + 1}] \
+            [getStringFromObjectHandle $arguments3]]
       } else {
         #
         # NOTE: Failed to merge the arguments, raise an error.
         #
-        error [$error ToString]
+        error [getStringFromObjectHandle $error]
       }
     }
 

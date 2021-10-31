@@ -236,7 +236,7 @@ namespace eval ::Eagle {
             Value GetAnyType "" $name null null None $cultureInfo \
             type]
 
-        if {[$code ToString] eq "Ok"} then {
+        if {[getStringFromObjectHandle $code] eq "Ok"} then {
           if {[string length $typeVarName] > 0} then {
             upvar 1 $typeVarName typeName
           }
@@ -266,7 +266,7 @@ namespace eval ::Eagle {
                   Value GetAnyType "" $rangeName null null None \
                   $cultureInfo type]
 
-              if {[$code ToString] eq "Ok"} then {
+              if {[getStringFromObjectHandle $code] eq "Ok"} then {
                 if {[string length $typeVarName] > 0} then {
                   upvar 1 $typeVarName typeName
                 }

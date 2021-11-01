@@ -111,6 +111,7 @@ Core\syntax\simple-select-stmt.html
 Core\syntax\sql-stmt-list.html
 Core\syntax\sql-stmt.html
 Core\syntax\table-constraint.html
+Core\syntax\table-options.html
 Core\syntax\table-or-subquery.html
 Core\syntax\type-name.html
 Core\syntax\update-stmt-limited.html

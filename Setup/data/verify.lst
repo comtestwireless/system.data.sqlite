@@ -127,6 +127,7 @@ set sds_manifests(source) {
   Doc/Extra/Core/syntax/sql-stmt-list.html
   Doc/Extra/Core/syntax/sql-stmt.html
   Doc/Extra/Core/syntax/table-constraint.html
+  Doc/Extra/Core/syntax/table-options.html
   Doc/Extra/Core/syntax/table-or-subquery.html
   Doc/Extra/Core/syntax/type-name.html
   Doc/Extra/Core/syntax/update-stmt-limited.html

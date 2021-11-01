@@ -111,6 +111,7 @@ set fileNames [list \
     [file join syntax sql-stmt-list.html] \
     [file join syntax sql-stmt.html] \
     [file join syntax table-constraint.html] \
+    [file join syntax table-options.html] \
     [file join syntax table-or-subquery.html] \
     [file join syntax type-name.html] \
     [file join syntax update-stmt-limited.html] \

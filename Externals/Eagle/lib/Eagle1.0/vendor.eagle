@@ -498,6 +498,12 @@ namespace eval ::Eagle {
     set no(System.Data.SQLite) 1
 
     #
+    # NOTE: Prevent our custom global variables from being removed by the
+    #       Eagle core library test suite infrastructure.
+    #
+    set no(cleanState) 1
+
+    #
     # NOTE: Make the per-test connection flags output a little less noisy.
     #
     set no(emitLocalFlagsIfNone) 1

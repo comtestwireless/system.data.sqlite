@@ -697,7 +697,7 @@ extern int sqlite3_fts5_may_be_corrupt;
 ** A version of memcmp() that does not cause asan errors if one of the pointer
 ** parameters is NULL and the number of bytes to compare is zero.
 */
-#define fts5Memcmp(s1, s2, n) ((n)==0 ? 0 : memcmp((s1), (s2), (n)))
+#define fts5Memcmp(s1, s2, n) ((n)<=0 ? 0 : memcmp((s1), (s2), (n)))
 
 /* Mark a function parameter as unused, to suppress nuisance compiler
 ** warnings. */
@@ -3797,7 +3797,6 @@ static void sqlite3Fts5BufferAppendBlob(
   u32 nData, 
   const u8 *pData
 ){
-  assert_nc( *pRc || nData>=0 );
   if( nData ){
     if( fts5BufferGrow(pRc, pBuf, nData) ) return;
     memcpy(&pBuf->p[pBuf->n], pData, nData);
@@ -3909,7 +3908,6 @@ static int sqlite3Fts5PoslistNext64(
     i64 iOff = *piOff;
     u32 iVal;
     fts5FastGetVarint32(a, i, iVal);
-    assert( iVal>=0 );
     if( iVal<=1 ){
       if( iVal==0 ){
         *pi = i;
@@ -8527,7 +8525,7 @@ static int sqlite3Fts5HashWrite(
       p->bContent = 1;
     }else{
       /* Append a new column value, if necessary */
-      assert( iCol>=p->iCol );
+      assert_nc( iCol>=p->iCol );
       if( iCol!=p->iCol ){
         if( pHash->eDetail==FTS5_DETAIL_FULL ){
           pPtr[p->nData++] = 0x01;
@@ -9333,8 +9331,11 @@ static int fts5BufferCompareBlob(
 **     res = *pLeft - *pRight
 */
 static int fts5BufferCompare(Fts5Buffer *pLeft, Fts5Buffer *pRight){
-  int nCmp = MIN(pLeft->n, pRight->n);
-  int res = fts5Memcmp(pLeft->p, pRight->p, nCmp);
+  int nCmp, res;
+  nCmp = MIN(pLeft->n, pRight->n);
+  assert( nCmp<=0 || pLeft->p!=0 );
+  assert( nCmp<=0 || pRight->p!=0 );
+  res = fts5Memcmp(pLeft->p, pRight->p, nCmp);
   return (res==0 ? (pLeft->n - pRight->n) : res);
 }
 
@@ -11011,21 +11012,20 @@ static void fts5LeafSeek(
   Fts5SegIter *pIter,             /* Iterator to seek */
   const u8 *pTerm, int nTerm      /* Term to search for */
 ){
-  int iOff;
+  u32 iOff;
   const u8 *a = pIter->pLeaf->p;
-  int szLeaf = pIter->pLeaf->szLeaf;
-  int n = pIter->pLeaf->nn;
+  u32 n = (u32)pIter->pLeaf->nn;
 
   u32 nMatch = 0;
   u32 nKeep = 0;
   u32 nNew = 0;
   u32 iTermOff;
-  int iPgidx;                     /* Current offset in pgidx */
+  u32 iPgidx;                     /* Current offset in pgidx */
   int bEndOfPage = 0;
 
   assert( p->rc==SQLITE_OK );
 
-  iPgidx = szLeaf;
+  iPgidx = (u32)pIter->pLeaf->szLeaf;
   iPgidx += fts5GetVarint32(&a[iPgidx], iTermOff);
   iOff = iTermOff;
   if( iOff>n ){
@@ -11091,15 +11091,15 @@ static void fts5LeafSeek(
       if( pIter->pLeaf==0 ) return;
       a = pIter->pLeaf->p;
       if( fts5LeafIsTermless(pIter->pLeaf)==0 ){
-        iPgidx = pIter->pLeaf->szLeaf;
+        iPgidx = (u32)pIter->pLeaf->szLeaf;
         iPgidx += fts5GetVarint32(&pIter->pLeaf->p[iPgidx], iOff);
-        if( iOff<4 || iOff>=pIter->pLeaf->szLeaf ){
+        if( iOff<4 || (i64)iOff>=pIter->pLeaf->szLeaf ){
           p->rc = FTS5_CORRUPT;
           return;
         }else{
           nKeep = 0;
           iTermOff = iOff;
-          n = pIter->pLeaf->nn;
+          n = (u32)pIter->pLeaf->nn;
           iOff += fts5GetVarint32(&a[iOff], nNew);
           break;
         }
@@ -18341,7 +18341,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2021-10-13 20:29:05 e944d71760e3ee3de5dd518a04dad54d66ae4d40dac172b64d16c508471e30a1", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2021-10-30 20:22:32 ca2703c339f76101f25051a2ed380398b018782883bfee68b5f2d69a1de9091a", -1, SQLITE_TRANSIENT);
 }
 
 /*

@@ -836,6 +836,7 @@ set sds_manifests(source) {
   Tests/linq.eagle
   Tests/memory.eagle
   Tests/progress.eagle
+  Tests/pst-eeaefb84ec.eagle
   Tests/session.eagle
   Tests/speed.eagle
   Tests/stress.eagle

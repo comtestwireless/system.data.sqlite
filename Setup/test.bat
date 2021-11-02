@@ -77,6 +77,8 @@ IF NOT DEFINED 32BITONLY (
 %_CECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% %* %MIDARGS% %POSTARGS%
 %__ECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% %* %MIDARGS% %POSTARGS%
 
+CALL :fn_FixErrorLevel
+
 IF ERRORLEVEL 1 (
   ECHO Received non-zero return code from the Eagle Shell.
   GOTO errors
@@ -110,6 +112,13 @@ GOTO no_errors
 
 :fn_SetErrorLevel
   VERIFY MAYBE 2> NUL
+  GOTO :EOF
+
+:fn_FixErrorLevel
+  IF %ERRORLEVEL% NEQ 0 (
+    CALL :fn_SetErrorLevel
+    GOTO :EOF
+  )
   GOTO :EOF
 
 :usage

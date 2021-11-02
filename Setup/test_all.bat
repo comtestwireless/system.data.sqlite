@@ -147,6 +147,8 @@ IF NOT DEFINED SKIPMAIN (
           %_CECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%%Y}; set test_configuration {%%C}" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
           %__ECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%%Y}; set test_configuration {%%C}" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
 
+          CALL :fn_FixErrorLevel
+
           IF ERRORLEVEL 1 (
             ECHO Testing of "%%Y/%%C" managed-only assembly failed.
             GOTO errors
@@ -228,6 +230,8 @@ IF NOT DEFINED SKIPMAIN (
 
             %_CECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% -preInitialize "set test_year {%%Y}; set test_configuration {%%C}" -initialize -runtimeOption native %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
             %__ECHO% "Externals\Eagle\bin\netFramework40\%EAGLESHELL%" %PREARGS% -preInitialize "set test_year {%%Y}; set test_configuration {%%C}" -initialize -runtimeOption native %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
+
+            CALL :fn_FixErrorLevel
 
             IF ERRORLEVEL 1 (
               ECHO Testing of "%%Y/%%C" mixed-mode assembly failed.
@@ -320,6 +324,13 @@ GOTO no_errors
 
 :fn_SetErrorLevel
   VERIFY MAYBE 2> NUL
+  GOTO :EOF
+
+:fn_FixErrorLevel
+  IF %ERRORLEVEL% NEQ 0 (
+    CALL :fn_SetErrorLevel
+    GOTO :EOF
+  )
   GOTO :EOF
 
 :usage

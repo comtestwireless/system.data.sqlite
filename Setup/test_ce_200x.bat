@@ -106,6 +106,8 @@ FOR %%C IN (%TEST_CONFIGURATIONS%) DO (
       %_CECHO% "%EAGLESHELL%" -file "%TOOLS%\deployAndTestCe200x.eagle" %%Y %%P %%C
       %__ECHO% "%EAGLESHELL%" -file "%TOOLS%\deployAndTestCe200x.eagle" %%Y %%P %%C
 
+      CALL :fn_FixErrorLevel
+
       IF ERRORLEVEL 1 (
         ECHO Tests failed for %%C/%%P/%%Y binaries.
         GOTO errors
@@ -160,6 +162,13 @@ GOTO no_errors
 
 :fn_SetErrorLevel
   VERIFY MAYBE 2> NUL
+  GOTO :EOF
+
+:fn_FixErrorLevel
+  IF %ERRORLEVEL% NEQ 0 (
+    CALL :fn_SetErrorLevel
+    GOTO :EOF
+  )
   GOTO :EOF
 
 :usage

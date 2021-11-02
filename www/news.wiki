@@ -55,10 +55,10 @@
 <div align="center"><h2><b>Version History</b></h2></div>
 
 <p>
-    <b>1.0.115.5 - October XX, 2021 <font color="red">(release scheduled)</font></b>
+    <b>1.0.115.5 - November 2, 2021</b>
 </p>
 <ul>
-    <li>Updated to [https://www.sqlite.org/src/info/02656760406add06|SQLite trunk].</li>
+    <li>Updated to [https://www.sqlite.org/src/info/ca2703c339f76101|SQLite trunk].</li>
     <li>Add Busy event to the SQLiteConnection class. Pursuant to forum post [https://www.sqlite.org/forum/forumpost/08a52f61fc|08a52f61fc].</li>
     <li>Fix metadata UTF-16 string length calculations on Linux. Fix for forum post [https://www.sqlite.org/forum/forumpost/eeaefb84ec|eeaefb84ec].</li>
 </ul>

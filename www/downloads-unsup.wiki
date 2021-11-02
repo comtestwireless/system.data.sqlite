@@ -105,7 +105,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2005
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2005
         SP1 runtime for x86 is included.  The .NET Framework 2.0 SP2 is
         required.
         <br />
@@ -134,7 +134,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2005 SP1 runtime for x86 is included.
+        (pre-3.37.0) package.  The Visual C++ 2005 SP1 runtime for x86 is included.
         The .NET Framework 2.0 SP2 is required.
         <br />
         (sha1: f948b0cf7df9cd50779564fe1a1524f9e822f85b)
@@ -159,7 +159,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2005
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2005
         SP1 runtime for x64 is included.  The .NET Framework 2.0 SP2 is
         required.
         <br />
@@ -179,7 +179,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2005 SP1 runtime for x64 is included.
+        (pre-3.37.0) package.  The Visual C++ 2005 SP1 runtime for x64 is included.
         The .NET Framework 2.0 SP2 is required.
         <br />
         (sha1: d3a483b85d51f0a22f1ed9a5327b1d6d8c924415)
@@ -204,7 +204,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2008
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2008
         SP1 runtime for x86 is included.  The .NET Framework 3.5 SP1 is
         required.
         <br />
@@ -233,7 +233,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2008 SP1 runtime for x86 is included.
+        (pre-3.37.0) package.  The Visual C++ 2008 SP1 runtime for x86 is included.
         The .NET Framework 3.5 SP1 is required.
         <br />
         (sha1: 3cb28cbe2134c4d6cf69cd833f1e867da6df2fff)
@@ -258,7 +258,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2008
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2008
         SP1 runtime for x64 is included.  The .NET Framework 3.5 SP1 is
         required.
         <br />
@@ -278,7 +278,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2008 SP1 runtime for x64 is included.
+        (pre-3.37.0) package.  The Visual C++ 2008 SP1 runtime for x64 is included.
         The .NET Framework 3.5 SP1 is required.
         <br />
         (sha1: f042c679f89b15e9975a51974fabd6a019c22ebe)
@@ -303,7 +303,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2010
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2010
         SP1 runtime for x86 is included.  The .NET Framework 4.0 is required.
         <br />
         <big><b>This is the only setup package that is capable of installing the
@@ -331,7 +331,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2010 SP1 runtime for x86 is included.
+        (pre-3.37.0) package.  The Visual C++ 2010 SP1 runtime for x86 is included.
         The .NET Framework 4.0 is required.
         <br />
         (sha1: 9f198017e3c884971102e4c248a480fe43aaecba)
@@ -356,7 +356,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2010
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2010
         SP1 runtime for x64 is included.  The .NET Framework 4.0 is required.
         <br />
         (sha1: 19672f898416a61a6d47df20dc34f54ff547628f)
@@ -375,7 +375,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2010 SP1 runtime for x64 is included.
+        (pre-3.37.0) package.  The Visual C++ 2010 SP1 runtime for x64 is included.
         The .NET Framework 4.0 is required.
         <br />
         (sha1: 3afce3f7517999e9d177bd97cb07d4771909fd29)
@@ -400,7 +400,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2012
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2012
         Update 4 runtime for x86 is included.  The .NET Framework 4.5 is
         required.
         <br />
@@ -435,7 +435,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2012 Update 4 runtime for x86 is
+        (pre-3.37.0) package.  The Visual C++ 2012 Update 4 runtime for x86 is
         included.  The .NET Framework 4.5 is required.
         <br />
         (sha1: ed387bce6ddc207002317f9555abb416a914ceae)
@@ -460,7 +460,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2012
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2012
         Update 4 runtime for x64 is included.  The .NET Framework 4.5 is
         required.
         <br />
@@ -480,7 +480,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2012 Update 4 runtime for x64 is
+        (pre-3.37.0) package.  The Visual C++ 2012 Update 4 runtime for x64 is
         included.  The .NET Framework 4.5 is required.
         <br />
         (sha1: 83b31f75ceb54f6dfdccfece8d3af29354152a66)
@@ -505,7 +505,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2013
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2013
         Update 2 runtime for x86 is included.  The .NET Framework 4.5.1 is
         required.
         <br />
@@ -540,7 +540,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2013 Update 2 runtime for x86 is
+        (pre-3.37.0) package.  The Visual C++ 2013 Update 2 runtime for x86 is
         included.  The .NET Framework 4.5.1 is required.
         <br />
         (sha1: 28305ac832f7564ef9bdd9a206d01e18c4026b02)
@@ -565,7 +565,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2013
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2013
         Update 2 runtime for x64 is included.  The .NET Framework 4.5.1 is
         required.
         <br />
@@ -585,7 +585,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2013 Update 2 runtime for x64 is
+        (pre-3.37.0) package.  The Visual C++ 2013 Update 2 runtime for x64 is
         included.  The .NET Framework 4.5.1 is required.
         <br />
         (sha1: df2240e4e4cabc8566c8679630d0bb47691649fd)
@@ -610,7 +610,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x86 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2015
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2015
         Update 3 runtime for x86 is included.  The .NET Framework 4.6 is
         required.
         <br />
@@ -639,7 +639,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x86 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2015 Update 3 runtime for x86 is
+        (pre-3.37.0) package.  The Visual C++ 2015 Update 3 runtime for x86 is
         included.  The .NET Framework 4.6 is required.
         <br />
         (sha1: cb42fdab3969ba0ea313c6b81916e3bee534c717)
@@ -664,7 +664,7 @@
       <td valign="top">
         This setup package features the mixed-mode assembly and will install all
         the necessary runtime components and dependencies for the x64 version of
-        the System.Data.SQLite 1.0.115.5 (3.35.5) package.  The Visual C++ 2015
+        the System.Data.SQLite 1.0.115.5 (pre-3.37.0) package.  The Visual C++ 2015
         Update 3 runtime for x64 is included.  The .NET Framework 4.6 is
         required.
         <br />
@@ -684,7 +684,7 @@
       <td valign="top">
         This setup package will install all the necessary runtime components and
         dependencies for the x64 version of the System.Data.SQLite 1.0.115.5
-        (3.35.5) package.  The Visual C++ 2015 Update 3 runtime for x64 is
+        (pre-3.37.0) package.  The Visual C++ 2015 Update 3 runtime for x64 is
         included.  The .NET Framework 4.6 is required.
         <br />
         (sha1: 445890897843d09ddf0b68ab09839b0bcb3946fc)

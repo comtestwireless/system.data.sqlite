@@ -694,6 +694,19 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        #region Public Static Methods
+        public static void Initialize()
+        {
+            //
+            // NOTE: *LEGACY* By default, use the connection pool that
+            //       keeps track of WeakReference objects.
+            //
+            _connectionPool = new WeakConnectionPool();
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
         #region ISQLiteConnectionPool Members (Static, Non-Formal)
         /// <summary>
         /// Counts the number of pool entries matching the specified file name.
@@ -723,16 +736,12 @@ namespace System.Data.SQLite
         {
             ISQLiteConnectionPool connectionPool = GetConnectionPool();
 
-            if (connectionPool != null)
-            {
-                connectionPool.GetCounts(
-                    fileName, ref counts, ref openCount, ref closeCount,
-                    ref totalCount);
-            }
-            else
-            {
+            if (connectionPool == null)
+                return;
 
-            }
+            connectionPool.GetCounts(
+                fileName, ref counts, ref openCount, ref closeCount,
+                ref totalCount);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -748,14 +757,10 @@ namespace System.Data.SQLite
         {
             ISQLiteConnectionPool connectionPool = GetConnectionPool();
 
-            if (connectionPool != null)
-            {
-                connectionPool.ClearPool(fileName);
-            }
-            else
-            {
+            if (connectionPool == null)
+                return;
 
-            }
+            connectionPool.ClearPool(fileName);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -767,14 +772,10 @@ namespace System.Data.SQLite
         {
             ISQLiteConnectionPool connectionPool = GetConnectionPool();
 
-            if (connectionPool != null)
-            {
-                connectionPool.ClearAllPools();
-            }
-            else
-            {
+            if (connectionPool == null)
+                return;
 
-            }
+            connectionPool.ClearAllPools();
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -803,14 +804,10 @@ namespace System.Data.SQLite
         {
             ISQLiteConnectionPool connectionPool = GetConnectionPool();
 
-            if (connectionPool != null)
-            {
-                connectionPool.Add(fileName, handle, version);
-            }
-            else
-            {
+            if (connectionPool == null)
+                return;
 
-            }
+            connectionPool.Add(fileName, handle, version);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -843,15 +840,14 @@ namespace System.Data.SQLite
         {
             ISQLiteConnectionPool connectionPool = GetConnectionPool();
 
-            if (connectionPool != null)
+            if (connectionPool == null)
             {
-                return connectionPool.Remove(fileName, maxPoolSize,
-                    out version) as SQLiteConnectionHandle;
+                version = 0;
+                return null;
             }
-            else
-            {
-                throw new NotSupportedException();
-            }
+
+            return connectionPool.Remove(fileName, maxPoolSize,
+                out version) as SQLiteConnectionHandle;
         }
         #endregion
 

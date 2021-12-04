@@ -697,11 +697,17 @@ namespace System.Data.SQLite
         #region Public Static Methods
         public static void Initialize()
         {
-            //
-            // NOTE: *LEGACY* By default, use the connection pool that
-            //       keeps track of WeakReference objects.
-            //
-            _connectionPool = new WeakConnectionPool();
+            lock (_syncRoot)
+            {
+                if (_connectionPool == null)
+                {
+                    //
+                    // NOTE: *LEGACY* By default, use a connection pool
+                    //       that keeps track of WeakReference objects.
+                    //
+                    _connectionPool = new WeakConnectionPool();
+                }
+            }
         }
         #endregion
 

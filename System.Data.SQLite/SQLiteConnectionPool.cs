@@ -18,7 +18,93 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////
 
-    #region Null Connection Pool Class
+    #region Public ISQLiteConnectionPool Interface
+    /// <summary>
+    /// This interface represents a custom connection pool implementation
+    /// usable by System.Data.SQLite.
+    /// </summary>
+    public interface ISQLiteConnectionPool
+    {
+        /// <summary>
+        /// Counts the number of pool entries matching the specified file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The file name to match or null to match all files.
+        /// </param>
+        /// <param name="counts">
+        /// The pool entry counts for each matching file.
+        /// </param>
+        /// <param name="openCount">
+        /// The total number of connections successfully opened from any pool.
+        /// </param>
+        /// <param name="closeCount">
+        /// The total number of connections successfully closed from any pool.
+        /// </param>
+        /// <param name="totalCount">
+        /// The total number of pool entries for all matching files.
+        /// </param>
+        void GetCounts(string fileName, ref Dictionary<string, int> counts,
+            ref int openCount, ref int closeCount, ref int totalCount);
+
+        /// <summary>
+        /// Disposes of all pooled connections associated with the specified
+        /// database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        void ClearPool(string fileName);
+
+        /// <summary>
+        /// Disposes of all pooled connections.
+        /// </summary>
+        void ClearAllPools();
+
+        /// <summary>
+        /// Adds a connection to the pool of those associated with the
+        /// specified database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="handle">
+        /// The database connection handle.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version at the point the database connection
+        /// handle was received from the connection pool.  This is also the
+        /// connection pool version that the database connection handle was
+        /// created under.
+        /// </param>
+        void Add(string fileName, object handle, int version);
+
+        /// <summary>
+        /// Removes a connection from the pool of those associated with the
+        /// specified database file name with the intent of using it to
+        /// interact with the database.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="maxPoolSize">
+        /// The new maximum size of the connection pool for the specified
+        /// database file name.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version associated with the returned database
+        /// connection handle, if any.
+        /// </param>
+        /// <returns>
+        /// The database connection handle associated with the specified
+        /// database file name or null if it cannot be obtained.
+        /// </returns>
+        object Remove(string fileName, int maxPoolSize, out int version);
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #region Private Built-In Null ISQLiteConnectionPool Class
 #if !PLATFORM_COMPACTFRAMEWORK && DEBUG
     /// <summary>
     /// This class implements a connection pool where all methods of the
@@ -260,13 +346,14 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////
 
-    #region Public Connection Pool Interface
+    #region Private Built-In Weak ISQLiteConnectionPool Class
     /// <summary>
-    /// This interface represents a custom connection pool implementation
-    /// usable by System.Data.SQLite.
+    /// This class implements a connection pool using the built-in static
+    /// method implementations.
     /// </summary>
-    public interface ISQLiteConnectionPool
+    internal sealed class WeakConnectionPool : ISQLiteConnectionPool
     {
+        #region ISQLiteConnectionPool Members
         /// <summary>
         /// Counts the number of pool entries matching the specified file name.
         /// </summary>
@@ -285,8 +372,20 @@ namespace System.Data.SQLite
         /// <param name="totalCount">
         /// The total number of pool entries for all matching files.
         /// </param>
-        void GetCounts(string fileName, ref Dictionary<string, int> counts,
-            ref int openCount, ref int closeCount, ref int totalCount);
+        public void GetCounts(
+            string fileName,
+            ref Dictionary<string, int> counts,
+            ref int openCount,
+            ref int closeCount,
+            ref int totalCount
+            )
+        {
+            StaticWeakConnectionPool<WeakReference>.GetCounts(
+                fileName, ref counts, ref openCount, ref closeCount,
+                ref totalCount);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
         /// Disposes of all pooled connections associated with the specified
@@ -295,12 +394,24 @@ namespace System.Data.SQLite
         /// <param name="fileName">
         /// The database file name.
         /// </param>
-        void ClearPool(string fileName);
+        public void ClearPool(
+            string fileName
+            )
+        {
+            StaticWeakConnectionPool<WeakReference>.ClearPool(fileName);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
         /// Disposes of all pooled connections.
         /// </summary>
-        void ClearAllPools();
+        public void ClearAllPools()
+        {
+            StaticWeakConnectionPool<WeakReference>.ClearAllPools();
+        }
+
+        ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
         /// Adds a connection to the pool of those associated with the
@@ -318,7 +429,17 @@ namespace System.Data.SQLite
         /// connection pool version that the database connection handle was
         /// created under.
         /// </param>
-        void Add(string fileName, object handle, int version);
+        public void Add(
+            string fileName,
+            object handle,
+            int version
+            )
+        {
+            StaticWeakConnectionPool<WeakReference>.Add(
+                fileName, handle as SQLiteConnectionHandle, version);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
         /// Removes a connection from the pool of those associated with the
@@ -340,13 +461,212 @@ namespace System.Data.SQLite
         /// The database connection handle associated with the specified
         /// database file name or null if it cannot be obtained.
         /// </returns>
-        object Remove(string fileName, int maxPoolSize, out int version);
+        public object Remove(
+            string fileName,
+            int maxPoolSize,
+            out int version
+            )
+        {
+            return StaticWeakConnectionPool<WeakReference>.Remove(
+                fileName, maxPoolSize, out version);
+        }
+        #endregion
     }
     #endregion
 
     ///////////////////////////////////////////////////////////////////////////
 
-    #region Connection Pool Subsystem & Default Implementation
+    #region Private Built-In Strong ISQLiteConnectionPool Class
+    /// <summary>
+    /// This class implements a naive connection pool where the underlying
+    /// connections are never disposed automatically.
+    /// </summary>
+    internal sealed class StrongConnectionPool : ISQLiteConnectionPool
+    {
+        #region ISQLiteConnectionPool Members
+        /// <summary>
+        /// Counts the number of pool entries matching the specified file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The file name to match or null to match all files.
+        /// </param>
+        /// <param name="counts">
+        /// The pool entry counts for each matching file.
+        /// </param>
+        /// <param name="openCount">
+        /// The total number of connections successfully opened from any pool.
+        /// </param>
+        /// <param name="closeCount">
+        /// The total number of connections successfully closed from any pool.
+        /// </param>
+        /// <param name="totalCount">
+        /// The total number of pool entries for all matching files.
+        /// </param>
+        public void GetCounts(
+            string fileName,
+            ref Dictionary<string, int> counts,
+            ref int openCount,
+            ref int closeCount,
+            ref int totalCount
+            )
+        {
+            StaticStrongConnectionPool<object>.GetCounts(
+                fileName, ref counts, ref openCount, ref closeCount,
+                ref totalCount);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections associated with the specified
+        /// database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        public void ClearPool(
+            string fileName
+            )
+        {
+            StaticStrongConnectionPool<object>.ClearPool(fileName);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections.
+        /// </summary>
+        public void ClearAllPools()
+        {
+            StaticStrongConnectionPool<object>.ClearAllPools();
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Adds a connection to the pool of those associated with the
+        /// specified database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="handle">
+        /// The database connection handle.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version at the point the database connection
+        /// handle was received from the connection pool.  This is also the
+        /// connection pool version that the database connection handle was
+        /// created under.
+        /// </param>
+        public void Add(
+            string fileName,
+            object handle,
+            int version
+            )
+        {
+            StaticStrongConnectionPool<object>.Add(
+                fileName, handle as SQLiteConnectionHandle, version);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Removes a connection from the pool of those associated with the
+        /// specified database file name with the intent of using it to
+        /// interact with the database.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="maxPoolSize">
+        /// The new maximum size of the connection pool for the specified
+        /// database file name.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version associated with the returned database
+        /// connection handle, if any.
+        /// </param>
+        /// <returns>
+        /// The database connection handle associated with the specified
+        /// database file name or null if it cannot be obtained.
+        /// </returns>
+        public object Remove(
+            string fileName,
+            int maxPoolSize,
+            out int version
+            )
+        {
+            return StaticStrongConnectionPool<object>.Remove(
+                fileName, maxPoolSize, out version);
+        }
+        #endregion
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #region Private PoolQueue<T> Class
+    /// <summary>
+    /// Keeps track of connections made on a specified file.  The PoolVersion
+    /// dictates whether old objects get returned to the pool or discarded
+    /// when no longer in use.
+    /// </summary>
+    internal sealed class PoolQueue<T>
+    {
+        #region Private Data
+        /// <summary>
+        /// The queue of weak references to the actual database connection
+        /// handles.
+        /// </summary>
+        internal readonly Queue<T> Queue = new Queue<T>();
+
+        ///////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// This pool version associated with the database connection
+        /// handles in this pool queue.
+        /// </summary>
+        internal int PoolVersion;
+
+        ///////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// The maximum size of this pool queue.
+        /// </summary>
+        internal int MaxPoolSize;
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////
+
+        #region Private Constructors
+        /// <summary>
+        /// Constructs a connection pool queue using the specified version
+        /// and maximum size.  Normally, all the database connection
+        /// handles in this pool are associated with a single database file
+        /// name.
+        /// </summary>
+        /// <param name="version">
+        /// The initial pool version for this connection pool queue.
+        /// </param>
+        /// <param name="maxSize">
+        /// The initial maximum size for this connection pool queue.
+        /// </param>
+        internal PoolQueue(
+            int version,
+            int maxSize
+            )
+        {
+            PoolVersion = version;
+            MaxPoolSize = maxSize;
+        }
+        #endregion
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #region Private Connection Pool Subsystem Interface
     /// <summary>
     /// This default method implementations in this class should not be used by
     /// applications that make use of COM (either directly or indirectly) due
@@ -355,71 +675,10 @@ namespace System.Data.SQLite
     /// </summary>
     internal static class SQLiteConnectionPool
     {
-        #region Private Pool Class
-        /// <summary>
-        /// Keeps track of connections made on a specified file.  The PoolVersion
-        /// dictates whether old objects get returned to the pool or discarded
-        /// when no longer in use.
-        /// </summary>
-        private sealed class PoolQueue
-        {
-            #region Private Data
-            /// <summary>
-            /// The queue of weak references to the actual database connection
-            /// handles.
-            /// </summary>
-            internal readonly Queue<WeakReference> Queue =
-                new Queue<WeakReference>();
-
-            ///////////////////////////////////////////////////////////////////
-
-            /// <summary>
-            /// This pool version associated with the database connection
-            /// handles in this pool queue.
-            /// </summary>
-            internal int PoolVersion;
-
-            ///////////////////////////////////////////////////////////////////
-
-            /// <summary>
-            /// The maximum size of this pool queue.
-            /// </summary>
-            internal int MaxPoolSize;
-            #endregion
-
-            ///////////////////////////////////////////////////////////////////
-
-            #region Private Constructors
-            /// <summary>
-            /// Constructs a connection pool queue using the specified version
-            /// and maximum size.  Normally, all the database connection
-            /// handles in this pool are associated with a single database file
-            /// name.
-            /// </summary>
-            /// <param name="version">
-            /// The initial pool version for this connection pool queue.
-            /// </param>
-            /// <param name="maxSize">
-            /// The initial maximum size for this connection pool queue.
-            /// </param>
-            internal PoolQueue(
-                int version,
-                int maxSize
-                )
-            {
-                PoolVersion = version;
-                MaxPoolSize = maxSize;
-            }
-            #endregion
-        }
-        #endregion
-
-        ///////////////////////////////////////////////////////////////////////
-
         #region Private Static Data
         /// <summary>
-        /// This field is used to synchronize access to the private static data
-        /// in this class.
+        /// This field is used to synchronize access to the private static
+        /// data in this class.
         /// </summary>
         private static readonly object _syncRoot = new object();
 
@@ -431,6 +690,230 @@ namespace System.Data.SQLite
         /// the default method implementations will be used.
         /// </summary>
         private static ISQLiteConnectionPool _connectionPool = null;
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region ISQLiteConnectionPool Members (Static, Non-Formal)
+        /// <summary>
+        /// Counts the number of pool entries matching the specified file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The file name to match or null to match all files.
+        /// </param>
+        /// <param name="counts">
+        /// The pool entry counts for each matching file.
+        /// </param>
+        /// <param name="openCount">
+        /// The total number of connections successfully opened from any pool.
+        /// </param>
+        /// <param name="closeCount">
+        /// The total number of connections successfully closed from any pool.
+        /// </param>
+        /// <param name="totalCount">
+        /// The total number of pool entries for all matching files.
+        /// </param>
+        public static void GetCounts(
+            string fileName,
+            ref Dictionary<string, int> counts,
+            ref int openCount,
+            ref int closeCount,
+            ref int totalCount
+            )
+        {
+            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+
+            if (connectionPool != null)
+            {
+                connectionPool.GetCounts(
+                    fileName, ref counts, ref openCount, ref closeCount,
+                    ref totalCount);
+            }
+            else
+            {
+
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections associated with the specified
+        /// database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        public static void ClearPool(string fileName)
+        {
+            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+
+            if (connectionPool != null)
+            {
+                connectionPool.ClearPool(fileName);
+            }
+            else
+            {
+
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections.
+        /// </summary>
+        public static void ClearAllPools()
+        {
+            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+
+            if (connectionPool != null)
+            {
+                connectionPool.ClearAllPools();
+            }
+            else
+            {
+
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Adds a connection to the pool of those associated with the
+        /// specified database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="handle">
+        /// The database connection handle.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version at the point the database connection
+        /// handle was received from the connection pool.  This is also the
+        /// connection pool version that the database connection handle was
+        /// created under.
+        /// </param>
+        public static void Add(
+            string fileName,
+            SQLiteConnectionHandle handle,
+            int version
+            )
+        {
+            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+
+            if (connectionPool != null)
+            {
+                connectionPool.Add(fileName, handle, version);
+            }
+            else
+            {
+
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Removes a connection from the pool of those associated with the
+        /// specified database file name with the intent of using it to
+        /// interact with the database.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="maxPoolSize">
+        /// The new maximum size of the connection pool for the specified
+        /// database file name.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version associated with the returned database
+        /// connection handle, if any.
+        /// </param>
+        /// <returns>
+        /// The database connection handle associated with the specified
+        /// database file name or null if it cannot be obtained.
+        /// </returns>
+        public static SQLiteConnectionHandle Remove(
+            string fileName,
+            int maxPoolSize,
+            out int version
+            )
+        {
+            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+
+            if (connectionPool != null)
+            {
+                return connectionPool.Remove(fileName, maxPoolSize,
+                    out version) as SQLiteConnectionHandle;
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region Private Helper Methods
+        /// <summary>
+        /// This method is used to obtain a reference to the custom connection
+        /// pool implementation currently in use, if any.
+        /// </summary>
+        /// <returns>
+        /// The custom connection pool implementation or null if the default
+        /// connection pool implementation should be used.
+        /// </returns>
+        public static ISQLiteConnectionPool GetConnectionPool()
+        {
+            lock (_syncRoot)
+            {
+                return _connectionPool;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// This method is used to set the reference to the custom connection
+        /// pool implementation to use, if any.
+        /// </summary>
+        /// <param name="connectionPool">
+        /// The custom connection pool implementation to use or null if the
+        /// default connection pool implementation should be used.
+        /// </param>
+        public static void SetConnectionPool(
+            ISQLiteConnectionPool connectionPool
+            )
+        {
+            lock (_syncRoot)
+            {
+                _connectionPool = connectionPool;
+            }
+        }
+        #endregion
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #region Private Static Built-In Connection Pool for WeakReference
+    /// <summary>
+    /// This default method implementations in this class should not be used
+    /// by applications that make use of COM (either directly or indirectly)
+    /// due to possible deadlocks that can occur during finalization of some
+    /// COM objects.
+    /// </summary>
+    internal static class StaticWeakConnectionPool<T> where T : WeakReference
+    {
+        #region Private Static Data
+        /// <summary>
+        /// This field is used to synchronize access to the private static
+        /// data in this class.
+        /// </summary>
+        private static readonly object _syncRoot = new object();
 
         ///////////////////////////////////////////////////////////////////////
 
@@ -438,8 +921,9 @@ namespace System.Data.SQLite
         /// The dictionary of connection pools, based on the normalized file
         /// name of the SQLite database.
         /// </summary>
-        private static SortedList<string, PoolQueue> _queueList =
-            new SortedList<string, PoolQueue>(StringComparer.OrdinalIgnoreCase);
+        private static SortedList<string, PoolQueue<T>>
+            _queueList = new SortedList<string, PoolQueue<T>>(
+                StringComparer.OrdinalIgnoreCase);
 
         ///////////////////////////////////////////////////////////////////////
 
@@ -486,7 +970,7 @@ namespace System.Data.SQLite
         /// <param name="totalCount">
         /// The total number of pool entries for all matching files.
         /// </param>
-        internal static void GetCounts(
+        public static void GetCounts(
             string fileName,
             ref Dictionary<string, int> counts,
             ref int openCount,
@@ -494,53 +978,43 @@ namespace System.Data.SQLite
             ref int totalCount
             )
         {
-            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+            lock (_syncRoot)
+            {
+                openCount = _poolOpened;
+                closeCount = _poolClosed;
 
-            if (connectionPool != null)
-            {
-                connectionPool.GetCounts(
-                    fileName, ref counts, ref openCount, ref closeCount,
-                    ref totalCount);
-            }
-            else
-            {
-                lock (_syncRoot)
+                if (counts == null)
                 {
-                    openCount = _poolOpened;
-                    closeCount = _poolClosed;
+                    counts = new Dictionary<string, int>(
+                        StringComparer.OrdinalIgnoreCase);
+                }
 
-                    if (counts == null)
+                if (fileName != null)
+                {
+                    PoolQueue<T> queue;
+
+                    if (_queueList.TryGetValue(fileName, out queue))
                     {
-                        counts = new Dictionary<string, int>(
-                            StringComparer.OrdinalIgnoreCase);
+                        Queue<T> poolQueue = queue.Queue;
+                        int count = (poolQueue != null) ? poolQueue.Count : 0;
+
+                        counts.Add(fileName, count);
+                        totalCount += count;
                     }
-
-                    if (fileName != null)
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, PoolQueue<T>> pair
+                            in _queueList)
                     {
-                        PoolQueue queue;
+                        if (pair.Value == null)
+                            continue;
 
-                        if (_queueList.TryGetValue(fileName, out queue))
-                        {
-                            Queue<WeakReference> poolQueue = queue.Queue;
-                            int count = (poolQueue != null) ? poolQueue.Count : 0;
+                        Queue<T> poolQueue = pair.Value.Queue;
+                        int count = (poolQueue != null) ? poolQueue.Count : 0;
 
-                            counts.Add(fileName, count);
-                            totalCount += count;
-                        }
-                    }
-                    else
-                    {
-                        foreach (KeyValuePair<string, PoolQueue> pair in _queueList)
-                        {
-                            if (pair.Value == null)
-                                continue;
-
-                            Queue<WeakReference> poolQueue = pair.Value.Queue;
-                            int count = (poolQueue != null) ? poolQueue.Count : 0;
-
-                            counts.Add(pair.Key, count);
-                            totalCount += count;
-                        }
+                        counts.Add(pair.Key, count);
+                        totalCount += count;
                     }
                 }
             }
@@ -555,41 +1029,32 @@ namespace System.Data.SQLite
         /// <param name="fileName">
         /// The database file name.
         /// </param>
-        internal static void ClearPool(string fileName)
+        public static void ClearPool(string fileName)
         {
-            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+            lock (_syncRoot)
+            {
+                PoolQueue<T> queue;
 
-            if (connectionPool != null)
-            {
-                connectionPool.ClearPool(fileName);
-            }
-            else
-            {
-                lock (_syncRoot)
+                if (_queueList.TryGetValue(fileName, out queue))
                 {
-                    PoolQueue queue;
+                    queue.PoolVersion++;
 
-                    if (_queueList.TryGetValue(fileName, out queue))
+                    Queue<T> poolQueue = queue.Queue;
+                    if (poolQueue == null) return;
+
+                    while (poolQueue.Count > 0)
                     {
-                        queue.PoolVersion++;
+                        T connection = poolQueue.Dequeue();
 
-                        Queue<WeakReference> poolQueue = queue.Queue;
-                        if (poolQueue == null) return;
+                        if (connection == null) continue;
 
-                        while (poolQueue.Count > 0)
-                        {
-                            WeakReference connection = poolQueue.Dequeue();
+                        SQLiteConnectionHandle handle =
+                            connection.Target as SQLiteConnectionHandle;
 
-                            if (connection == null) continue;
+                        if (handle != null)
+                            handle.Dispose();
 
-                            SQLiteConnectionHandle handle =
-                                connection.Target as SQLiteConnectionHandle;
-
-                            if (handle != null)
-                                handle.Dispose();
-
-                            GC.KeepAlive(handle);
-                        }
+                        GC.KeepAlive(handle);
                     }
                 }
             }
@@ -600,60 +1065,52 @@ namespace System.Data.SQLite
         /// <summary>
         /// Disposes of all pooled connections.
         /// </summary>
-        internal static void ClearAllPools()
+        public static void ClearAllPools()
         {
-            ISQLiteConnectionPool connectionPool = GetConnectionPool();
-
-            if (connectionPool != null)
+            lock (_syncRoot)
             {
-                connectionPool.ClearAllPools();
-            }
-            else
-            {
-                lock (_syncRoot)
+                foreach (KeyValuePair<string, PoolQueue<T>> pair
+                        in _queueList)
                 {
-                    foreach (KeyValuePair<string, PoolQueue> pair in _queueList)
+                    if (pair.Value == null)
+                        continue;
+
+                    Queue<T> poolQueue = pair.Value.Queue;
+
+                    while (poolQueue.Count > 0)
                     {
-                        if (pair.Value == null)
-                            continue;
+                        T connection = poolQueue.Dequeue();
 
-                        Queue<WeakReference> poolQueue = pair.Value.Queue;
+                        if (connection == null) continue;
 
-                        while (poolQueue.Count > 0)
-                        {
-                            WeakReference connection = poolQueue.Dequeue();
+                        SQLiteConnectionHandle handle =
+                            connection.Target as SQLiteConnectionHandle;
 
-                            if (connection == null) continue;
+                        if (handle != null)
+                            handle.Dispose();
 
-                            SQLiteConnectionHandle handle =
-                                connection.Target as SQLiteConnectionHandle;
-
-                            if (handle != null)
-                                handle.Dispose();
-
-                            GC.KeepAlive(handle);
-                        }
-
-                        //
-                        // NOTE: Keep track of the highest revision so we can
-                        //       go one higher when we are finished.
-                        //
-                        if (_poolVersion <= pair.Value.PoolVersion)
-                            _poolVersion = pair.Value.PoolVersion + 1;
+                        GC.KeepAlive(handle);
                     }
 
                     //
-                    // NOTE: All pools are cleared and we have a new highest
-                    //       version number to force all old version active
-                    //       items to get discarded instead of going back to
-                    //       the queue when they are closed.  We can get away
-                    //       with this because we have pumped up the pool
-                    //       version out of range of all active connections,
-                    //       so they will all get discarded when they try to
-                    //       put themselves back into their pools.
+                    // NOTE: Keep track of the highest revision so we can
+                    //       go one higher when we are finished.
                     //
-                    _queueList.Clear();
+                    if (_poolVersion <= pair.Value.PoolVersion)
+                        _poolVersion = pair.Value.PoolVersion + 1;
                 }
+
+                //
+                // NOTE: All pools are cleared and we have a new highest
+                //       version number to force all old version active
+                //       items to get discarded instead of going back to
+                //       the queue when they are closed.  We can get away
+                //       with this because we have pumped up the pool
+                //       version out of range of all active connections,
+                //       so they will all get discarded when they try to
+                //       put themselves back into their pools.
+                //
+                _queueList.Clear();
             }
         }
 
@@ -675,46 +1132,565 @@ namespace System.Data.SQLite
         /// connection pool version that the database connection handle was
         /// created under.
         /// </param>
-        internal static void Add(
+        public static void Add(
             string fileName,
             SQLiteConnectionHandle handle,
             int version
             )
         {
-            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+            lock (_syncRoot)
+            {
+                //
+                // NOTE: If the queue does not exist in the pool, then it
+                //       must have been cleared sometime after the
+                //       connection was created.
+                //
+                PoolQueue<T> queue;
 
-            if (connectionPool != null)
-            {
-                connectionPool.Add(fileName, handle, version);
-            }
-            else
-            {
-                lock (_syncRoot)
+                if (_queueList.TryGetValue(fileName, out queue) &&
+                    (version == queue.PoolVersion))
                 {
-                    //
-                    // NOTE: If the queue does not exist in the pool, then it
-                    //       must have been cleared sometime after the
-                    //       connection was created.
-                    //
-                    PoolQueue queue;
+                    ResizePool(queue, true);
 
-                    if (_queueList.TryGetValue(fileName, out queue) &&
-                        (version == queue.PoolVersion))
+                    Queue<T> poolQueue = queue.Queue;
+                    if (poolQueue == null) return;
+
+                    poolQueue.Enqueue((T)new WeakReference(handle, false));
+                    Interlocked.Increment(ref _poolClosed);
+                }
+                else
+                {
+                    handle.Close();
+                }
+
+                GC.KeepAlive(handle);
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Removes a connection from the pool of those associated with the
+        /// specified database file name with the intent of using it to
+        /// interact with the database.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="maxPoolSize">
+        /// The new maximum size of the connection pool for the specified
+        /// database file name.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version associated with the returned database
+        /// connection handle, if any.
+        /// </param>
+        /// <returns>
+        /// The database connection handle associated with the specified
+        /// database file name or null if it cannot be obtained.
+        /// </returns>
+        public static SQLiteConnectionHandle Remove(
+            string fileName,
+            int maxPoolSize,
+            out int version
+            )
+        {
+            int localVersion;
+            Queue<T> poolQueue;
+
+            //
+            // NOTE: This lock cannot be held while checking the queue for
+            //       available connections because other methods of this
+            //       class are called from the GC finalizer thread and we
+            //       use the WaitForPendingFinalizers method (below).
+            //       Holding this lock while calling that method would
+            //       therefore result in a deadlock.  Instead, this lock
+            //       is held only while a temporary copy of the queue is
+            //       created, and if necessary, when committing changes
+            //       back to that original queue prior to returning from
+            //       this method.
+            //
+            lock (_syncRoot)
+            {
+                PoolQueue<T> queue;
+
+                //
+                // NOTE: Default to the highest pool version.
+                //
+                version = _poolVersion;
+
+                //
+                // NOTE: If we didn't find a pool for this file, create one
+                //       even though it will be empty.  We have to do this
+                //       here because otherwise calling ClearPool() on the
+                //       file will not work for active connections that have
+                //       never seen the pool yet.
+                //
+                if (!_queueList.TryGetValue(fileName, out queue))
+                {
+                    queue = new PoolQueue<T>(
+                        _poolVersion, maxPoolSize);
+
+                    _queueList.Add(fileName, queue);
+
+                    return null;
+                }
+
+                //
+                // NOTE: We found a pool for this file, so use its version
+                //       number.
+                //
+                version = localVersion = queue.PoolVersion;
+                queue.MaxPoolSize = maxPoolSize;
+
+                //
+                // NOTE: Now, resize the pool to the new maximum size, if
+                //       necessary.
+                //
+                ResizePool(queue, false);
+
+                //
+                // NOTE: Try and get a pooled connection from the queue.
+                //
+                poolQueue = queue.Queue;
+                if (poolQueue == null) return null;
+
+                //
+                // NOTE: Temporarily tranfer the queue for this file into
+                //       a local variable.  The queue for this file will
+                //       be modified and then committed back to the real
+                //       pool list (below) prior to returning from this
+                //       method.
+                //
+                _queueList.Remove(fileName);
+                poolQueue = new Queue<T>(poolQueue);
+            }
+
+            try
+            {
+                while (poolQueue.Count > 0)
+                {
+                    T connection = poolQueue.Dequeue();
+
+                    if (connection == null) continue;
+
+                    SQLiteConnectionHandle handle =
+                        connection.Target as SQLiteConnectionHandle;
+
+                    if (handle == null) continue;
+
+                    //
+                    // BUGFIX: For ticket [996d13cd87], step #1.  After
+                    //         this point, make sure that the finalizer for
+                    //         the connection handle just obtained from the
+                    //         queue cannot START running (i.e. it may
+                    //         still be pending but it will no longer start
+                    //         after this point).
+                    //
+                    GC.SuppressFinalize(handle);
+
+                    try
                     {
-                        ResizePool(queue, true);
+                        //
+                        // BUGFIX: For ticket [996d13cd87], step #2.  Now,
+                        //         we must wait for all pending finalizers
+                        //         which have STARTED running and have not
+                        //         yet COMPLETED.  This must be done just
+                        //         in case the finalizer for the connection
+                        //         handle just obtained from the queue has
+                        //         STARTED running at some point before
+                        //         SuppressFinalize was called on it.
+                        //
+                        //         After this point, checking properties of
+                        //         the connection handle (e.g. IsClosed)
+                        //         should work reliably without having to
+                        //         worry that they will (due to the
+                        //         finalizer) change out from under us.
+                        //
+                        GC.WaitForPendingFinalizers();
 
-                        Queue<WeakReference> poolQueue = queue.Queue;
-                        if (poolQueue == null) return;
-
-                        poolQueue.Enqueue(new WeakReference(handle, false));
-                        Interlocked.Increment(ref _poolClosed);
+                        //
+                        // BUGFIX: For ticket [996d13cd87], step #3.  Next,
+                        //         verify that the connection handle is
+                        //         actually valid and [still?] not closed
+                        //         prior to actually returning it to our
+                        //         caller.
+                        //
+                        if (!handle.IsInvalid && !handle.IsClosed)
+                        {
+                            Interlocked.Increment(ref _poolOpened);
+                            return handle;
+                        }
                     }
-                    else
+                    finally
                     {
-                        handle.Close();
+                        //
+                        // BUGFIX: For ticket [996d13cd87], step #4.  Next,
+                        //         we must re-register the connection
+                        //         handle for finalization now that we have
+                        //         a strong reference to it (i.e. the
+                        //         finalizer will not run at least until
+                        //         the connection is subsequently closed).
+                        //
+                        GC.ReRegisterForFinalize(handle);
                     }
 
                     GC.KeepAlive(handle);
+                }
+            }
+            finally
+            {
+                //
+                // BUGFIX: For ticket [996d13cd87], step #5.  Finally,
+                //         commit any changes to the pool/queue for this
+                //         database file.
+                //
+                lock (_syncRoot)
+                {
+                    //
+                    // NOTE: We must check [again] if a pool exists for
+                    //       this file because one may have been added
+                    //       while the search for an available connection
+                    //       was in progress (above).
+                    //
+                    PoolQueue<T> queue;
+                    Queue<T> newPoolQueue;
+                    bool addPool;
+
+                    if (_queueList.TryGetValue(fileName, out queue))
+                    {
+                        addPool = false;
+                    }
+                    else
+                    {
+                        addPool = true;
+
+                        queue = new PoolQueue<T>(
+                            localVersion, maxPoolSize);
+                    }
+
+                    newPoolQueue = queue.Queue;
+
+                    while (poolQueue.Count > 0)
+                        newPoolQueue.Enqueue(poolQueue.Dequeue());
+
+                    ResizePool(queue, false);
+
+                    if (addPool)
+                        _queueList.Add(fileName, queue);
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region Private Helper Methods
+        /// <summary>
+        /// We do not have to thread-lock anything in this function, because
+        /// it is only called by other functions above which already take the
+        /// lock.
+        /// </summary>
+        /// <param name="queue">
+        /// The pool queue to resize.
+        /// </param>
+        /// <param name="add">
+        /// If a function intends to add to the pool, this is true, which
+        /// forces the resize to take one more than it needs from the pool.
+        /// </param>
+        private static void ResizePool(
+            PoolQueue<T> queue,
+            bool add
+            )
+        {
+            int target = queue.MaxPoolSize;
+
+            if (add && target > 0) target--;
+
+            Queue<T> poolQueue = queue.Queue;
+            if (poolQueue == null) return;
+
+            while (poolQueue.Count > target)
+            {
+                T connection = poolQueue.Dequeue();
+
+                if (connection == null) continue;
+
+                SQLiteConnectionHandle handle =
+                    connection.Target as SQLiteConnectionHandle;
+
+                if (handle != null)
+                    handle.Dispose();
+
+                GC.KeepAlive(handle);
+            }
+        }
+        #endregion
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #region Private Static Built-In Connection Pool for Object
+    /// <summary>
+    /// This default method implementations in this class should not be used
+    /// by applications that make use of COM (either directly or indirectly)
+    /// due to possible deadlocks that can occur during finalization of some
+    /// COM objects.
+    /// </summary>
+    internal static class StaticStrongConnectionPool<T> where T : class
+    {
+        #region Private Static Data
+        /// <summary>
+        /// This field is used to synchronize access to the private static
+        /// data in this class.
+        /// </summary>
+        private static readonly object _syncRoot = new object();
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// The dictionary of connection pools, based on the normalized file
+        /// name of the SQLite database.
+        /// </summary>
+        private static SortedList<string, PoolQueue<T>>
+            _queueList = new SortedList<string, PoolQueue<T>>(
+                StringComparer.OrdinalIgnoreCase);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// The default version number new pools will get.
+        /// </summary>
+        private static int _poolVersion = 1;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// The number of connections successfully opened from any pool.
+        /// This value is incremented by the Remove method.
+        /// </summary>
+        private static int _poolOpened = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// The number of connections successfully closed from any pool.
+        /// This value is incremented by the Add method.
+        /// </summary>
+        private static int _poolClosed = 0;
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region ISQLiteConnectionPool Members (Static, Non-Formal)
+        /// <summary>
+        /// Counts the number of pool entries matching the specified file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The file name to match or null to match all files.
+        /// </param>
+        /// <param name="counts">
+        /// The pool entry counts for each matching file.
+        /// </param>
+        /// <param name="openCount">
+        /// The total number of connections successfully opened from any pool.
+        /// </param>
+        /// <param name="closeCount">
+        /// The total number of connections successfully closed from any pool.
+        /// </param>
+        /// <param name="totalCount">
+        /// The total number of pool entries for all matching files.
+        /// </param>
+        public static void GetCounts(
+            string fileName,
+            ref Dictionary<string, int> counts,
+            ref int openCount,
+            ref int closeCount,
+            ref int totalCount
+            )
+        {
+            lock (_syncRoot)
+            {
+                openCount = _poolOpened;
+                closeCount = _poolClosed;
+
+                if (counts == null)
+                {
+                    counts = new Dictionary<string, int>(
+                        StringComparer.OrdinalIgnoreCase);
+                }
+
+                if (fileName != null)
+                {
+                    PoolQueue<T> queue;
+
+                    if (_queueList.TryGetValue(fileName, out queue))
+                    {
+                        Queue<T> poolQueue = queue.Queue;
+                        int count = (poolQueue != null) ? poolQueue.Count : 0;
+
+                        counts.Add(fileName, count);
+                        totalCount += count;
+                    }
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, PoolQueue<T>> pair
+                            in _queueList)
+                    {
+                        if (pair.Value == null)
+                            continue;
+
+                        Queue<T> poolQueue = pair.Value.Queue;
+                        int count = (poolQueue != null) ? poolQueue.Count : 0;
+
+                        counts.Add(pair.Key, count);
+                        totalCount += count;
+                    }
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections associated with the specified
+        /// database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        public static void ClearPool(string fileName)
+        {
+            lock (_syncRoot)
+            {
+                PoolQueue<T> queue;
+
+                if (_queueList.TryGetValue(fileName, out queue))
+                {
+                    queue.PoolVersion++;
+
+                    Queue<T> poolQueue = queue.Queue;
+                    if (poolQueue == null) return;
+
+                    while (poolQueue.Count > 0)
+                    {
+                        T connection = poolQueue.Dequeue();
+
+                        if (connection == null) continue;
+
+                        SQLiteConnectionHandle handle =
+                            connection as SQLiteConnectionHandle;
+
+                        if (handle != null)
+                            handle.Dispose();
+                    }
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Disposes of all pooled connections.
+        /// </summary>
+        public static void ClearAllPools()
+        {
+            lock (_syncRoot)
+            {
+                foreach (KeyValuePair<string, PoolQueue<T>> pair
+                        in _queueList)
+                {
+                    if (pair.Value == null)
+                        continue;
+
+                    Queue<T> poolQueue = pair.Value.Queue;
+
+                    while (poolQueue.Count > 0)
+                    {
+                        object connection = poolQueue.Dequeue();
+
+                        if (connection == null) continue;
+
+                        SQLiteConnectionHandle handle =
+                            connection as SQLiteConnectionHandle;
+
+                        if (handle != null)
+                            handle.Dispose();
+                    }
+
+                    //
+                    // NOTE: Keep track of the highest revision so we can
+                    //       go one higher when we are finished.
+                    //
+                    if (_poolVersion <= pair.Value.PoolVersion)
+                        _poolVersion = pair.Value.PoolVersion + 1;
+                }
+
+                //
+                // NOTE: All pools are cleared and we have a new highest
+                //       version number to force all old version active
+                //       items to get discarded instead of going back to
+                //       the queue when they are closed.  We can get away
+                //       with this because we have pumped up the pool
+                //       version out of range of all active connections,
+                //       so they will all get discarded when they try to
+                //       put themselves back into their pools.
+                //
+                _queueList.Clear();
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Adds a connection to the pool of those associated with the
+        /// specified database file name.
+        /// </summary>
+        /// <param name="fileName">
+        /// The database file name.
+        /// </param>
+        /// <param name="handle">
+        /// The database connection handle.
+        /// </param>
+        /// <param name="version">
+        /// The connection pool version at the point the database connection
+        /// handle was received from the connection pool.  This is also the
+        /// connection pool version that the database connection handle was
+        /// created under.
+        /// </param>
+        public static void Add(
+            string fileName,
+            SQLiteConnectionHandle handle,
+            int version
+            )
+        {
+            lock (_syncRoot)
+            {
+                //
+                // NOTE: If the queue does not exist in the pool, then it
+                //       must have been cleared sometime after the
+                //       connection was created.
+                //
+                PoolQueue<T> queue;
+
+                if (_queueList.TryGetValue(fileName, out queue) &&
+                    (version == queue.PoolVersion))
+                {
+                    ResizePool(queue, true);
+
+                    Queue<T> poolQueue = queue.Queue;
+                    if (poolQueue == null) return;
+
+                    poolQueue.Enqueue(handle as T);
+                    Interlocked.Increment(ref _poolClosed);
+                }
+                else
+                {
+                    handle.Close();
                 }
             }
         }
@@ -741,205 +1717,142 @@ namespace System.Data.SQLite
         /// The database connection handle associated with the specified
         /// database file name or null if it cannot be obtained.
         /// </returns>
-        internal static SQLiteConnectionHandle Remove(
+        public static SQLiteConnectionHandle Remove(
             string fileName,
             int maxPoolSize,
             out int version
             )
         {
-            ISQLiteConnectionPool connectionPool = GetConnectionPool();
+            int localVersion;
+            Queue<T> poolQueue;
 
-            if (connectionPool != null)
+            //
+            // NOTE: This lock cannot be held while checking the queue for
+            //       available connections because other methods of this
+            //       class are called from the GC finalizer thread and we
+            //       use the WaitForPendingFinalizers method (below).
+            //       Holding this lock while calling that method would
+            //       therefore result in a deadlock.  Instead, this lock
+            //       is held only while a temporary copy of the queue is
+            //       created, and if necessary, when committing changes
+            //       back to that original queue prior to returning from
+            //       this method.
+            //
+            lock (_syncRoot)
             {
-                return connectionPool.Remove(fileName, maxPoolSize,
-                    out version) as SQLiteConnectionHandle;
+                PoolQueue<T> queue;
+
+                //
+                // NOTE: Default to the highest pool version.
+                //
+                version = _poolVersion;
+
+                //
+                // NOTE: If we didn't find a pool for this file, create one
+                //       even though it will be empty.  We have to do this
+                //       here because otherwise calling ClearPool() on the
+                //       file will not work for active connections that have
+                //       never seen the pool yet.
+                //
+                if (!_queueList.TryGetValue(fileName, out queue))
+                {
+                    queue = new PoolQueue<T>(
+                        _poolVersion, maxPoolSize);
+
+                    _queueList.Add(fileName, queue);
+
+                    return null;
+                }
+
+                //
+                // NOTE: We found a pool for this file, so use its version
+                //       number.
+                //
+                version = localVersion = queue.PoolVersion;
+                queue.MaxPoolSize = maxPoolSize;
+
+                //
+                // NOTE: Now, resize the pool to the new maximum size, if
+                //       necessary.
+                //
+                ResizePool(queue, false);
+
+                //
+                // NOTE: Try and get a pooled connection from the queue.
+                //
+                poolQueue = queue.Queue;
+                if (poolQueue == null) return null;
+
+                //
+                // NOTE: Temporarily tranfer the queue for this file into
+                //       a local variable.  The queue for this file will
+                //       be modified and then committed back to the real
+                //       pool list (below) prior to returning from this
+                //       method.
+                //
+                _queueList.Remove(fileName);
+                poolQueue = new Queue<T>(poolQueue);
             }
-            else
-            {
-                int localVersion;
-                Queue<WeakReference> poolQueue;
 
-                //
-                // NOTE: This lock cannot be held while checking the queue for
-                //       available connections because other methods of this
-                //       class are called from the GC finalizer thread and we
-                //       use the WaitForPendingFinalizers method (below).
-                //       Holding this lock while calling that method would
-                //       therefore result in a deadlock.  Instead, this lock
-                //       is held only while a temporary copy of the queue is
-                //       created, and if necessary, when committing changes
-                //       back to that original queue prior to returning from
-                //       this method.
-                //
+            try
+            {
+                while (poolQueue.Count > 0)
+                {
+                    object connection = poolQueue.Dequeue();
+
+                    if (connection == null) continue;
+
+                    SQLiteConnectionHandle handle =
+                        connection as SQLiteConnectionHandle;
+
+                    if (handle == null) continue;
+
+                    if (!handle.IsInvalid && !handle.IsClosed)
+                    {
+                        Interlocked.Increment(ref _poolOpened);
+                        return handle;
+                    }
+                }
+            }
+            finally
+            {
                 lock (_syncRoot)
                 {
-                    PoolQueue queue;
+                    //
+                    // NOTE: We must check [again] if a pool exists for
+                    //       this file because one may have been added
+                    //       while the search for an available connection
+                    //       was in progress (above).
+                    //
+                    PoolQueue<T> queue;
+                    Queue<T> newPoolQueue;
+                    bool addPool;
 
-                    //
-                    // NOTE: Default to the highest pool version.
-                    //
-                    version = _poolVersion;
-
-                    //
-                    // NOTE: If we didn't find a pool for this file, create one
-                    //       even though it will be empty.  We have to do this
-                    //       here because otherwise calling ClearPool() on the
-                    //       file will not work for active connections that have
-                    //       never seen the pool yet.
-                    //
-                    if (!_queueList.TryGetValue(fileName, out queue))
+                    if (_queueList.TryGetValue(fileName, out queue))
                     {
-                        queue = new PoolQueue(_poolVersion, maxPoolSize);
-                        _queueList.Add(fileName, queue);
+                        addPool = false;
+                    }
+                    else
+                    {
+                        addPool = true;
 
-                        return null;
+                        queue = new PoolQueue<T>(
+                            localVersion, maxPoolSize);
                     }
 
-                    //
-                    // NOTE: We found a pool for this file, so use its version
-                    //       number.
-                    //
-                    version = localVersion = queue.PoolVersion;
-                    queue.MaxPoolSize = maxPoolSize;
+                    newPoolQueue = queue.Queue;
 
-                    //
-                    // NOTE: Now, resize the pool to the new maximum size, if
-                    //       necessary.
-                    //
+                    while (poolQueue.Count > 0)
+                        newPoolQueue.Enqueue(poolQueue.Dequeue());
+
                     ResizePool(queue, false);
 
-                    //
-                    // NOTE: Try and get a pooled connection from the queue.
-                    //
-                    poolQueue = queue.Queue;
-                    if (poolQueue == null) return null;
-
-                    //
-                    // NOTE: Temporarily tranfer the queue for this file into
-                    //       a local variable.  The queue for this file will
-                    //       be modified and then committed back to the real
-                    //       pool list (below) prior to returning from this
-                    //       method.
-                    //
-                    _queueList.Remove(fileName);
-                    poolQueue = new Queue<WeakReference>(poolQueue);
+                    if (addPool)
+                        _queueList.Add(fileName, queue);
                 }
-
-                try
-                {
-                    while (poolQueue.Count > 0)
-                    {
-                        WeakReference connection = poolQueue.Dequeue();
-
-                        if (connection == null) continue;
-
-                        SQLiteConnectionHandle handle =
-                            connection.Target as SQLiteConnectionHandle;
-
-                        if (handle == null) continue;
-
-                        //
-                        // BUGFIX: For ticket [996d13cd87], step #1.  After
-                        //         this point, make sure that the finalizer for
-                        //         the connection handle just obtained from the
-                        //         queue cannot START running (i.e. it may
-                        //         still be pending but it will no longer start
-                        //         after this point).
-                        //
-                        GC.SuppressFinalize(handle);
-
-                        try
-                        {
-                            //
-                            // BUGFIX: For ticket [996d13cd87], step #2.  Now,
-                            //         we must wait for all pending finalizers
-                            //         which have STARTED running and have not
-                            //         yet COMPLETED.  This must be done just
-                            //         in case the finalizer for the connection
-                            //         handle just obtained from the queue has
-                            //         STARTED running at some point before
-                            //         SuppressFinalize was called on it.
-                            //
-                            //         After this point, checking properties of
-                            //         the connection handle (e.g. IsClosed)
-                            //         should work reliably without having to
-                            //         worry that they will (due to the
-                            //         finalizer) change out from under us.
-                            //
-                            GC.WaitForPendingFinalizers();
-
-                            //
-                            // BUGFIX: For ticket [996d13cd87], step #3.  Next,
-                            //         verify that the connection handle is
-                            //         actually valid and [still?] not closed
-                            //         prior to actually returning it to our
-                            //         caller.
-                            //
-                            if (!handle.IsInvalid && !handle.IsClosed)
-                            {
-                                Interlocked.Increment(ref _poolOpened);
-                                return handle;
-                            }
-                        }
-                        finally
-                        {
-                            //
-                            // BUGFIX: For ticket [996d13cd87], step #4.  Next,
-                            //         we must re-register the connection
-                            //         handle for finalization now that we have
-                            //         a strong reference to it (i.e. the
-                            //         finalizer will not run at least until
-                            //         the connection is subsequently closed).
-                            //
-                            GC.ReRegisterForFinalize(handle);
-                        }
-
-                        GC.KeepAlive(handle);
-                    }
-                }
-                finally
-                {
-                    //
-                    // BUGFIX: For ticket [996d13cd87], step #5.  Finally,
-                    //         commit any changes to the pool/queue for this
-                    //         database file.
-                    //
-                    lock (_syncRoot)
-                    {
-                        //
-                        // NOTE: We must check [again] if a pool exists for
-                        //       this file because one may have been added
-                        //       while the search for an available connection
-                        //       was in progress (above).
-                        //
-                        PoolQueue queue;
-                        Queue<WeakReference> newPoolQueue;
-                        bool addPool;
-
-                        if (_queueList.TryGetValue(fileName, out queue))
-                        {
-                            addPool = false;
-                        }
-                        else
-                        {
-                            addPool = true;
-                            queue = new PoolQueue(localVersion, maxPoolSize);
-                        }
-
-                        newPoolQueue = queue.Queue;
-
-                        while (poolQueue.Count > 0)
-                            newPoolQueue.Enqueue(poolQueue.Dequeue());
-
-                        ResizePool(queue, false);
-
-                        if (addPool)
-                            _queueList.Add(fileName, queue);
-                    }
-                }
-
-                return null;
             }
+
+            return null;
         }
         #endregion
 
@@ -947,46 +1860,9 @@ namespace System.Data.SQLite
 
         #region Private Helper Methods
         /// <summary>
-        /// This method is used to obtain a reference to the custom connection
-        /// pool implementation currently in use, if any.
-        /// </summary>
-        /// <returns>
-        /// The custom connection pool implementation or null if the default
-        /// connection pool implementation should be used.
-        /// </returns>
-        internal static ISQLiteConnectionPool GetConnectionPool()
-        {
-            lock (_syncRoot)
-            {
-                return _connectionPool;
-            }
-        }
-
-        ///////////////////////////////////////////////////////////////////////
-
-        /// <summary>
-        /// This method is used to set the reference to the custom connection
-        /// pool implementation to use, if any.
-        /// </summary>
-        /// <param name="connectionPool">
-        /// The custom connection pool implementation to use or null if the
-        /// default connection pool implementation should be used.
-        /// </param>
-        internal static void SetConnectionPool(
-            ISQLiteConnectionPool connectionPool
-            )
-        {
-            lock (_syncRoot)
-            {
-                _connectionPool = connectionPool;
-            }
-        }
-
-        ///////////////////////////////////////////////////////////////////////
-
-        /// <summary>
-        /// We do not have to thread-lock anything in this function, because it
-        /// is only called by other functions above which already take the lock.
+        /// We do not have to thread-lock anything in this function, because
+        /// it is only called by other functions above which already take the
+        /// lock.
         /// </summary>
         /// <param name="queue">
         /// The pool queue to resize.
@@ -996,7 +1872,7 @@ namespace System.Data.SQLite
         /// forces the resize to take one more than it needs from the pool.
         /// </param>
         private static void ResizePool(
-            PoolQueue queue,
+            PoolQueue<T> queue,
             bool add
             )
         {
@@ -1004,22 +1880,20 @@ namespace System.Data.SQLite
 
             if (add && target > 0) target--;
 
-            Queue<WeakReference> poolQueue = queue.Queue;
+            Queue<T> poolQueue = queue.Queue;
             if (poolQueue == null) return;
 
             while (poolQueue.Count > target)
             {
-                WeakReference connection = poolQueue.Dequeue();
+                object connection = poolQueue.Dequeue();
 
                 if (connection == null) continue;
 
                 SQLiteConnectionHandle handle =
-                    connection.Target as SQLiteConnectionHandle;
+                    connection as SQLiteConnectionHandle;
 
                 if (handle != null)
                     handle.Dispose();
-
-                GC.KeepAlive(handle);
             }
         }
         #endregion

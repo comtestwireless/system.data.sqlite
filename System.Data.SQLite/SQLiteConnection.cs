@@ -2082,7 +2082,7 @@ namespace System.Data.SQLite
     /// implementation to use, if any.  Setting this property to null will
     /// cause the default connection pool implementation to be used.
     /// </summary>
-    public static ISQLiteConnectionPool ConnectionPool
+    public static ISQLiteConnectionPool2 ConnectionPool
     {
         get { return SQLiteConnectionPool.GetConnectionPool(); }
         set { SQLiteConnectionPool.SetConnectionPool(value); }

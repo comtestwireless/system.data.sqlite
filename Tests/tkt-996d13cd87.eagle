@@ -33,10 +33,7 @@ for {set i 1} {$i < 11} {incr i} {
 
     if {![haveConstraint runtime.noPoolCounts] && [catch {
         object invoke -flags +NonPublic \
-            System.Data.SQLite.SQLiteConnectionPool _poolOpened 0
-
-        object invoke -flags +NonPublic \
-            System.Data.SQLite.SQLiteConnectionPool _poolClosed 0
+            System.Data.SQLite.SQLiteConnectionPool ResetCounts
     }] == 0} then {
       set havePoolCounts true
     } else {
@@ -52,11 +49,12 @@ for {set i 1} {$i < 11} {incr i} {
       #       counts, fetch them now; otherwise, just set them to zero.
       #
       if {$::havePoolCounts} then {
-        set ::poolCounts(opened) [object invoke -flags +NonPublic \
-            System.Data.SQLite.SQLiteConnectionPool _poolOpened]
+        set ::poolCounts(opened) 0
+        set ::poolCounts(closed) 0
 
-        set ::poolCounts(closed) [object invoke -flags +NonPublic \
-            System.Data.SQLite.SQLiteConnectionPool _poolClosed]
+        object invoke -flags +NonPublic \
+            System.Data.SQLite.SQLiteConnectionPool GetCounts \
+            ::poolCounts(opened) ::poolCounts(closed)
 
         tputs $::test_channel [appendArgs \
             "---- opened " $::poolCounts(opened) " connections from the pool\n"]

@@ -5101,20 +5101,18 @@ True True$}}
 runTest {test data-1.96 {connection pool interaction with read-only} -setup {
   catch {
     object invoke -flags +NonPublic \
-        System.Data.SQLite.SQLiteConnectionPool _poolOpened 0
-
-    object invoke -flags +NonPublic \
-        System.Data.SQLite.SQLiteConnectionPool _poolClosed 0
+        System.Data.SQLite.SQLiteConnectionPool ResetCounts
   }
 
   proc getPoolCounts {} {
+    set opened 0
+    set closed 0
+
     if {[catch {
       object invoke -flags +NonPublic \
-          System.Data.SQLite.SQLiteConnectionPool _poolOpened
-    } opened] == 0 && [catch {
-      object invoke -flags +NonPublic \
-          System.Data.SQLite.SQLiteConnectionPool _poolClosed
-    } closed] == 0} then {
+          System.Data.SQLite.SQLiteConnectionPool GetCounts \
+          opened closed
+    }] == 0 && [catch {
       return [list $opened $closed]
     } else {
       tputs $::test_channel \

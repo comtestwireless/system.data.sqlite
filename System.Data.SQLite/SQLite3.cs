@@ -169,7 +169,9 @@ namespace System.Data.SQLite
       : base(fmt, kind, fmtString)
     {
         InitializeForceLogPrepare();
-        SQLiteConnectionPool.Initialize();
+
+        SQLiteConnectionPool.Initialize(UnsafeNativeMethods.GetSettingValue(
+            "SQLite_StrongConnectionPool", null));
 
         if (db != IntPtr.Zero)
         {

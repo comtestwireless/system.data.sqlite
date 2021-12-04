@@ -104,6 +104,44 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////
 
+    #region Public ISQLiteConnectionPool2 Interface
+    /// <summary>
+    /// This interface represents a custom connection pool implementation
+    /// usable by System.Data.SQLite.
+    /// </summary>
+    public interface ISQLiteConnectionPool2 : ISQLiteConnectionPool
+    {
+        /// <summary>
+        /// Initialize the connection pool.
+        /// </summary>
+        /// <param name="argument">
+        /// Optional single argument used during the connection pool
+        /// initialization process.
+        /// </param>
+        void Initialize(object argument);
+
+        /// <summary>
+        /// Gets the total number of connections successfully opened and
+        /// closed from any pool.
+        /// </summary>
+        /// <param name="openCount">
+        /// The total number of connections successfully opened from any pool.
+        /// </param>
+        /// <param name="closeCount">
+        /// The total number of connections successfully closed from any pool.
+        /// </param>
+        void GetCounts(ref int openCount, ref int closeCount);
+
+        /// <summary>
+        /// Resets the total number of connections successfully opened and
+        /// closed from any pool to zero.
+        /// </summary>
+        void ResetCounts();
+    }
+    #endregion
+
+    ///////////////////////////////////////////////////////////////////////////
+
     #region Private Built-In Null ISQLiteConnectionPool Class
 #if !PLATFORM_COMPACTFRAMEWORK && DEBUG
     /// <summary>
@@ -111,7 +149,7 @@ namespace System.Data.SQLite
     /// <see cref="ISQLiteConnectionPool" /> interface are NOPs.  This class
     /// is used for testing purposes only.
     /// </summary>
-    internal sealed class NullConnectionPool : ISQLiteConnectionPool
+    internal sealed class NullConnectionPool : ISQLiteConnectionPool2
     {
         #region Private Data
         /// <summary>
@@ -324,6 +362,43 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        #region ISQLiteConnectionPool2 Members
+        public void Initialize(
+            object argument
+            )
+        {
+            if (log != null)
+            {
+                log.AppendFormat(
+                    "Initialize(\"{0}\"{1}", argument, Environment.NewLine);
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            if (log != null)
+            {
+                log.AppendFormat(
+                    "GetCounts({0}, {1}){2}", openCount, closeCount,
+                    Environment.NewLine);
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void ResetCounts()
+        {
+
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
         #region System.Object Overrides
         /// <summary>
         /// Overrides the default <see cref="System.Object.ToString" /> method
@@ -351,7 +426,7 @@ namespace System.Data.SQLite
     /// This class implements a connection pool using the built-in static
     /// method implementations.
     /// </summary>
-    internal sealed class WeakConnectionPool : ISQLiteConnectionPool
+    internal sealed class WeakConnectionPool : ISQLiteConnectionPool2
     {
         #region ISQLiteConnectionPool Members
         /// <summary>
@@ -471,6 +546,35 @@ namespace System.Data.SQLite
                 fileName, maxPoolSize, out version);
         }
         #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region ISQLiteConnectionPool2 Members
+        public void Initialize(
+            object argument
+            )
+        {
+            // do nothing.
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            StaticWeakConnectionPool<WeakReference>.GetCounts(
+                ref openCount, ref closeCount);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void ResetCounts()
+        {
+            StaticWeakConnectionPool<WeakReference>.ResetCounts();
+        }
+        #endregion
     }
     #endregion
 
@@ -481,7 +585,7 @@ namespace System.Data.SQLite
     /// This class implements a naive connection pool where the underlying
     /// connections are never disposed automatically.
     /// </summary>
-    internal sealed class StrongConnectionPool : ISQLiteConnectionPool
+    internal sealed class StrongConnectionPool : ISQLiteConnectionPool2
     {
         #region ISQLiteConnectionPool Members
         /// <summary>
@@ -601,6 +705,35 @@ namespace System.Data.SQLite
                 fileName, maxPoolSize, out version);
         }
         #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region ISQLiteConnectionPool2 Members
+        public void Initialize(
+            object argument
+            )
+        {
+            // do nothing.
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            StaticStrongConnectionPool<object>.GetCounts(
+                ref openCount, ref closeCount);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void ResetCounts()
+        {
+            StaticStrongConnectionPool<object>.ResetCounts();
+        }
+        #endregion
     }
     #endregion
 
@@ -689,26 +822,7 @@ namespace System.Data.SQLite
         /// implementation of all the connection pool methods; otherwise,
         /// the default method implementations will be used.
         /// </summary>
-        private static ISQLiteConnectionPool _connectionPool = null;
-        #endregion
-
-        ///////////////////////////////////////////////////////////////////////
-
-        #region Public Static Methods
-        public static void Initialize()
-        {
-            lock (_syncRoot)
-            {
-                if (_connectionPool == null)
-                {
-                    //
-                    // NOTE: *LEGACY* By default, use a connection pool
-                    //       that keeps track of WeakReference objects.
-                    //
-                    _connectionPool = new WeakConnectionPool();
-                }
-            }
-        }
+        private static ISQLiteConnectionPool2 _connectionPool = null;
         #endregion
 
         ///////////////////////////////////////////////////////////////////////
@@ -859,6 +973,60 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        #region ISQLiteConnectionPool2 Members (Static, Non-Formal)
+        public static void Initialize(
+            object argument
+            )
+        {
+            lock (_syncRoot)
+            {
+                if (_connectionPool == null)
+                {
+                    //
+                    // NOTE: *LEGACY* By default, use a connection pool
+                    //       that keeps track of WeakReference objects.
+                    //
+                    bool strong = (argument != null);
+
+                    _connectionPool = strong ? (ISQLiteConnectionPool2)
+                        new StrongConnectionPool() :
+                        new WeakConnectionPool();
+
+                    _connectionPool.Initialize(argument);
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            ISQLiteConnectionPool2 connectionPool = GetConnectionPool();
+
+            if (connectionPool == null)
+                return;
+
+            connectionPool.GetCounts(ref openCount, ref closeCount);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void ResetCounts()
+        {
+            ISQLiteConnectionPool2 connectionPool = GetConnectionPool();
+
+            if (connectionPool == null)
+                return;
+
+            connectionPool.ResetCounts();
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
         #region Private Helper Methods
         /// <summary>
         /// This method is used to obtain a reference to the custom connection
@@ -868,7 +1036,7 @@ namespace System.Data.SQLite
         /// The custom connection pool implementation or null if the default
         /// connection pool implementation should be used.
         /// </returns>
-        public static ISQLiteConnectionPool GetConnectionPool()
+        public static ISQLiteConnectionPool2 GetConnectionPool()
         {
             lock (_syncRoot)
             {
@@ -887,7 +1055,7 @@ namespace System.Data.SQLite
         /// default connection pool implementation should be used.
         /// </param>
         public static void SetConnectionPool(
-            ISQLiteConnectionPool connectionPool
+            ISQLiteConnectionPool2 connectionPool
             )
         {
             lock (_syncRoot)
@@ -1389,6 +1557,33 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        #region ISQLiteConnectionPool2 Members (Static, Non-Formal)
+        public static void ResetCounts()
+        {
+            lock (_syncRoot)
+            {
+                _poolOpened = 0;
+                _poolClosed = 0;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            lock (_syncRoot)
+            {
+                openCount = _poolOpened;
+                closeCount = _poolClosed;
+            }
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
         #region Private Helper Methods
         /// <summary>
         /// We do not have to thread-lock anything in this function, because
@@ -1855,6 +2050,33 @@ namespace System.Data.SQLite
             }
 
             return null;
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region ISQLiteConnectionPool2 Members (Static, Non-Formal)
+        public static void ResetCounts()
+        {
+            lock (_syncRoot)
+            {
+                _poolOpened = 0;
+                _poolClosed = 0;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void GetCounts(
+            ref int openCount,
+            ref int closeCount
+            )
+        {
+            lock (_syncRoot)
+            {
+                openCount = _poolOpened;
+                closeCount = _poolClosed;
+            }
         }
         #endregion
 

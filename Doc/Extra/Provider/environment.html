@@ -294,6 +294,14 @@
           associated classes (e.g. LINQ, EF6, etc) will be logged.</td>
         </tr>
         <tr valign="top">
+          <td>SQLite_StrongConnectionPool</td>
+          <td>If this environment variable is set [to anything], the default
+          connection pool will use normal objects instead of weak references.
+          This should prevent any pooled connection objects from ever being
+          automatically cleaned up by the garbage collector.
+          </td>
+        </tr>
+        <tr valign="top">
           <td>TypeName_SQLiteProviderServices</td>
           <td>If this environment variable is set [to anything], it will be
           used by the System.Data.SQLite.SQLiteFactory class as the type name

@@ -247,17 +247,25 @@ namespace System.Data.SQLite
                 DisposeModules();
 #endif
 
-                Close(true); /* Disposing, cannot throw. */
+                /* Disposing, cannot throw. */
+                wasDisposed = Close(true);
             }
         }
         finally
         {
             base.Dispose(disposing);
 
-            //
-            // NOTE: Everything should be fully disposed at this point.
-            //
-            disposed = true;
+            if (wasDisposed)
+            {
+                /* IGNORED */
+                BumpDisposeCount();
+
+                //
+                // NOTE: Everything should be fully disposed
+                //       at this point.
+                //
+                disposed = true;
+            }
         }
     }
     #endregion
@@ -267,6 +275,8 @@ namespace System.Data.SQLite
 #if DEBUG
     public override string ToString()
     {
+        CheckDisposed();
+
         return HelperMethods.StringFormat(
             CultureInfo.InvariantCulture,
             "fileName = {0}, returnToFileName = {1}, flags = {2}",
@@ -312,14 +322,16 @@ namespace System.Data.SQLite
     // goes to the pool and is resurrected later, re-registered functions will overwrite the
     // previous functions.  The SQLiteFunctionCookieHandle will take care of freeing unmanaged
     // resources belonging to the previously-registered functions.
-    internal override void Close(bool disposing)
+    internal override bool Close(bool disposing)
     {
+      bool wasDisposed = false;
+
       if (_sql != null)
       {
           if (!_sql.OwnHandle)
           {
               _sql = null;
-              return;
+              return wasDisposed;
           }
 
           bool unbindFunctions = HelperMethods.HasFlags(_flags, SQLiteConnectionFlags.UnbindFunctionsOnClose);
@@ -420,11 +432,14 @@ namespace System.Data.SQLite
               }
 
               _sql.Dispose();
+              wasDisposed = true;
 
               FreeDbName(!disposing);
           }
           _sql = null;
       }
+
+      return wasDisposed;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1127,6 +1142,7 @@ namespace System.Data.SQLite
 
           if (n != SQLiteErrorCode.Ok) throw new SQLiteException(n, null);
           _sql = new SQLiteConnectionHandle(db, true);
+          BumpOpenCount();
         }
         lock (_sql) { /* HACK: Force the SyncBlock to be "created" now. */ }
 

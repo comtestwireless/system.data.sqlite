@@ -14,6 +14,8 @@ namespace System.Data.SQLite
   using System.Runtime.InteropServices;
 #endif
 
+  using System.Threading;
+
   /// <summary>
   /// This internal class provides the foundation of SQLite support.  It defines all the abstract members needed to implement
   /// a SQLite data provider, and inherits from SQLiteConvert which allows for simple translations of string to and from SQLite.
@@ -26,6 +28,13 @@ namespace System.Data.SQLite
     /// code.
     /// </summary>
     internal const int COR_E_EXCEPTION = unchecked((int)0x80131500);
+    #endregion
+
+    /////////////////////////////////////////////////////////////////////////
+
+    #region Private Static Data
+    private static int _openCount;
+    private static int _disposeCount;
     #endregion
 
     /////////////////////////////////////////////////////////////////////////
@@ -134,7 +143,8 @@ namespace System.Data.SQLite
     /// memory associated with the user-defined functions and collating sequences tied to the closed connection.
     /// </remarks>
     /// <param name="disposing">Non-zero if connection is being disposed, zero otherwise.</param>
-    internal abstract void Close(bool disposing);
+    /// <returns>Returns non-zero if the connection was actually closed (i.e. and not simply returned to a pool, etc).</returns>
+    internal abstract bool Close(bool disposing);
     /// <summary>
     /// Sets the busy timeout on the connection.  SQLiteCommand will call this before executing any command.
     /// </summary>
@@ -569,6 +579,20 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    protected static int BumpOpenCount()
+    {
+        return Interlocked.Increment(ref _openCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static int BumpDisposeCount()
+    {
+        return Interlocked.Increment(ref _disposeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     #region IDisposable Members
     public void Dispose()
     {
@@ -591,22 +615,23 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    protected bool wasDisposed;
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposed)
+        if (wasDisposed)
         {
-            //if (disposing)
-            //{
-            //    ////////////////////////////////////
-            //    // dispose managed resources here...
-            //    ////////////////////////////////////
-            //}
+            /* IGNORED */
+            BumpDisposeCount();
 
-            //////////////////////////////////////
-            // release unmanaged resources here...
-            //////////////////////////////////////
-
+            //
+            // NOTE: Everything should be fully disposed
+            //       at this point.
+            //
             disposed = true;
+        }
+        else
+        {
+            GC.ReRegisterForFinalize(this);
         }
     }
     #endregion

@@ -1,7 +1,7 @@
 /********************************************************
  * ADO.NET 2.0 Data Provider for SQLite Version 3.X
  * Written by Robert Simpson (robert@blackcastlesoft.com)
- * 
+ *
  * Released to the public domain, use at your own risk!
  ********************************************************/
 
@@ -78,28 +78,16 @@ namespace System.Data.SQLite
 
     protected override void Dispose(bool disposing)
     {
-        try
-        {
-            if (!disposed)
-            {
-                //if (disposing)
-                //{
-                //    ////////////////////////////////////
-                //    // dispose managed resources here...
-                //    ////////////////////////////////////
-                //}
+        base.Dispose(disposing);
 
-                //////////////////////////////////////
-                // release unmanaged resources here...
-                //////////////////////////////////////
-            }
-        }
-        finally
+        if (wasDisposed)
         {
-            base.Dispose(disposing);
+            /* IGNORED */
+            BumpDisposeCount();
 
             //
-            // NOTE: Everything should be fully disposed at this point.
+            // NOTE: Everything should be fully disposed
+            //       at this point.
             //
             disposed = true;
         }
@@ -230,6 +218,7 @@ namespace System.Data.SQLite
 
           if (n != SQLiteErrorCode.Ok) throw new SQLiteException(n, null);
           _sql = new SQLiteConnectionHandle(db, true);
+          BumpOpenCount();
         }
         lock (_sql) { /* HACK: Force the SyncBlock to be "created" now. */ }
 

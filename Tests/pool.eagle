@@ -1,0 +1,157 @@
+###############################################################################
+#
+# pool.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test pool-1.1 {dispose database with pool} -setup {
+  proc getOpenCount {} {
+    if {[isDotNetCore]} then {
+      return [object invoke -flags +NonPublic \
+          "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
+          _openCount]
+    } else {
+      return [object invoke -flags +NonPublic [appendArgs \
+          "System.Data.SQLite.SQLiteBase, " [lindex [object \
+          load System.Data.SQLite] 0]] _openCount]
+    }
+  }
+
+  proc getDisposeCount {} {
+    if {[isDotNetCore]} then {
+      return [object invoke -flags +NonPublic \
+          "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
+          _disposeCount]
+    } else {
+      return [object invoke -flags +NonPublic [appendArgs \
+          "System.Data.SQLite.SQLiteBase, " [lindex [object \
+          load System.Data.SQLite] 0]] _disposeCount]
+    }
+  }
+} -body {
+  setupDb [set fileName pool-1.1.db] "" "" "" "" "Pooling=True;"
+
+  sql execute $db "CREATE TABLE t1(x);"
+  sql execute $db "INSERT INTO t1 (x) VALUES(NULL);"
+
+  cleanupDb $fileName db true false false
+
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  set sql { \
+    INSERT INTO t1 (x) VALUES(?); \
+  }
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data;
+    using System.Data.SQLite;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        public static void Main(string\[\] args)
+        {
+          int iteration = int.Parse(args\[0\]);
+
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};Pooling=True;" +
+              "[getTestProperties]"))
+          {
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql}",
+                connection))
+            {
+              command.Parameters.Add(new SQLiteParameter("", iteration));
+              command.ExecuteNonQuery();
+            }
+          }
+        }
+      }
+    }
+  }] true false true results errors System.Data.SQLite.dll]
+
+  set m 100
+  set counts(rows) 0
+  set counts(open,before) [getOpenCount]
+  set counts(dispose,before) [getDisposeCount]
+
+  set time [time {
+    set args [object create -alias String\[\] 1]
+
+    for {set i 0} {$i < $m} {incr i} {
+      $args SetValue $i 0
+
+      object invoke -alias _Dynamic${id}.Test${id} Main $args
+
+      setupDb $fileName "" "" "" "" "Pooling=True;" true false
+
+      incr counts(rows) [sql execute -execute \
+          scalar $db "SELECT COUNT(*) FROM t1;"]
+
+      cleanupDb $fileName db false false false
+    }
+  }]
+
+  tputs $test_channel [appendArgs \
+      "---- attempted to use " $m " pooled connections in " \
+      $time \n]
+
+  set counts(open,after) [getOpenCount]
+  set counts(dispose,after) [getDisposeCount]
+
+  set counts(open,diff) [expr {
+    $counts(open,after) - $counts(open,before)
+  }]
+
+  set counts(dispose,diff) [expr {
+    $counts(dispose,after) - $counts(dispose,before)
+  }]
+
+  tputs $test_channel [appendArgs \
+      "---- opened connections " $counts(open,diff) \
+      " times in this test\n"]
+
+  tputs $test_channel [appendArgs \
+      "---- disposed connections " $counts(dispose,diff) \
+      " times in this test\n"]
+
+  list $counts(rows) [expr {
+    $counts(open,after) == $counts(open,before)
+  }]
+} -cleanup {
+  cleanupDb $fileName
+
+  unset -nocomplain results errors code sql dataSource id
+  unset -nocomplain args time i m counts db fileName
+
+  rename getDisposeCount ""
+  rename getOpenCount ""
+} -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -result {5150 True}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

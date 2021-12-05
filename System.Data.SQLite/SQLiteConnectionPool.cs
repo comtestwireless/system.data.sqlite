@@ -827,7 +827,7 @@ namespace System.Data.SQLite
         /// implementation of all the connection pool methods; otherwise,
         /// the default method implementations will be used.
         /// </summary>
-        private static ISQLiteConnectionPool2 _connectionPool = null;
+        private static ISQLiteConnectionPool _connectionPool = null;
         #endregion
 
         ///////////////////////////////////////////////////////////////////////
@@ -993,18 +993,27 @@ namespace System.Data.SQLite
                     //
                     bool strong = (argument != null);
 
-                    _connectionPool = strong ? (ISQLiteConnectionPool2)
-                        new StrongConnectionPool() :
-                        new WeakConnectionPool();
+                    ISQLiteConnectionPool connectionPool;
 
-                    _connectionPool.Initialize(argument);
+                    if (strong)
+                        connectionPool = new StrongConnectionPool();
+                    else
+                        connectionPool = new WeakConnectionPool();
+
+                    ISQLiteConnectionPool2 connectionPool2 =
+                        connectionPool as ISQLiteConnectionPool2;
+
+                    if (connectionPool2 != null)
+                        connectionPool2.Initialize(argument);
 
 #if !NET_COMPACT_20 && TRACE_CONNECTION
                     Trace.WriteLine(HelperMethods.StringFormat(
                         CultureInfo.CurrentCulture,
                         "ConnectionPool: Initialized {0}",
-                        _connectionPool));
+                        connectionPool));
 #endif
+
+                    _connectionPool = connectionPool;
                 }
             }
         }
@@ -1016,7 +1025,8 @@ namespace System.Data.SQLite
             ref int closeCount
             )
         {
-            ISQLiteConnectionPool2 connectionPool = GetConnectionPool();
+            ISQLiteConnectionPool2 connectionPool =
+                GetConnectionPool() as ISQLiteConnectionPool2;
 
             if (connectionPool == null)
                 return;
@@ -1028,7 +1038,8 @@ namespace System.Data.SQLite
 
         public static void ResetCounts()
         {
-            ISQLiteConnectionPool2 connectionPool = GetConnectionPool();
+            ISQLiteConnectionPool2 connectionPool =
+                GetConnectionPool() as ISQLiteConnectionPool2;
 
             if (connectionPool == null)
                 return;
@@ -1048,7 +1059,7 @@ namespace System.Data.SQLite
         /// The custom connection pool implementation or null if the default
         /// connection pool implementation should be used.
         /// </returns>
-        public static ISQLiteConnectionPool2 GetConnectionPool()
+        public static ISQLiteConnectionPool GetConnectionPool()
         {
             lock (_syncRoot)
             {
@@ -1067,7 +1078,7 @@ namespace System.Data.SQLite
         /// default connection pool implementation should be used.
         /// </param>
         public static void SetConnectionPool(
-            ISQLiteConnectionPool2 connectionPool
+            ISQLiteConnectionPool connectionPool
             )
         {
             lock (_syncRoot)

@@ -622,16 +622,22 @@ namespace System.Data.SQLite
         {
             /* IGNORED */
             BumpDisposeCount();
-
-            //
-            // NOTE: Everything should be fully disposed
-            //       at this point.
-            //
-            disposed = true;
         }
-        else
+
+        if (!disposed)
         {
-            GC.ReRegisterForFinalize(this);
+            //if (disposing)
+            //{
+            //    ////////////////////////////////////
+            //    // dispose managed resources here...
+            //    ////////////////////////////////////
+            //}
+
+            //////////////////////////////////////
+            // release unmanaged resources here...
+            //////////////////////////////////////
+
+            disposed = true;
         }
     }
     #endregion

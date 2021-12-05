@@ -78,16 +78,28 @@ namespace System.Data.SQLite
 
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
-
-        if (wasDisposed)
+        try
         {
-            /* IGNORED */
-            BumpDisposeCount();
+            if (!disposed)
+            {
+                //if (disposing)
+                //{
+                //    ////////////////////////////////////
+                //    // dispose managed resources here...
+                //    ////////////////////////////////////
+                //}
+
+                //////////////////////////////////////
+                // release unmanaged resources here...
+                //////////////////////////////////////
+            }
+        }
+        finally
+        {
+            base.Dispose(disposing);
 
             //
-            // NOTE: Everything should be fully disposed
-            //       at this point.
+            // NOTE: Everything should be fully disposed at this point.
             //
             disposed = true;
         }

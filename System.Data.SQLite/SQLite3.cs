@@ -255,17 +255,10 @@ namespace System.Data.SQLite
         {
             base.Dispose(disposing);
 
-            if (wasDisposed)
-            {
-                /* IGNORED */
-                BumpDisposeCount();
-
-                //
-                // NOTE: Everything should be fully disposed
-                //       at this point.
-                //
-                disposed = true;
-            }
+            //
+            // NOTE: Everything should be fully disposed at this point.
+            //
+            disposed = true;
         }
     }
     #endregion

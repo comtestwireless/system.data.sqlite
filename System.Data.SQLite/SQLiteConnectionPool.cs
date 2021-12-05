@@ -126,6 +126,15 @@ namespace System.Data.SQLite
         void Initialize(object argument);
 
         /// <summary>
+        /// Terminate the connection pool.
+        /// </summary>
+        /// <param name="argument">
+        /// Optional single argument used during the connection pool
+        /// termination process.
+        /// </param>
+        void Terminate(object argument);
+
+        /// <summary>
         /// Gets the total number of connections successfully opened and
         /// closed from any pool.
         /// </summary>
@@ -381,6 +390,19 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        public void Terminate(
+            object argument
+            )
+        {
+            if (log != null)
+            {
+                log.AppendFormat(
+                    "Terminate(\"{0}\"{1}", argument, Environment.NewLine);
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
         public void GetCounts(
             ref int openCount,
             ref int closeCount
@@ -564,6 +586,15 @@ namespace System.Data.SQLite
 
         ///////////////////////////////////////////////////////////////////////
 
+        public void Terminate(
+            object argument
+            )
+        {
+            // do nothing.
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
         public void GetCounts(
             ref int openCount,
             ref int closeCount
@@ -715,6 +746,15 @@ namespace System.Data.SQLite
 
         #region ISQLiteConnectionPool2 Members
         public void Initialize(
+            object argument
+            )
+        {
+            // do nothing.
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public void Terminate(
             object argument
             )
         {
@@ -983,39 +1023,28 @@ namespace System.Data.SQLite
             object argument
             )
         {
-            lock (_syncRoot)
-            {
-                if (_connectionPool == null)
-                {
-                    //
-                    // NOTE: *LEGACY* By default, use a connection pool
-                    //       that keeps track of WeakReference objects.
-                    //
-                    bool strong = (argument != null);
+            ISQLiteConnectionPool2 connectionPool =
+                GetConnectionPool() as ISQLiteConnectionPool2;
 
-                    ISQLiteConnectionPool connectionPool;
+            if (connectionPool == null)
+                return;
 
-                    if (strong)
-                        connectionPool = new StrongConnectionPool();
-                    else
-                        connectionPool = new WeakConnectionPool();
+            connectionPool.Initialize(argument);
+        }
 
-                    ISQLiteConnectionPool2 connectionPool2 =
-                        connectionPool as ISQLiteConnectionPool2;
+        ///////////////////////////////////////////////////////////////////////
 
-                    if (connectionPool2 != null)
-                        connectionPool2.Initialize(argument);
+        public static void Terminate(
+            object argument
+            )
+        {
+            ISQLiteConnectionPool2 connectionPool =
+                GetConnectionPool() as ISQLiteConnectionPool2;
 
-#if !NET_COMPACT_20 && TRACE_CONNECTION
-                    Trace.WriteLine(HelperMethods.StringFormat(
-                        CultureInfo.CurrentCulture,
-                        "ConnectionPool: Initialized {0}",
-                        connectionPool));
-#endif
+            if (connectionPool == null)
+                return;
 
-                    _connectionPool = connectionPool;
-                }
-            }
+            connectionPool.Terminate(argument);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -1045,6 +1074,77 @@ namespace System.Data.SQLite
                 return;
 
             connectionPool.ResetCounts();
+        }
+        #endregion
+
+        ///////////////////////////////////////////////////////////////////////
+
+        #region Public Static Methods
+        public static void CreateAndInitialize(
+            object argument,
+            bool strong,
+            bool force
+            )
+        {
+            lock (_syncRoot)
+            {
+                if (force || (_connectionPool == null))
+                {
+                    //
+                    // NOTE: *LEGACY* By default, use a connection pool
+                    //       that keeps track of WeakReference objects.
+                    //
+                    ISQLiteConnectionPool connectionPool;
+
+                    if (strong)
+                        connectionPool = new StrongConnectionPool();
+                    else
+                        connectionPool = new WeakConnectionPool();
+
+                    ISQLiteConnectionPool2 connectionPool2 =
+                        connectionPool as ISQLiteConnectionPool2;
+
+                    if (connectionPool2 != null)
+                        connectionPool2.Initialize(argument);
+
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+                    Trace.WriteLine(HelperMethods.StringFormat(
+                        CultureInfo.CurrentCulture,
+                        "ConnectionPool: Initialized {0}",
+                        connectionPool));
+#endif
+
+                    _connectionPool = connectionPool;
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void TerminateAndReset(
+            object argument
+            )
+        {
+            lock (_syncRoot)
+            {
+                if (_connectionPool != null)
+                {
+                    ISQLiteConnectionPool2 connectionPool2 =
+                        _connectionPool as ISQLiteConnectionPool2;
+
+                    if (connectionPool2 != null)
+                        connectionPool2.Terminate(argument);
+
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+                    Trace.WriteLine(HelperMethods.StringFormat(
+                        CultureInfo.CurrentCulture,
+                        "ConnectionPool: Terminated {0}",
+                        _connectionPool));
+#endif
+
+                    _connectionPool = null;
+                }
+            }
         }
         #endregion
 

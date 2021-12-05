@@ -10,6 +10,11 @@ namespace System.Data.SQLite
     using System;
     using System.Collections.Generic;
 
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+    using System.Diagnostics;
+    using System.Globalization;
+#endif
+
 #if !PLATFORM_COMPACTFRAMEWORK && DEBUG
     using System.Text;
 #endif
@@ -993,6 +998,13 @@ namespace System.Data.SQLite
                         new WeakConnectionPool();
 
                     _connectionPool.Initialize(argument);
+
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+                    Trace.WriteLine(HelperMethods.StringFormat(
+                        CultureInfo.CurrentCulture,
+                        "ConnectionPool: Initialized {0}",
+                        _connectionPool));
+#endif
                 }
             }
         }

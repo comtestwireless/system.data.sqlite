@@ -431,10 +431,6 @@ namespace System.Data.SQLite
           }
           _sql = null;
       }
-      else
-      {
-          wasDisposed = true;
-      }
 
       return wasDisposed;
     }

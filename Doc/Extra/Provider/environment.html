@@ -240,13 +240,6 @@
           "libsqlite3.so.0").</td>
         </tr>
         <tr valign="top">
-          <td>PreLoadSQLite_ProcessorArchitecture</td>
-          <td>If this environment variable is set [to anything], it will be
-          used instead of the processor architecture value contained in the
-          PROCESSOR_ARCHITECTURE environment variable to help build the path
-          of the native library to pre-load.</td>
-        </tr>
-        <tr valign="top">
           <td>PreLoadSQLite_NoSearchForDirectory</td>
           <td>If this environment variable is set [to anything], the native
           library pre-loading code will skip conducting a search for the native
@@ -254,6 +247,13 @@
           of the currently executing assembly (i.e. the assembly containing all
           the managed components for System.Data.SQLite) and then falls back to
           the application domain base directory.</td>
+        </tr>
+        <tr valign="top">
+          <td>PreLoadSQLite_ProcessorArchitecture</td>
+          <td>If this environment variable is set [to anything], it will be
+          used instead of the processor architecture value contained in the
+          PROCESSOR_ARCHITECTURE environment variable to help build the path
+          of the native library to pre-load.</td>
         </tr>
         <tr valign="top">
           <td>PreLoadSQLite_UseAssemblyDirectory</td>
@@ -282,16 +282,16 @@
           necessary for your specific use case.</td>
         </tr>
         <tr valign="top">
-          <td>SQLite_ForceLogPrepare</td>
-          <td>If this environment variable is set [to anything], all calls to
-          prepare a SQL query will be logged, regardless of the flags for the
-          associated connection.</td>
-        </tr>
-        <tr valign="top">
           <td>SQLite_ForceLogLifecycle</td>
           <td>If this environment variable is set [to anything], calls into
           key members pertaining to the lifecycle of connections and their
           associated classes (e.g. LINQ, EF6, etc) will be logged.</td>
+        </tr>
+        <tr valign="top">
+          <td>SQLite_ForceLogPrepare</td>
+          <td>If this environment variable is set [to anything], all calls to
+          prepare a SQL query will be logged, regardless of the flags for the
+          associated connection.</td>
         </tr>
         <tr valign="top">
           <td>SQLite_StrongConnectionPool</td>

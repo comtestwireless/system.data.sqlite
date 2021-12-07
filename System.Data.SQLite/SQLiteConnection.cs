@@ -3299,6 +3299,38 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Returns the total number of created connections.
+    /// </summary>
+    public static long CreateCount
+    {
+        get { return SQLiteBase.CreateCount; }
+    }
+
+    /// <summary>
+    /// Returns the total number of <see cref="Open" /> method calls for all connections.
+    /// </summary>
+    public static long OpenCount
+    {
+        get { return SQLiteBase.OpenCount; }
+    }
+
+    /// <summary>
+    /// Returns the total number of <see cref="Close" /> method calls for all connections.
+    /// </summary>
+    public static long CloseCount
+    {
+        get { return SQLiteBase.CloseCount; }
+    }
+
+    /// <summary>
+    /// Returns the total number of disposed connections.
+    /// </summary>
+    public static long DisposeCount
+    {
+        get { return SQLiteBase.DisposeCount; }
+    }
+
+    /// <summary>
     /// Clears the connection pool associated with the connection.  Any other active connections using the same database file
     /// will be discarded instead of returned to the pool when they are closed.
     /// </summary>

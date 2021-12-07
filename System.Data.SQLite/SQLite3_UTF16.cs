@@ -17,6 +17,7 @@ namespace System.Data.SQLite
   using System.Globalization;
   using System.IO;
   using System.Runtime.InteropServices;
+  using System.Threading;
 
 
   /// <summary>
@@ -132,6 +133,8 @@ namespace System.Data.SQLite
 
     internal override void Open(string strFilename, string vfsName, SQLiteConnectionFlags connectionFlags, SQLiteOpenFlagsEnum openFlags, int maxPoolSize, bool usePool)
     {
+      BumpOpenCount();
+
       //
       // NOTE: If the database connection is currently open, attempt to
       //       close it now.  This must be done because the file name or

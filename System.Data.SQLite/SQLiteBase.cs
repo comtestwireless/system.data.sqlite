@@ -32,13 +32,6 @@ namespace System.Data.SQLite
 
     /////////////////////////////////////////////////////////////////////////
 
-    #region Private Static Data
-    private static int _openCount;
-    private static int _disposeCount;
-    #endregion
-
-    /////////////////////////////////////////////////////////////////////////
-
     internal SQLiteBase(SQLiteDateFormats fmt, DateTimeKind kind, string fmtString)
       : base(fmt, kind, fmtString) { }
 
@@ -579,16 +572,62 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected static int BumpOpenCount()
+    protected static long BumpCreateCount()
+    {
+        return Interlocked.Increment(ref _createCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static long BumpOpenCount()
     {
         return Interlocked.Increment(ref _openCount);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected static int BumpDisposeCount()
+    protected static long BumpCloseCount()
+    {
+        return Interlocked.Increment(ref _closeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static long BumpDisposeCount()
     {
         return Interlocked.Increment(ref _disposeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static long _createCount;
+    internal static long CreateCount
+    {
+        get { return Interlocked.CompareExchange(ref _createCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static long _openCount;
+    internal static long OpenCount
+    {
+        get { return Interlocked.CompareExchange(ref _openCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static long _closeCount;
+    internal static long CloseCount
+    {
+        get { return Interlocked.CompareExchange(ref _closeCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static long _disposeCount;
+    internal static long DisposeCount
+    {
+        get { return Interlocked.CompareExchange(ref _disposeCount, 0, 0); }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

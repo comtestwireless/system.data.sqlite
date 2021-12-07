@@ -20,7 +20,7 @@ runSQLiteTestPrologue
 
 ###############################################################################
 
-runTest {test pool-1.1 {dispose database with weak pool} -setup {
+runTest {test pool-1.1 {dispose connection with weak pool} -setup {
   proc getCreateCount {} {
     if {[isDotNetCore]} then {
       return [object invoke -flags +NonPublic \
@@ -102,7 +102,7 @@ runTest {test pool-1.1 {dispose database with weak pool} -setup {
 
   set m 100
   set counts(rows) 0
-  set counts(open,before) [getOpenCount]
+  set counts(open,before) [getCreateCount]
   set counts(dispose,before) [getDisposeCount]
 
   set time [time {
@@ -126,7 +126,7 @@ runTest {test pool-1.1 {dispose database with weak pool} -setup {
       "---- attempted to use " $m " pooled connections in " \
       $time \n]
 
-  set counts(open,after) [getOpenCount]
+  set counts(open,after) [getCreateCount]
   set counts(dispose,after) [getDisposeCount]
 
   set counts(open,diff) [expr {
@@ -146,7 +146,7 @@ runTest {test pool-1.1 {dispose database with weak pool} -setup {
       " times in this test\n"]
 
   list $counts(rows) [expr {
-    $counts(open,after) != $counts(open,before)
+    $counts(open,after) >= $counts(open,before)
   }]
 } -cleanup {
   catch {
@@ -166,22 +166,22 @@ runTest {test pool-1.1 {dispose database with weak pool} -setup {
   unset -nocomplain args time i m counts db fileName
 
   rename getDisposeCount ""
-  rename getOpenCount ""
+  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 
 ###############################################################################
 
-runTest {test pool-1.2 {dispose database with strong pool} -setup {
-  proc getOpenCount {} {
+runTest {test pool-1.2 {dispose connection with strong pool} -setup {
+  proc getCreateCount {} {
     if {[isDotNetCore]} then {
       return [object invoke -flags +NonPublic \
           "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-          _openCount]
+          _createCount]
     } else {
       return [object invoke -flags +NonPublic [appendArgs \
           "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _openCount]
+          load System.Data.SQLite] 0]] _createCount]
     }
   }
 
@@ -318,22 +318,22 @@ runTest {test pool-1.2 {dispose database with strong pool} -setup {
   unset -nocomplain args time i m counts db fileName
 
   rename getDisposeCount ""
-  rename getOpenCount ""
+  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 
 ###############################################################################
 
-runTest {test pool-1.3 {dispose database with weak pool} -setup {
-  proc getOpenCount {} {
+runTest {test pool-1.3 {dispose connection with legacy pool} -setup {
+  proc getCreateCount {} {
     if {[isDotNetCore]} then {
       return [object invoke -flags +NonPublic \
           "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-          _openCount]
+          _createCount]
     } else {
       return [object invoke -flags +NonPublic [appendArgs \
           "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _openCount]
+          load System.Data.SQLite] 0]] _createCount]
     }
   }
 
@@ -413,7 +413,7 @@ runTest {test pool-1.3 {dispose database with weak pool} -setup {
 
   set m 100
   set counts(rows) 0
-  set counts(open,before) [getOpenCount]
+  set counts(open,before) [getCreateCount]
   set counts(dispose,before) [getDisposeCount]
 
   set time [time {
@@ -437,7 +437,7 @@ runTest {test pool-1.3 {dispose database with weak pool} -setup {
       "---- attempted to use " $m " pooled connections in " \
       $time \n]
 
-  set counts(open,after) [getOpenCount]
+  set counts(open,after) [getCreateCount]
   set counts(dispose,after) [getDisposeCount]
 
   set counts(open,diff) [expr {
@@ -457,7 +457,7 @@ runTest {test pool-1.3 {dispose database with weak pool} -setup {
       " times in this test\n"]
 
   list $counts(rows) [expr {
-    $counts(open,after) != $counts(open,before)
+    $counts(open,after) >= $counts(open,before)
   }]
 } -cleanup {
   catch {

@@ -5112,7 +5112,7 @@ runTest {test data-1.96 {connection pool interaction with read-only} -setup {
       object invoke -flags +NonPublic \
           System.Data.SQLite.SQLiteConnectionPool GetCounts \
           opened closed
-    }] == 0 && [catch {
+    }] == 0} then {
       return [list $opened $closed]
     } else {
       tputs $::test_channel \

@@ -317,6 +317,8 @@ namespace System.Data.SQLite
     // resources belonging to the previously-registered functions.
     internal override bool Close(bool disposing)
     {
+      BumpCloseCount();
+
       bool wasDisposed = false;
 
       if (_sql != null)
@@ -1054,6 +1056,8 @@ namespace System.Data.SQLite
 
     internal override void Open(string strFilename, string vfsName, SQLiteConnectionFlags connectionFlags, SQLiteOpenFlagsEnum openFlags, int maxPoolSize, bool usePool)
     {
+      BumpOpenCount();
+
       //
       // NOTE: If the database connection is currently open, attempt to
       //       close it now.  This must be done because the file name or

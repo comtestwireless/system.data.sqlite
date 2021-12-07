@@ -21,15 +21,15 @@ runSQLiteTestPrologue
 ###############################################################################
 
 runTest {test pool-1.1 {dispose database with pool} -setup {
-  proc getOpenCount {} {
+  proc getCreateCount {} {
     if {[isDotNetCore]} then {
       return [object invoke -flags +NonPublic \
           "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-          _openCount]
+          _createCount]
     } else {
       return [object invoke -flags +NonPublic [appendArgs \
           "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _openCount]
+          load System.Data.SQLite] 0]] _createCount]
     }
   }
 
@@ -94,7 +94,7 @@ runTest {test pool-1.1 {dispose database with pool} -setup {
 
   set m 100
   set counts(rows) 0
-  set counts(open,before) [getOpenCount]
+  set counts(open,before) [getCreateCount]
   set counts(dispose,before) [getDisposeCount]
 
   set time [time {
@@ -118,7 +118,7 @@ runTest {test pool-1.1 {dispose database with pool} -setup {
       "---- attempted to use " $m " pooled connections in " \
       $time \n]
 
-  set counts(open,after) [getOpenCount]
+  set counts(open,after) [getCreateCount]
   set counts(dispose,after) [getDisposeCount]
 
   set counts(open,diff) [expr {
@@ -147,7 +147,7 @@ runTest {test pool-1.1 {dispose database with pool} -setup {
   unset -nocomplain args time i m counts db fileName
 
   rename getDisposeCount ""
-  rename getOpenCount ""
+  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 

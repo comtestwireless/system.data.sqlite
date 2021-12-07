@@ -1820,9 +1820,9 @@ struct fts5yyParser {
 };
 typedef struct fts5yyParser fts5yyParser;
 
+#include <assert.h>
 #ifndef NDEBUG
 #include <stdio.h>
-#include <assert.h>
 static FILE *fts5yyTraceFILE = 0;
 static char *fts5yyTracePrompt = 0;
 #endif /* NDEBUG */
@@ -2827,8 +2827,8 @@ static void sqlite3Fts5Parser(
     fts5yyact = fts5yy_find_shift_action((fts5YYCODETYPE)fts5yymajor,fts5yyact);
     if( fts5yyact >= fts5YY_MIN_REDUCE ){
       unsigned int fts5yyruleno = fts5yyact - fts5YY_MIN_REDUCE; /* Reduce by this rule */
-      assert( fts5yyruleno<(int)(sizeof(fts5yyRuleName)/sizeof(fts5yyRuleName[0])) );
 #ifndef NDEBUG
+      assert( fts5yyruleno<(int)(sizeof(fts5yyRuleName)/sizeof(fts5yyRuleName[0])) );
       if( fts5yyTraceFILE ){
         int fts5yysize = fts5yyRuleInfoNRhs[fts5yyruleno];
         if( fts5yysize ){
@@ -7964,6 +7964,15 @@ struct Fts5PoslistPopulator {
   int bMiss;
 };
 
+/*
+** Clear the position lists associated with all phrases in the expression
+** passed as the first argument. Argument bLive is true if the expression
+** might be pointing to a real entry, otherwise it has just been reset.
+**
+** At present this function is only used for detail=col and detail=none
+** fts5 tables. This implies that all phrases must be at most 1 token
+** in size, as phrase matches are not supported without detail=full.
+*/
 static Fts5PoslistPopulator *sqlite3Fts5ExprClearPoslists(Fts5Expr *pExpr, int bLive){
   Fts5PoslistPopulator *pRet;
   pRet = sqlite3_malloc64(sizeof(Fts5PoslistPopulator)*pExpr->nPhrase);
@@ -7973,7 +7982,7 @@ static Fts5PoslistPopulator *sqlite3Fts5ExprClearPoslists(Fts5Expr *pExpr, int b
     for(i=0; i<pExpr->nPhrase; i++){
       Fts5Buffer *pBuf = &pExpr->apExprPhrase[i]->poslist;
       Fts5ExprNode *pNode = pExpr->apExprPhrase[i]->pNode;
-      assert( pExpr->apExprPhrase[i]->nTerm==1 );
+      assert( pExpr->apExprPhrase[i]->nTerm<=1 );
       if( bLive && 
           (pBuf->n==0 || pNode->iRowid!=pExpr->pRoot->iRowid || pNode->bEof)
       ){
@@ -9581,7 +9590,7 @@ static int sqlite3Fts5StructureTest(Fts5Index *p, void *pStruct){
 static void fts5StructureMakeWritable(int *pRc, Fts5Structure **pp){
   Fts5Structure *p = *pp;
   if( *pRc==SQLITE_OK && p->nRef>1 ){
-    int nByte = sizeof(Fts5Structure)+(p->nLevel-1)*sizeof(Fts5StructureLevel);
+    i64 nByte = sizeof(Fts5Structure)+(p->nLevel-1)*sizeof(Fts5StructureLevel);
     Fts5Structure *pNew;
     pNew = (Fts5Structure*)sqlite3Fts5MallocZero(pRc, nByte);
     if( pNew ){
@@ -18341,7 +18350,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2021-10-30 20:22:32 ca2703c339f76101f25051a2ed380398b018782883bfee68b5f2d69a1de9091a", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2021-11-27 14:13:22 bd41822c7424d393a30e92ff6cb254d25c26769889c1499a18a0b9339f5d6c8a", -1, SQLITE_TRANSIENT);
 }
 
 /*
@@ -22563,7 +22572,7 @@ static int fts5VocabOpenMethod(
   }
 
   if( rc==SQLITE_OK ){
-    int nByte = pFts5->pConfig->nCol * sizeof(i64)*2 + sizeof(Fts5VocabCursor);
+    i64 nByte = pFts5->pConfig->nCol * sizeof(i64)*2 + sizeof(Fts5VocabCursor);
     pCsr = (Fts5VocabCursor*)sqlite3Fts5MallocZero(&rc, nByte);
   }
 

@@ -13,7 +13,7 @@
 </a>
 <div><!-- IE hack to prevent disappearing logo --></div>
 <div class="tagline desktoponly">
-<font size="6" color="red">*** DRAFT ***</font>
+Small. Fast. Reliable.<br>Choose any three.
 </div>
 <div class="menu mainmenu">
 <ul>
@@ -112,7 +112,8 @@ Table Of Contents
 <div class="fancy-toc2"><a href="#unique_constraints">3.6. UNIQUE constraints</a></div>
 <div class="fancy-toc2"><a href="#check_constraints">3.7. CHECK constraints</a></div>
 <div class="fancy-toc2"><a href="#not_null_constraints">3.8. NOT NULL constraints</a></div>
-<div class="fancy-toc1"><a href="#constraint_violations">4. Constraint violations</a></div>
+<div class="fancy-toc1"><a href="#constraint_enforcement">4. Constraint enforcement</a></div>
+<div class="fancy-toc2"><a href="#response_to_constraint_violations">4.1. Response to constraint violations</a></div>
 <div class="fancy-toc1"><a href="#rowids_and_the_integer_primary_key">5. ROWIDs and the INTEGER PRIMARY KEY</a></div>
 </div>
 </div>
@@ -5472,7 +5473,7 @@ new table:
 
   </p></li><li><p> Whether the table is a <a href="withoutrowid.html">WITHOUT ROWID</a> table.
 
-  </p></li><li><p> Whether the table is subject to "STRICT" typename rules.
+  </p></li><li><p> Whether the table is subject to <a href="stricttables.html">strict type checking</a>.
 </p></li></ul>
 
 <p>Every CREATE TABLE statement must specify a name for the new table.
@@ -5640,7 +5641,8 @@ limitations of generated columns.
 </p><p> According to the SQL standard, PRIMARY KEY should always imply NOT NULL.
   Unfortunately, due to a bug in some early versions, this is not the
   case in SQLite. Unless the column is an <a href="lang_createtable.html#rowid">INTEGER PRIMARY KEY</a> or
-  the table is a <a href="withoutrowid.html">WITHOUT ROWID</a> table or the column is declared NOT NULL,
+  the table is a <a href="withoutrowid.html">WITHOUT ROWID</a> table or a <a href="stricttables.html">STRICT</a> table 
+  or the column is declared NOT NULL,
   SQLite allows NULL values in a PRIMARY KEY column.  SQLite could be fixed to
   conform to the standard, but doing so might break legacy applications.
   Hence, it has been decided to merely document the fact that SQLite
@@ -5687,6 +5689,12 @@ limitations of generated columns.
   any other non-zero value, it is not a constraint violation.
   The expression of a CHECK constraint may not contain a subquery.
 
+</p><p>CHECK constraints are only verified when the table is written, not when
+   it is read.  Furthermore, verification of CHECK constraints can be
+   temporarily disabled using the "<a href="pragma.html#pragma_ignore_check_constraints">PRAGMA ignore_check_constraints=ON;</a>"
+   statement.  Hence, it is possible that a query might produce results that
+   violate the CHECK constraints.
+
 <a name="notnullconst"></a>
 
 </p><h2 id="not_null_constraints"><span>3.8. </span>NOT NULL constraints</h2>
@@ -5694,11 +5702,37 @@ limitations of generated columns.
   not specified as a table constraint.  Not surprisingly, a NOT NULL
   constraint dictates that the associated column may not contain a NULL value.
   Attempting to set the column value to NULL when inserting a new row or
-  updating an existing one causes a constraint violation.
+  updating an existing one causes a constraint violation.  NOT NULL
+  constraints are not verified during queries, so a query of a column might
+  produce a NULL value even though the column is marked as NOT NULL, if the
+  database file is corrupt.
 
 
-</p><h1 id="constraint_violations"><span>4. </span>Constraint violations</h1>
-<p>Exactly how a constraint violation is dealt with is determined by the
+</p><h1 id="constraint_enforcement"><span>4. </span>Constraint enforcement</h1>
+
+<p>Constraints are checked during <a href="lang_insert.html">INSERT</a> and <a href="lang_update.html">UPDATE</a> and by
+<a href="pragma.html#pragma_integrity_check">PRAGMA integrity_check</a> and <a href="pragma.html#pragma_quick_check">PRAGMA quick_check</a> and sometimes
+by <a href="lang_altertable.html">ALTER TABLE</a>.  Queries and <a href="lang_delete.html">DELETE</a>
+statements do not normally verify constraints.
+Hence, if a database file has been corrupted (perhaps by an external
+program making direct changes to the database file without going through 
+the SQLite library) a query might return data that violates a constraint.
+For example:
+
+</p><div class="codeblock"><pre>CREATE TABLE t1(x INT CHECK( x>3 ));
+/* Insert a row with X less than 3 by directly writing into the
+** database file using an external program */
+PRAGMA integrity_check;  -- Reports row with x less than 3 as corrupt
+INSERT INTO t1(x) VALUES(2);  -- Fails with SQLITE_CORRUPT
+SELECT x FROM t1;  -- Returns an integer less than 3 in spite of the CHECK constraint
+</pre></div>
+
+<p>Enforcement of CHECK constraints can be temporarily disabled using
+the <a href="pragma.html#pragma_ignore_check_constraints">PRAGMA ignore_check_constraints=ON;</a> statement.
+
+</p><h2 id="response_to_constraint_violations"><span>4.1. </span>Response to constraint violations</h2>
+
+<p>The response to a constraint violation is determined by the
   <a href="lang_conflict.html">constraint conflict resolution algorithm</a>. Each 
   PRIMARY KEY, UNIQUE, NOT NULL and CHECK constraint has a default conflict
   resolution algorithm. PRIMARY KEY, UNIQUE and NOT NULL constraints may be
@@ -5789,4 +5823,4 @@ rowid automatically. A detailed description of how this is done is provided
 
 <p>The <a href="foreignkeys.html#parentchild">parent key</a> of a <a href="foreignkeys.html">foreign key constraint</a> is not allowed to
 use the rowid.  The parent key must used named columns only.</p>
-<p align="center"><font size="6" color="red">*** DRAFT ***</font></p>
+

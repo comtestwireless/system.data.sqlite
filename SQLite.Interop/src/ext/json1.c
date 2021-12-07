@@ -111,7 +111,7 @@ static const char jsonIsSpace[] = {
 # endif
 # define testcase(X)
 #endif
-#if defined(NDEBUG)
+#if !defined(SQLITE_DEBUG) && !defined(SQLITE_COVERAGE_TEST)
 #  define VVA(X)
 #else
 #  define VVA(X) X
@@ -1662,8 +1662,11 @@ static JsonNode *jsonMergePatch(
           if( pNew==0 ) return 0;
           pTarget = &pParse->aNode[iTarget];
           if( pNew!=&pTarget[j+1] ){
-            assert( pTarget[j+1].eU==0 || pTarget[j+1].eU==1 );
+            assert( pTarget[j+1].eU==0
+                 || pTarget[j+1].eU==1
+                 || pTarget[j+1].eU==2 );
             testcase( pTarget[j+1].eU==1 );
+            testcase( pTarget[j+1].eU==2 );
             VVA( pTarget[j+1].eU = 5 );
             pTarget[j+1].u.pPatch = pNew;
             pTarget[j+1].jnFlags |= JNODE_PATCH;

@@ -233,7 +233,7 @@ namespace System.Data.SQLite
 
           if (n != SQLiteErrorCode.Ok) throw new SQLiteException(n, null);
           _sql = new SQLiteConnectionHandle(db, true);
-          BumpOpenCount();
+          BumpCreateCount();
         }
         lock (_sql) { /* HACK: Force the SyncBlock to be "created" now. */ }
 

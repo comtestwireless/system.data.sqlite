@@ -252,7 +252,7 @@ namespace System.Data.SQLite
 #endif
 
                 /* Disposing, cannot throw. */
-                wasDisposed = Close(true);
+                Close(true);
             }
         }
         finally
@@ -322,8 +322,6 @@ namespace System.Data.SQLite
     internal override bool Close(bool disposing)
     {
       BumpCloseCount();
-
-      bool wasDisposed = false;
 
       if (_sql != null)
       {
@@ -1143,7 +1141,7 @@ namespace System.Data.SQLite
 
           if (n != SQLiteErrorCode.Ok) throw new SQLiteException(n, null);
           _sql = new SQLiteConnectionHandle(db, true);
-          BumpOpenCount();
+          BumpCreateCount();
         }
         lock (_sql) { /* HACK: Force the SyncBlock to be "created" now. */ }
 

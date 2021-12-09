@@ -272,16 +272,6 @@
           </td>
         </tr>
         <tr valign="top">
-          <td>SQLite_LegacyEncryptPage1</td>
-          <td>If this environment variable is set [to anything], page #1 of
-          database files encrypted using the (unsupported) legacy CryptoAPI
-          codec will be encrypted.  This was the default behavior prior to
-          release 1.0.112.3; however, it is now disabled (by default) as it
-          can cause corruption and/or other malfunctions in some circumstances.
-          Please do not use this environment variable unless it is absolutely
-          necessary for your specific use case.</td>
-        </tr>
-        <tr valign="top">
           <td>SQLite_ForceLogLifecycle</td>
           <td>If this environment variable is set [to anything], calls into
           key members pertaining to the lifecycle of connections and their
@@ -292,6 +282,16 @@
           <td>If this environment variable is set [to anything], all calls to
           prepare a SQL query will be logged, regardless of the flags for the
           associated connection.</td>
+        </tr>
+        <tr valign="top">
+          <td>SQLite_LegacyEncryptPage1</td>
+          <td>If this environment variable is set [to anything], page #1 of
+          database files encrypted using the (unsupported) legacy CryptoAPI
+          codec will be encrypted.  This was the default behavior prior to
+          release 1.0.112.3; however, it is now disabled (by default) as it
+          can cause corruption and/or other malfunctions in some circumstances.
+          Please do not use this environment variable unless it is absolutely
+          necessary for your specific use case.</td>
         </tr>
         <tr valign="top">
           <td>SQLite_StrongConnectionPool</td>

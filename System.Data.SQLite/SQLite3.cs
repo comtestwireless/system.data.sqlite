@@ -317,8 +317,7 @@ namespace System.Data.SQLite
 
     // It isn't necessary to cleanup any functions we've registered.  If the connection
     // goes to the pool and is resurrected later, re-registered functions will overwrite the
-    // previous functions.  The SQLiteFunctionCookieHandle will take care of freeing unmanaged
-    // resources belonging to the previously-registered functions.
+    // previous functions.
     internal override bool Close(bool disposing)
     {
       BumpCloseCount();

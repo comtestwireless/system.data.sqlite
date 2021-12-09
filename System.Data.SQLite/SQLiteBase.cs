@@ -694,7 +694,7 @@ namespace System.Data.SQLite
 
     // These statics are here for lack of a better place to put them.
     // They exist here because they are called during the finalization of
-    // a SQLiteStatementHandle, SQLiteConnectionHandle, and SQLiteFunctionCookieHandle.
+    // SQLiteStatementHandle and SQLiteConnectionHandle, etc.
     // Therefore these functions have to be static, and have to be low-level.
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

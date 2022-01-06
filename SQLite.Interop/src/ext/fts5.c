@@ -10619,8 +10619,12 @@ static void fts5SegIterReverseNewPage(Fts5Index *p, Fts5SegIter *pIter){
         int iRowidOff;
         iRowidOff = fts5LeafFirstRowidOff(pNew);
         if( iRowidOff ){
-          pIter->pLeaf = pNew;
-          pIter->iLeafOffset = iRowidOff;
+          if( iRowidOff>=pNew->szLeaf ){
+            p->rc = FTS5_CORRUPT;
+          }else{
+            pIter->pLeaf = pNew;
+            pIter->iLeafOffset = iRowidOff;
+          }
         }
       }
 
@@ -18350,7 +18354,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2021-11-27 14:13:22 bd41822c7424d393a30e92ff6cb254d25c26769889c1499a18a0b9339f5d6c8a", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2022-01-06 13:25:41 872ba256cbf61d9290b571c0e6d82a20c224ca3ad82971edc46b29818d5d17a0", -1, SQLITE_TRANSIENT);
 }
 
 /*

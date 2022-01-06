@@ -41,7 +41,8 @@ namespace System.Data.SQLite
         /// module name is the name provided as the second argument to 
         /// sqlite3_create_module() and as the argument to the USING clause of the
         /// CREATE VIRTUAL TABLE statement that is running.
-        /// The second, argv[1], is the name of the database in which the new virtual table is being created. The database name is "main" for the primary database, or
+        /// The second, argv[1], is the name of the database in which the new virtual 
+        /// table is being created. The database name is "main" for the primary database, or
         /// "temp" for TEMP database, or the name given at the end of the ATTACH
         /// statement for attached databases.  The third element of the array, argv[2], 
         /// is the name of the new virtual table, as specified following the TABLE
@@ -74,6 +75,20 @@ namespace System.Data.SQLite
         /// held in persistent memory.  The string can be
         /// deallocated and/or reused as soon as the sqlite3_declare_vtab()
         /// routine returns.
+        /// </para>
+        /// <para>
+        /// The xConnect method can also optionally request special features
+        /// for the virtual table by making one or more calls to
+        /// the sqlite3_vtab_config() interface:
+        /// </para>
+        /// <para><code>
+        /// int sqlite3_vtab_config(sqlite3 *db, int op, ...);
+        /// </code></para>
+        /// <para>
+        /// Call calls to sqlite3_vtab_config() are optional.  But for maximum
+        /// security, it is recommended that virtual table implementations
+        /// invoke "sqlite3_vtab_config(db, SQLITE_VTAB_DIRECTONLY)" if the
+        /// virtual table will not be used from inside of triggers or views.
         /// </para>
         /// <para>
         /// The xCreate method need not initialize the pModule, nRef, and zErrMsg
@@ -263,7 +278,9 @@ namespace System.Data.SQLite
         /// The xConnect method is very similar to xCreate. 
         /// It has the same parameters and constructs a new sqlite3_vtab structure 
         /// just like xCreate. 
-        /// And it must also call sqlite3_declare_vtab() like xCreate.
+        /// And it must also call sqlite3_declare_vtab() like xCreate.  It
+        /// should also make all of the same sqlite3_vtab_config() calls as
+        /// xCreate.
         /// </para>
         /// <para>
         /// The difference is that xConnect is called to establish a new 
@@ -429,6 +446,14 @@ namespace System.Data.SQLite
         /// #define SQLITE_INDEX_CONSTRAINT_IS        72  /* 3.21.0 and later */
         /// #define SQLITE_INDEX_CONSTRAINT_FUNCTION 150  /* 3.25.0 and later */
         /// #define SQLITE_INDEX_SCAN_UNIQUE           1  /* Scan visits at most 1 row */
+        /// </code></para>
+        /// <para>
+        /// Use the sqlite3_vtab_collation() interface to find the name of
+        /// the collating sequence that should be used when evaluating the i-th
+        /// constraint:
+        /// </para>
+        /// <para><code>
+        /// const char *sqlite3_vtab_collation(sqlite3_index_info*, int i);
         /// </code></para>
         /// <para>
         /// The SQLite core calls the xBestIndex method when it is compiling a query

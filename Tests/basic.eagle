@@ -3998,11 +3998,6 @@ runTest {test data-1.77 {json1 extension} -setup {
   set connection [getDbConnection]
   set result [list]
 
-  $connection EnableExtensions true
-
-  $connection LoadExtension \
-      [getCoreExtensionBinaryFileName null] sqlite3_json_init
-
   lappend result [sql execute -execute scalar $db \
       {SELECT json('{ "this" : "is", "a": [ "test" ] }');}]
 

@@ -49,6 +49,10 @@
 		</OBJECT>
 	<UL>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="JSON Functions And Operators">
+			<param name="Local" value="Core/json1.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Aggregate Functions">
 			<param name="Local" value="Core/lang_aggfunc.html">
 			</OBJECT>

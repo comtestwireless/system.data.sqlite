@@ -26,6 +26,7 @@ set sds_manifests(source) {
   Doc/Extra/Core/
   Doc/Extra/Core/images/
   Doc/Extra/Core/images/sqlite370_banner.gif
+  Doc/Extra/Core/json1.html
   Doc/Extra/Core/lang.html
   Doc/Extra/Core/lang_aggfunc.html
   Doc/Extra/Core/lang_altertable.html

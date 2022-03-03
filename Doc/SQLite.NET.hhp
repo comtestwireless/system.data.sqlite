@@ -10,6 +10,7 @@ Language=0x409 English (United States)
 Title=SQLite.NET Help
 
 [FILES]
+Core\json1.html
 Core\lang.html
 Core\lang_aggfunc.html
 Core\lang_altertable.html

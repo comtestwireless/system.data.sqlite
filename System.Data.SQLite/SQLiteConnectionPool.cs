@@ -384,7 +384,7 @@ namespace System.Data.SQLite
             if (log != null)
             {
                 log.AppendFormat(
-                    "Initialize(\"{0}\"{1}", argument, Environment.NewLine);
+                    "Initialize(\"{0}\"){1}", argument, Environment.NewLine);
             }
         }
 
@@ -397,7 +397,7 @@ namespace System.Data.SQLite
             if (log != null)
             {
                 log.AppendFormat(
-                    "Terminate(\"{0}\"{1}", argument, Environment.NewLine);
+                    "Terminate(\"{0}\"){1}", argument, Environment.NewLine);
             }
         }
 

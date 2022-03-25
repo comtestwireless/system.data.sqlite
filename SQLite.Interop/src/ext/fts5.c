@@ -16365,7 +16365,7 @@ static int fts5SorterNext(Fts5Cursor *pCsr){
   rc = sqlite3_step(pSorter->pStmt);
   if( rc==SQLITE_DONE ){
     rc = SQLITE_OK;
-    CsrFlagSet(pCsr, FTS5CSR_EOF);
+    CsrFlagSet(pCsr, FTS5CSR_EOF|FTS5CSR_REQUIRE_CONTENT);
   }else if( rc==SQLITE_ROW ){
     const u8 *a;
     const u8 *aBlob;
@@ -18354,7 +18354,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2022-02-22 18:58:40 40fa792d359f84c3b9e9d6623743e1a59826274e221df1bde8f47086968a1bab", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2022-03-25 19:16:26 4977d8f453bcd56fb1dfab02cc5b283fb32d402bafdf2b6112e7dd322b7c32ad", -1, SQLITE_TRANSIENT);
 }
 
 /*

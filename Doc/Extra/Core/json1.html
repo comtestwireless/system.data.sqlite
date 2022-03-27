@@ -560,7 +560,7 @@ the various values.
 <li><span class='jex'>json_extract('{"a":"xyz"}', '$.a')</span>
 <span class='jans'>&rarr; 'xyz'</span></li>
 
-<li><span class='jex'>json_extract('{"a":NULL}', '$.a')</span>
+<li><span class='jex'>json_extract('{"a":null}', '$.a')</span>
 <span class='jans'>&rarr; NULL</span></li>
 
 </ul>
@@ -657,10 +657,10 @@ operand is an integer value N, then it is interpreted as the JSON path '$[N]'.
 <li><span class='jex'>'{"a":"xyz"}' ->> '$.a'</span>
 <span class='jans'>&rarr; 'xyz'</span></li>
 
-<li><span class='jex'>'{"a":NULL}' -> '$.a'</span>
+<li><span class='jex'>'{"a":null}' -> '$.a'</span>
 <span class='jans'>&rarr; 'null'</span></li>
 
-<li><span class='jex'>'{"a":NULL}' ->> '$.a'</span>
+<li><span class='jex'>'{"a":null}' ->> '$.a'</span>
 <span class='jans'>&rarr; NULL</span></li>
 
 </ul>

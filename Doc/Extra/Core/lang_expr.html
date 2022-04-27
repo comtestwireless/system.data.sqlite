@@ -2423,10 +2423,17 @@ the two strings of its operands.
 The <font color="#2c2cf0"><big>-&gt;</big></font> and <font color="#2c2cf0"><big>-&gt;&gt;</big></font> operators are "extract";
 they extract the RHS component from the LHS.
 For an example, see
- <a href="json1.html#jptr">JSON subcomponent extraction</a>.
+ <a href="json1.html#jptr">JSON subcomponent extraction</a>.</p>
+
+<p>
 The <font color="#2c2cf0"><big>%</big></font> operator <a href="lang_expr.html#castexpr">casts</a> both of its operands to type
 INTEGER and then computes the remainder after dividing the left integer
-by the right integer.</p>
+by the right integer. The other arithmetic operators perform integer
+arithmetic if both operands are integers and no overflow would result,
+or floating point arithmetic, per IEEE Standard 754, if either operand
+is a real value or integer arithmetic would produce an overflow.
+Integer divide yields an integer result, truncated toward zero.
+</p>
 
 <p>The result of any binary operator is either a numeric value or 
 NULL, except for the <font color="#2c2cf0"><big>||</big></font> concatenation operator,

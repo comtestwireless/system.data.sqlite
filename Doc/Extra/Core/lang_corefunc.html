@@ -286,6 +286,20 @@ the <a href="c3ref/create_function.html">sqlite3_create_function()</a> API.</p>
   If X is NULL then length(X) is NULL.
   If X is numeric then length(X) returns the length of a string
   representation of X.
+  <p>
+  Note that for strings, the length(X) function returns the <i>character</i>
+  length of the string, not the byte length.  The character length is the number
+  of characters in the string.  The character length is always different from
+  the byte length for UTF-16 strings, and can be different from the byte length
+  for UTF-8 strings if the string contains multi-byte characters.
+  <p>
+  For BLOB values, length(X) always returns the byte-length of the BLOB.
+  <p>
+  For string values, length(X) must read the entire string into memory in order
+  to compute the character length.  But for BLOB values, that is not necessary as
+  SQLite knows how many bytes are in the BLOB.  Hence, for multi-megabyte values,
+  the length(X) function is usually much faster for BLOBs than for strings, since
+  it does not need to load the value into memory.
 </dd>
 <a name="like"></a>
 <dt><p><b>like(<i>X</i>,<i>Y</i>)<br />like(<i>X</i>,<i>Y</i>,<i>Z</i>)</b></dt><dd><p>

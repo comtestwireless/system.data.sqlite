@@ -897,6 +897,50 @@
   ******************************************************************************
   -->
 
+  <Target Name="EagleDetectVs2022"
+          Condition="'$(EagleDetectVs2022)' != 'false' And
+                     '$(OperatingSystem)' == 'Windows' And
+                     '$(EagleLibraryToolsDir)' != '' And
+                     HasTrailingSlash('$(EagleLibraryToolsDir)') And
+                     Exists('$(EagleLibraryToolsDir)vswhere.exe')"
+          Inputs="$(TargetPath)"
+          Outputs="$(TargetPath).DetectVs.done">
+    <!--
+        HACK: Use a couple undocumented properties of the Exec task in order
+              to capture the console output of the "vswhere" command.  This
+              is needed to locate the "EditBin" executable for Visual Studio
+              2022.  For more information, see:
+
+              https://stackoverflow.com/questions/8938679
+    -->
+    <Exec ConsoleToMSBuild="true" Command="&quot;$(EagleLibraryToolsDir)vswhere.exe&quot; -version 17.0 -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath -latest"
+          WorkingDirectory="$(EagleLibraryToolsDir)"
+          IgnoreStandardErrorWarningFormat="true"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="VsWhereExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="VS170INSTALLATIONPATH" />
+    </Exec>
+
+    <!--
+        HACK: Interestingly, the "vswhere" tool will generate an error when
+              the -version command line option is used on a machine without
+              Visual Studio 2022 installed.  This seems to defeat the purpose
+              of a "detection" tool (i.e. it should simply return no matches
+              instead of raising an error), we must work around it since this
+              decision appears to be by design.
+    -->
+    <CreateProperty Condition="'$(VsWhereExitCode)' != '0'" Value="">
+      <Output TaskParameter="Value" PropertyName="VS170INSTALLATIONPATH" />
+    </CreateProperty>
+
+    <Touch AlwaysCreate="true"
+           Files="$(TargetPath).DetectVs.done" />
+  </Target>
+
+  <!--
+  ******************************************************************************
+  -->
+
   <Target Name="EagleDetectVcTools2017"
           Condition="'$(EagleDetectVcTools2017)' != 'false' And
                      '$(VS150INSTALLATIONPATH)' != '' And
@@ -924,6 +968,25 @@
           Inputs="$(TargetPath)"
           Outputs="$(TargetPath).DetectVcTools.done">
     <ReadLinesFromFile File="$(VS160INSTALLATIONPATH)\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt">
+      <Output TaskParameter="Lines" PropertyName="VCToolsVersion" />
+    </ReadLinesFromFile>
+
+    <Touch AlwaysCreate="true"
+           Files="$(TargetPath).DetectVcTools.done" />
+  </Target>
+
+  <!--
+  ******************************************************************************
+  -->
+
+  <Target Name="EagleDetectVcTools2022"
+          Condition="'$(EagleDetectVcTools2022)' != 'false' And
+                     '$(VS170INSTALLATIONPATH)' != '' And
+                     !HasTrailingSlash('$(VS170INSTALLATIONPATH)') And
+                     Exists('$(VS170INSTALLATIONPATH)\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt')"
+          Inputs="$(TargetPath)"
+          Outputs="$(TargetPath).DetectVcTools.done">
+    <ReadLinesFromFile File="$(VS170INSTALLATIONPATH)\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt">
       <Output TaskParameter="Lines" PropertyName="VCToolsVersion" />
     </ReadLinesFromFile>
 
@@ -1231,6 +1294,29 @@
   ******************************************************************************
   -->
 
+  <Target Name="EagleSetStack2022"
+          Condition="'$(EagleSetStack)' != 'false' And
+                     ('$(OutputType)' == 'Exe' Or
+                      '$(OutputType)' == 'WinExe') And
+                     '$(OperatingSystem)' == 'Windows' And
+                     '$(EagleStackSize)' != '' And
+                     '$(VS170INSTALLATIONPATH)' != '' And
+                     !HasTrailingSlash('$(VS170INSTALLATIONPATH)') And
+                     '$(VCToolsVersion)' != '' And
+                     Exists('$(VS170INSTALLATIONPATH)\VC\Tools\MSVC\$(VCToolsVersion)\bin\HostX86\x86\EditBin.exe')"
+          Inputs="$(TargetPath)"
+          Outputs="$(TargetPath).SetStack.done">
+    <Exec Command="&quot;$(VS170INSTALLATIONPATH)\VC\Tools\MSVC\$(VCToolsVersion)\bin\HostX86\x86\EditBin.exe&quot; &quot;/stack:$(EagleStackSize)&quot; &quot;$(TargetPath)&quot;"
+          WorkingDirectory="$(VS170INSTALLATIONPATH)\Common7\IDE" />
+
+    <Touch AlwaysCreate="true"
+           Files="$(TargetPath).SetStack.done" />
+  </Target>
+
+  <!--
+  ******************************************************************************
+  -->
+
   <Target Name="EagleSetIcon"
           Condition="'$(EagleSetIcon)' != 'false' And
                      ('$(OutputType)' == 'Exe' Or
@@ -1313,14 +1399,18 @@
                      Exists('$(SDK35ToolsPath)mt.exe')"
           Command="&quot;$(SDK35ToolsPath)mt.exe&quot; -manifest &quot;$(MSBuildProjectDirectory)\Resources\manifest.xml&quot; -outputresource:&quot;$(TargetPath)&quot;;1" />
 
-    <Exec Condition="'$(SDK35ToolsPath)' == '' And
+    <Exec Condition="('$(SDK35ToolsPath)' == '' Or
+                      !HasTrailingSlash('$(SDK35ToolsPath)') Or
+                      !Exists('$(SDK35ToolsPath)mt.exe')) And
                      '$(WindowsSDK80Path)' == '' And
                      '$(DirForManifestTool)' != '' And
                      HasTrailingSlash('$(DirForManifestTool)') And
                      Exists('$(DirForManifestTool)bin\mt.exe')"
           Command="&quot;$(DirForManifestTool)bin\mt.exe&quot; -manifest &quot;$(MSBuildProjectDirectory)\Resources\manifest.xml&quot; -outputresource:&quot;$(TargetPath)&quot;;1" />
 
-    <Exec Condition="'$(SDK35ToolsPath)' == '' And
+    <Exec Condition="('$(SDK35ToolsPath)' == '' Or
+                      !HasTrailingSlash('$(SDK35ToolsPath)') Or
+                      !Exists('$(SDK35ToolsPath)mt.exe')) And
                      '$(WindowsSDK80Path)' != '' And
                      '$(DirForManifestTool)' == '' And
                      '$(Architecture)' != '' And

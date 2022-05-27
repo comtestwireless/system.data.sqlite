@@ -175,7 +175,8 @@ namespace eval ::Eagle {
           set targetVersion [file tail $path]
         }
 
-        if {[string match 5.* $targetVersion] || \
+        if {[string match 6.* $targetVersion] || \
+            [string match 5.* $targetVersion] || \
             [string match 3.* $targetVersion]} then {
           set standardVersion netstandard2.1
         } elseif {[string match 2.* $targetVersion]} then {
@@ -217,11 +218,14 @@ namespace eval ::Eagle {
             return $assemblyDirectory
           }
         } else {
+          set compareCommand [list package vsort]
           set globPathPattern [file join $libraryDirectory *]
 
-          set maybeVersions [lsort -decreasing -command [list package vsort] \
+          set maybeVersions [lsort -decreasing -command $compareCommand \
               [lmap directory [glob -nocomplain -types {d} $globPathPattern] \
               { file tail $directory }]]
+
+          catch {object removecallback $compareCommand}
 
           foreach maybeVersion $maybeVersions {
             set assemblyDirectory [file normalize [file join \

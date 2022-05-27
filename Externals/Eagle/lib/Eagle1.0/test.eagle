@@ -20,6 +20,54 @@
 #       namespace if this script actually ends up being evaluated in Tcl.
 #
 namespace eval ::Eagle {
+  proc cleanupAfterEvents { {quiet false} } {
+    set count 0
+
+    if {[catch {
+      foreach id [after info] {
+        if {[catch {after cancel $id} error2] == 0} then {
+          incr count; # canceled one more.
+        } else {
+          if {!$quiet} then {
+            tputs $::test_channel [appendArgs \
+                "---- failed to cancel after event \"" \
+                $id "\": " $error2 \n]
+          }
+        }
+      }
+    } error1] == 0} then {
+      if {!$quiet} then {
+        tputs $::test_channel [appendArgs \
+            "---- cleaned up " $count " after events\n"]
+      }
+
+      return $count
+    } else {
+      if {!$quiet} then {
+        tputs $::test_channel [appendArgs \
+            "---- failed to cleanup after events (" \
+            $count "): " $error1 \n]
+      }
+
+      return -1; # failure
+    }
+  }
+
+  proc findParentDirectory { path name } {
+    if {[string length $name] > 0} then {
+      while {[string length $path] > 0} {
+        set tail [file tail $path]
+        if {[string length $tail] == 0} then {break}
+        if {$tail eq $name} then {return $path}
+        set newPath [file dirname $path]
+        if {$newPath eq $path} then {break}
+        set path $newPath
+      }
+    }
+
+    return ""; # NOTE: Not found.
+  }
+
   proc getKnownTclVariables {} {
     #
     # HACK: If the caller is not the global frame (somehow?), then return
@@ -166,7 +214,7 @@ namespace eval ::Eagle {
 
   proc cleanState {
           {namespaceName ""} {excludePatterns ""} {noTest false}
-          {noOther false} } {
+          {noOther false} {checkOnly false} } {
     set result [list]
 
     if {[string length $namespaceName] > 0} then {
@@ -216,10 +264,20 @@ namespace eval ::Eagle {
         #       any errors and then add the variable name to the overall
         #       result of this procedure.
         #
-        if {[catch {
+        if {$checkOnly || [catch {
           uplevel 1 [list unset -nocomplain $varName]
         } error] == 0} then {
-          lappend result [list $varName ok]
+          if {$checkOnly} then {
+            if {[catch {expr {[uplevel 1 \
+                [list array exists $varName]] ? "array" : "scalar"
+            }} varResult] == 0} then {
+              lappend result [list $varName $varResult]
+            } else {
+              lappend result [list $varName error $varResult]
+            }
+          } else {
+            lappend result [list $varName ok]
+          }
         } else {
           lappend result [list $varName error $error]
         }
@@ -1102,7 +1160,7 @@ namespace eval ::Eagle {
                 # NOTE: First, make sure that the [after] event queue
                 #       for the interpreter is totally empty.
                 #
-                catch {foreach id [after info] {after cancel $id}}
+                cleanupAfterEvents true
 
                 #
                 # NOTE: Schedule the event to cancel the script we are
@@ -2801,7 +2859,7 @@ namespace eval ::Eagle {
           1.0.6018.45959 1.0.6119.57133 1.0.6120.16902 1.0.6234.51946 \
           1.0.6483.12345 1.0.6543.58654 1.0.6781.49000 1.0.6781.49042 \
           1.0.6848.11041 1.0.7213.50727 1.0.7579.30319 1.0.7790.43198 \
-          1.0.7897.33333 1.0.7900.33333 1.0.7945.33333]
+          1.0.7897.33333 1.0.7900.33333 1.0.7945.33333 1.0.8192.54321]
     } else {
       return [list]
     }
@@ -5034,6 +5092,75 @@ namespace eval ::Eagle {
           -alias -objectflags +NoReturnReference String $result]
     }
 
+    proc logRemoteMessage { message {uri ""} {apiKey ""} {password ""} } {
+      #
+      # NOTE: This procedure attempts to (securely) send the specified log
+      #       message to the specified logging endpoint.
+      #
+      if {[string length $uri] == 0} then {
+        set uri [appendArgs [getAuxiliaryBaseUri] /log]
+      }
+
+      if {[string length $apiKey] == 0} then {
+        if {[info exists ::env(logRemoteMessageApiKey)]} then {
+          set apiKey $::env(logRemoteMessageApiKey)
+        } else {
+          set apiKey 0000000000000000000000000000000000000000; # Fake.
+        }
+      }
+
+      if {[string length $password] == 0} then {
+        if {[info exists ::env(logRemoteMessagePassword)]} then {
+          set password $::env(logRemoteMessagePassword)
+        } else {
+          set password {nopenotarealpassword}; # Fake.
+        }
+      }
+
+      return [string trim [uri upload -inline -data [list raw 1 apiKey \
+          $apiKey message [base64 encode $message] hash [string tolower \
+          [hash keyed hmacsha1 $message $password]]] $uri]]
+    }
+
+    proc recursiveGetDirectories { path pattern } {
+      #
+      # HACK: Use brute-force search of all files beneath the specified
+      #       directory in order to locate the test data files we need.
+      #
+      if {[isDotNetCore]} then {
+        #
+        # HACK: Why does .NET Core require assembly qualified type name
+        #       usage here?
+        #
+        return [object invoke \
+            "System.IO.Directory, netstandard" GetDirectories $path \
+            $pattern AllDirectories]
+      } else {
+        return [object invoke \
+            System.IO.Directory GetDirectories $path $pattern \
+            AllDirectories]
+      }
+    }
+
+    proc recursiveGetFiles { path pattern } {
+      #
+      # HACK: Use brute-force search of all files beneath the specified
+      #       directory in order to locate the test data files we need.
+      #
+      if {[isDotNetCore]} then {
+        #
+        # HACK: Why does .NET Core require assembly qualified type name
+        #       usage here?
+        #
+        return [object invoke \
+            "System.IO.Directory, netstandard" GetFiles $path $pattern \
+            AllDirectories]
+      } else {
+        return [object invoke \
+            System.IO.Directory GetFiles $path $pattern AllDirectories]
+      }
+    }
+
     proc tresult { code result } {
       host result $code $result; tlog $result
     }
@@ -5972,6 +6099,7 @@ namespace eval ::Eagle {
     #       namespace as well.
     #
     exportAndImportPackageCommands [namespace current] [list \
+        cleanupAfterEvents findParentDirectory \
         getKnownTclVariables getKnownTestVariables getKnownOtherVariables \
         cleanState dumpState needTestDoEvents testDoEvents trawputs \
         doesTestOutputRepeat toneputs tputs ttclLog doesTestLogFileExist \

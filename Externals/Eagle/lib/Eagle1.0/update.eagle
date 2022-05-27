@@ -1314,16 +1314,17 @@ namespace eval ::Eagle {
       if {[catch {
         package require Eagle.Test.Constraints
       } error] == 0} then {
-        set engineText [info engine Text]
+        set engineTextOrSuffix [info engine TextOrSuffix]
 
-        if {$engineText ni [list "" Default] && \
-            $engineText ni [getKnownBuildTypes]} then {
+        if {$engineTextOrSuffix ni [list "" Default] && \
+            $engineTextOrSuffix ni [getKnownBuildTypes]} then {
           if {!$quiet} then {
             tqputs $channel [appendArgs \
-                "---- ignored unknown build type: " $engineText \n]
+                "---- ignored unknown build type: " \
+                $engineTextOrSuffix \n]
           }
 
-          set engineText ""; # invalid, do not use.
+          set engineTextOrSuffix ""; # invalid, do not use.
         }
       } else {
         if {!$quiet} then {
@@ -1331,7 +1332,7 @@ namespace eval ::Eagle {
               "---- known build types unavailable: " $error \n]
         }
 
-        set engineText ""; # cannot check, do not use.
+        set engineTextOrSuffix ""; # cannot check, do not use.
       }
 
       #
@@ -1340,17 +1341,17 @@ namespace eval ::Eagle {
       set engineName [info engine Name]
 
       if {[string length $engineName] > 0} then {
-        if {[string length $engineText] > 0 && \
-            $engineText ni [list Default NetFx20]} then {
+        if {[string length $engineTextOrSuffix] > 0 && \
+            $engineTextOrSuffix ni [list Default NetFx20]} then {
           set updateName [appendArgs \
-              $engineName _ $engineText]; # NetFx40, etc.
+              $engineName _ $engineTextOrSuffix]; # NetFx40, etc.
         } else {
           set updateName $engineName; # NetFx20
         }
       } else {
-        if {[string length $engineText] > 0} then {
+        if {[string length $engineTextOrSuffix] > 0} then {
           set updateName [appendArgs \
-              Eagle_ $engineText]; # LEGACY NetFx40, etc.
+              Eagle_ $engineTextOrSuffix]; # LEGACY NetFx40, etc.
         } else {
           set updateName Eagle; # LEGACY
         }

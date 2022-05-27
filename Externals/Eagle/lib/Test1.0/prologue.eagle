@@ -1080,6 +1080,16 @@ if {![info exists no([file tail [info script]])]} then {
       unset stack
     }
 
+    if {![info exists no(showStartingLevels)]} then {
+      set levels(0) [catch {debug levels} levels(1)]
+
+      tputs $test_channel [appendArgs "---- starting levels: " \
+          [formatListAsDict [expr {$levels(0) == 0 ? $levels(1) : ""}] \
+          <none>] \n]
+
+      unset levels
+    }
+
     if {![info exists no(showSystemDrive)]} then {
       set drive(0) [catch {file drive} drive(1)]
 
@@ -3538,6 +3548,13 @@ if {![info exists no([file tail [info script]])]} then {
   }
 
   #
+  # NOTE: Are we likely running on a terminal using GNU Screen?
+  #
+  if {![info exists no(gnuScreen)]} then {
+    checkForGnuScreen $test_channel
+  }
+
+  #
   # NOTE: Has checking for the extra files needed by various tests in the
   #       Eagle core test suite been disabled?
   #
@@ -4194,6 +4211,13 @@ if {![info exists no([file tail [info script]])]} then {
   }
 
   #
+  # NOTE: Is the "int" type really the same as "wide"?
+  #
+  if {![info exists no(intIsWide)]} then {
+    checkForIntIsWide $test_channel
+  }
+
+  #
   # NOTE: Has namespace detection support been disabled?
   #
   if {![info exists no(namespaces)]} then {
@@ -4519,6 +4543,7 @@ if {![info exists no([file tail [info script]])]} then {
     checkForOperatingSystemUpdate $test_channel "May 2020 Update"
     checkForOperatingSystemUpdate $test_channel "October 2020 Update"
     checkForOperatingSystemUpdate $test_channel "May 2021 Update"
+    checkForOperatingSystemUpdate $test_channel "November 2021 Update"
     checkForOperatingSystemUpdate $test_channel "22000 RTM 21H2"
   }
 

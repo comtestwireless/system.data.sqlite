@@ -59,7 +59,8 @@ namespace eval ::Eagle {
   #       in Eagle on .NET Core (i.e. otherwise, we are running in Tcl or in
   #       Eagle on the .NET Framework or Mono).  This procedure must function
   #       correctly in both Tcl and Eagle and must return non-zero only when
-  #       running in Eagle on .NET Core.
+  #       running in Eagle on .NET Core.  For the purposes of this procedure,
+  #       the ".NET 5" and later runtimes are still treated as .NET Core.
   #
   proc isDotNetCore {} {
     #
@@ -68,7 +69,8 @@ namespace eval ::Eagle {
     #       procedure is actually used quite a bit (e.g. by the test suite).
     #
     return [expr {[info exists ::eagle_platform(runtime)] && \
-        [string compare -nocase ".net core" $::eagle_platform(runtime)] == 0}]
+        ([string compare -nocase ".net core" $::eagle_platform(runtime)] == 0 \
+      || [string compare -nocase ".net" $::eagle_platform(runtime)] == 0)}]
   }
 
   #

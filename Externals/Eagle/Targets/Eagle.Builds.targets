@@ -21,7 +21,7 @@
 
   <PropertyGroup>
     <!--
-        HACK: When targeting the .NET Standard 2.0, et al, the target framework
+        HACK: When targeting the .NET Standard 2.x, et al, the target framework
               version cannot be set to the typical values (i.e. those used for
               the full .NET Framework).
     -->

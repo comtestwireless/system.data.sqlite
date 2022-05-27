@@ -78,6 +78,9 @@ namespace eval ::Eagle {
     }
 
     if {$force || ![info exists ::no(windowsVersions)]} then {
+      #
+      # NOTE: Apparently, "Windows 11" still identifies as "10.0".
+      #
       return [list [list 3 1] [list 3 5] [list 3 51] [list 4 0] [list 5 0] \
           [list 5 1] [list 5 2] [list 6 0] [list 6 1] [list 6 2] [list 6 3] \
           [list 10 0]]
@@ -86,10 +89,78 @@ namespace eval ::Eagle {
     }
   }
 
+  proc getKnownDotNetVersions {} {
+    #
+    # NOTE: This job of this procedure is to return the list of "known"
+    #       versions of the .NET Framework supported by the test suite
+    #       infrastructure.  This means versions of the .NET Framework
+    #       prior to 2.0 (i.e. 1.0 and 1.1) are purposely excluded.
+    #
+    #       https://en.wikipedia.org/wiki/.NET_framework
+    #       https://dotnet.microsoft.com/en-us/download/dotnet-framework
+    #
+    # TODO: This list should be manually updated when a new version of
+    #       the .NET Core runtime is released.
+    #
+    if {[info exists ::test_well_known(dotNetVersions)]} then {
+      return $::test_well_known(dotNetVersions)
+    }
+
+    if {$force || ![info exists ::no(dotNetVersions)]} then {
+      return [list [list 2 0] [list 3 5] [list 4 0] [list 4 0 1] \
+          [list 4 0 2] [list 4 0 3] [list 4 5] [list 4 5 1] [list 4 5 2] \
+          [list 4 6] [list 4 6 1] [list 4 6 2] [list 4 7] [list 4 7 1] \
+          [list 4 7 2] [list 4 8]]
+    } else {
+      return [list]
+    }
+  }
+
+  proc addKnownDotNetConstraints { generic } {
+    #
+    # NOTE: Does the caller want to add the version-specific constraints
+    #       or the generic ones?
+    #
+    if {!$generic} then {
+      #
+      # NOTE: Add the necessary constraints for each version of the .NET
+      #       Framework that we know about.
+      #
+      # WARNING: None of these constraints are used by the core library
+      #          test suite itself.
+      #
+      foreach dotNetVersion [getKnownDotNetVersions] {
+        set constraintVersion [join $dotNetVersion ""]
+
+        addConstraint [appendArgs dotNetToDo $constraintVersion]
+        addConstraint [appendArgs dotNetToDo $constraintVersion Only]
+        addConstraint [appendArgs dotNetBug $constraintVersion]
+        addConstraint [appendArgs dotNetBug $constraintVersion Only]
+        addConstraint [appendArgs dotNetCrash $constraintVersion]
+        addConstraint [appendArgs dotNetCrash $constraintVersion Only]
+      }
+    } else {
+      #
+      # NOTE: Also add just the generic the .NET Framework constraints
+      #       that do not have a trailing version.
+      #
+      # WARNING: None of these constraints are used by the core library
+      #          test suite itself.
+      #
+      set constraints [list dotNetToDo dotNetBug dotNetCrash]
+
+      foreach constraint $constraints {
+        addConstraint $constraint
+      }
+    }
+  }
+
   proc getKnownMonoVersions { {force false} } {
     #
     # NOTE: This job of this procedure is to return the list of "known"
     #       versions of Mono supported by the test suite infrastructure.
+    #       This means versions of Mono prior to 2.0 (i.e. 0.* and 1.*)
+    #       are purposely excluded.
     #
     # NOTE: Other than version 2.11 (which was officially announced and
     #       released), all of these releases are listed on the official
@@ -157,7 +228,9 @@ namespace eval ::Eagle {
   proc getKnownDotNetCoreVersions { {force false} } {
     #
     # NOTE: This job of this procedure is to return the list of "known"
-    #       versions of .NET Core supported by the test suite infrastructure.
+    #       versions of .NET Core supported by the test suite
+    #       infrastructure.  This means versions of .NET Core prior to
+    #       2.0 (i.e. 1.0 and 1.1) are purposely excluded.
     #
     #       https://en.wikipedia.org/wiki/.NET_Core
     #       https://github.com/dotnet/core/releases
@@ -171,7 +244,7 @@ namespace eval ::Eagle {
 
     if {$force || ![info exists ::no(dotNetCoreVersions)]} then {
       return [list [list 2 0] [list 2 1] [list 2 2] [list 3 0] \
-          [list 3 1] [list 5 0]]
+          [list 3 1] [list 5 0] [list 6 0]]
     } else {
       return [list]
     }
@@ -214,6 +287,8 @@ namespace eval ::Eagle {
     #
     # NOTE: This job of this procedure is to return the list of "known"
     #       versions of Tcl/Tk supported by the test suite infrastructure.
+    #       This means versions of Tcl/Tk prior to 8.4 are purposely
+    #       excluded.
     #
     if {[info exists ::test_well_known(tclVersions)]} then {
       return $::test_well_known(tclVersions)
@@ -1670,7 +1745,8 @@ namespace eval ::Eagle {
       # NOTE: The versions of Visual Studio that we support detection
       #       of using the "vswhere" tool.
       #
-      set versions [list [list 15.0 2017] [list 16.0 2019]]
+      set versions [list \
+          [list 15.0 2017] [list 16.0 2019] [list 17.0 2022]]
 
       #
       # NOTE: Check each version and keep track of the ones we find.
@@ -2153,6 +2229,25 @@ namespace eval ::Eagle {
     tputs $channel no\n
   }
 
+  proc checkForIntIsWide { channel } {
+    tputs $channel "---- checking for \"int\" same as \"wide\"... "
+
+    if {[catch {
+      #
+      # HACK: On some systems (e.g. Linux x86_64), the "int" Tcl type
+      #       is the same as the "wide" Tcl type.  This never applies
+      #       to Eagle.
+      #
+      expr {int(0x7fffffffffffffff) == wide(0x7fffffffffffffff)}
+    } sameAsWide] == 0 && [string is true -strict $sameAsWide]} then {
+      addConstraint intIsWide
+
+      tputs $channel yes\n
+    } else {
+      tputs $channel no\n
+    }
+  }
+
   proc checkForEFormat { channel } {
     tputs $channel "---- checking for \"eformat\" support... "
 
@@ -2322,6 +2417,23 @@ namespace eval ::Eagle {
       tputs $channel [appendArgs $::test_suffix \n]
     } else {
       tputs $channel unknown\n
+    }
+  }
+
+  proc checkForGnuScreen { channel } {
+    #
+    # HACK: This is not 100% reliable; however, it should be "good enough"
+    #       for our purposes.
+    #
+    tputs $channel "---- checking for GNU Screen... "
+
+    if {([info exists ::env(TERM)] && $::env(TERM) eq "screen") || \
+        [info exists ::env(STY)]} then {
+      addConstraint gnuScreen
+
+      tputs $channel yes\n
+    } else {
+      tputs $channel no\n
     }
   }
 
@@ -5827,6 +5939,14 @@ namespace eval ::Eagle {
       tputs $channel no\n
     }
 
+    proc getOsBuild {} {
+      if {[info exists ::tcl_platform(osPatchLevel)]} then {
+        return [lindex [split $::tcl_platform(osPatchLevel) .] 2]
+      }
+
+      return -1
+    }
+
     proc isOsReleaseId { releaseId } {
       return [expr {[info exists ::tcl_platform(osReleaseId)] && \
           $::tcl_platform(osReleaseId) eq $releaseId}]
@@ -5959,12 +6079,15 @@ namespace eval ::Eagle {
         #
         if {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher)?
+          # NOTE: Is this Windows 10 (NT v10.0)?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
+          #
+          # BUGBUG: Treats Windows 11 differently than Windows 10.
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0} then {
+              $::tcl_platform(osVersion) == 10.0 && \
+              [getOsBuild] < 22000} then {
             #
             # NOTE: Return the "special" value.
             #
@@ -5989,13 +6112,13 @@ namespace eval ::Eagle {
         #
         if {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher) with the
+          # NOTE: Is this Windows 10 (NT v10.0) with the
           #       "November Update" installed?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0 && \
+              $::tcl_platform(osVersion) == 10.0 && \
               [haveTclPlatformOsExtraUpdateName "November Update"]} then {
             #
             # NOTE: Return the "special" value.
@@ -6036,13 +6159,13 @@ namespace eval ::Eagle {
           }
         } elseif {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher) with the
+          # NOTE: Is this Windows 10 (NT v10.0) with the
           #       "Anniversary Update" installed?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0 && \
+              $::tcl_platform(osVersion) == 10.0 && \
               [haveTclPlatformOsExtraUpdateName "Anniversary Update"]} then {
             #
             # NOTE: Return the "special" value.
@@ -6068,13 +6191,13 @@ namespace eval ::Eagle {
         #
         if {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher) with the
+          # NOTE: Is this Windows 10 (NT v10.0) with the
           #       "Creators Update" installed?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0 && \
+              $::tcl_platform(osVersion) == 10.0 && \
               [haveTclPlatformOsExtraUpdateName "Creators Update"]} then {
             #
             # NOTE: Return the "special" value.
@@ -6115,13 +6238,13 @@ namespace eval ::Eagle {
           }
         } elseif {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher) with the
+          # NOTE: Is this Windows 10 (NT v10.0) with the
           #       "Fall Creators Update" installed?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0 && \
+              $::tcl_platform(osVersion) == 10.0 && \
               [haveTclPlatformOsExtraUpdateName "Fall Creators Update"]} then {
             #
             # NOTE: Return the "special" value.
@@ -6162,13 +6285,13 @@ namespace eval ::Eagle {
           }
         } elseif {[isOsProductType missing] || [isOsProductType client]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher) with the
+          # NOTE: Is this Windows 10 (NT v10.0) with the
           #       "April 2018 Update" installed?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0 && \
+              $::tcl_platform(osVersion) == 10.0 && \
               [haveTclPlatformOsExtraUpdateName "April 2018 Update"]} then {
             #
             # NOTE: Return the "special" value.
@@ -6190,37 +6313,62 @@ namespace eval ::Eagle {
       #
       if {[isWindows]} then {
         #
-        # NOTE: Check if we are running on a client operating system.
+        # NOTE: Check if we are running on a server (or client) operating
+        #       system.
         #
-        if {[isOsProductType missing] || [isOsProductType client]} then {
+        if {[isOsProductType server]} then {
           #
-          # NOTE: Is this Windows 10 (NT v10.0 or higher)?
+          # NOTE: Is this Windows Server 2022 (NT v10.0)?
           #
-          # BUGBUG: Is greater-than-or-equal-to matching correct here?
+          # BUGBUG: Is exact matching correct here?
           #
           if {[info exists ::tcl_platform(osVersion)] && \
-              $::tcl_platform(osVersion) >= 10.0} then {
+              $::tcl_platform(osVersion) == 10.0 && \
+              [isOsReleaseId 21H2]} then {
             #
-            # NOTE: Is the "May 2020 Update" -OR- "October 2020 Update"
-            #       installed?
+            # NOTE: Return the "special" value.
             #
-            if {[haveTclPlatformOsExtraUpdateName "May 2020 Update"] || \
-                [haveTclPlatformOsExtraUpdateName "October 2020 Update"]} then {
+            return 528449
+          }
+        } elseif {[isOsProductType missing] || [isOsProductType client]} then {
+          #
+          # NOTE: Is this Windows 10 -OR- 11 (NT v10.0)?
+          #
+          # BUGBUG: Is exact matching correct here?
+          #
+          if {[info exists ::tcl_platform(osVersion)] && \
+              $::tcl_platform(osVersion) == 10.0} then {
+            #
+            # NOTE: Is this Windows 11 (NT v10.0)?
+            #
+            if {[getOsBuild] >= 22000} then {
               #
               # NOTE: Return the "special" value.
               #
-              return 528372; # BUGBUG: May / October 2020 Update(s) only?
+              return 528449
             } else {
               #
-              # NOTE: Is the "May 2019 Update" -OR- "November 2019 Update"
+              # NOTE: Is the "May 2020 Update" -OR- "October 2020 Update"
               #       installed?
               #
-              if {[haveTclPlatformOsExtraUpdateName "May 2019 Update"] || \
-                  [haveTclPlatformOsExtraUpdateName "November 2019 Update"]} then {
+              if {[haveTclPlatformOsExtraUpdateName "May 2020 Update"] || \
+                  [haveTclPlatformOsExtraUpdateName "October 2020 Update"]} then {
                 #
                 # NOTE: Return the "special" value.
                 #
-                return 528040; # BUGBUG: May / November 2019 Update(s) only?
+                return 528372; # BUGBUG: May / October 2020 Update(s) only?
+              } else {
+                #
+                # NOTE: Is the "May 2019 Update" -OR- "November 2019 Update"
+                #       installed?
+                #
+                if {[haveTclPlatformOsExtraUpdateName "May 2019 Update"] || \
+                    [haveTclPlatformOsExtraUpdateName "November 2019 Update"]} then {
+                  #
+                  # NOTE: Return the "special" value.
+                  #
+                  return 528040; # BUGBUG: May / November 2019 Update(s) only?
+                }
               }
             }
           }
@@ -6703,21 +6851,21 @@ namespace eval ::Eagle {
         checkForFossil checkForVisualStudioViaVsWhere checkForEagle \
         checkForSymbols checkForLogFile checkForGaruda checkForShell \
         checkForOfficialStableReleaseInProgress checkForDebug checkForTk \
-        checkForVersion checkForCommand checkForSubCommand checkForEFormat \
-        checkForNamespaces checkForTestExec checkForTestMachine \
-        checkForTestPlatform checkForTestConfiguration checkForTestNamePrefix \
-        checkForTestSuffix checkForFile checkForPathFile checkForNativeCode \
-        checkForTip127 checkForTip182 checkForTip194 checkForTip207 \
-        checkForTip241 checkForTip285 checkForTip405 checkForTip421 \
-        checkForTip426 checkForTip429 checkForTip440 checkForTip461 \
-        checkForTip463 checkForTip471 checkForTip508 checkForTip521 \
-        checkForTiming checkForPerformance checkForBigLists \
-        checkForProcessorIntensive checkForTimeIntensive checkForFullTest \
-        checkForMemoryIntensive checkForStackIntensive checkForStackSize \
-        checkForInteractive checkForInteractiveCommand \
-        checkForUserInteraction checkForNetwork checkForInternet \
-        checkForCompileOption checkForBuildType checkForKnownBuildTypes \
-        checkForKnownCompileOptions] false false
+        checkForVersion checkForCommand checkForSubCommand checkForIntIsWide \
+        checkForEFormat checkForNamespaces checkForTestExec \
+        checkForTestMachine checkForTestPlatform checkForTestConfiguration \
+        checkForTestNamePrefix checkForTestSuffix checkForGnuScreen \
+        checkForFile checkForPathFile checkForNativeCode checkForTip127 \
+        checkForTip182 checkForTip194 checkForTip207 checkForTip241 \
+        checkForTip285 checkForTip405 checkForTip421 checkForTip426 \
+        checkForTip429 checkForTip440 checkForTip461 checkForTip463 \
+        checkForTip471 checkForTip508 checkForTip521 checkForTiming \
+        checkForPerformance checkForBigLists checkForProcessorIntensive \
+        checkForTimeIntensive checkForFullTest checkForMemoryIntensive \
+        checkForStackIntensive checkForStackSize checkForInteractive \
+        checkForInteractiveCommand checkForUserInteraction checkForNetwork \
+        checkForInternet checkForCompileOption checkForBuildType \
+        checkForKnownBuildTypes checkForKnownCompileOptions] false false
 
     ###########################################################################
     ############################## END Tcl ONLY ###############################

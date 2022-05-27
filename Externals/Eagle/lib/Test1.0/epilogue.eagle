@@ -211,6 +211,20 @@ if {![info exists no([file tail [info script]])]} then {
     }
 
     #
+    # NOTE: Maybe show the (maximum?) levels that were hit by whichever
+    #       tests actually ran.
+    #
+    if {![info exists no(showEndingLevels)]} then {
+      set levels(0) [catch {debug levels} levels(1)]
+
+      tputs $test_channel [appendArgs "---- ending levels: " \
+          [formatListAsDict [expr {$levels(0) == 0 ? $levels(1) : ""}] \
+          <none>] \n]
+
+      unset levels
+    }
+
+    #
     # NOTE: Maybe show usage data for all commands.
     #
     if {![info exists no(showEndingUsageData)] && \

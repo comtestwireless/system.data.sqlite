@@ -578,6 +578,10 @@
     Enter the following command to build all the NuGet packages:
     <br />
     <br />
+    <b>SET NO_NUGET_XPLATFORM=1</b>
+    <br />
+    <b>SET NUGET_LEGACY_ONLY=1</b>
+    <br />
     <b>build_nuget.bat</b>
     <br />
     <br />

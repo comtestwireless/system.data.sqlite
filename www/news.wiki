@@ -55,7 +55,7 @@
 <div align="center"><h2><b>Version History</b></h2></div>
 
 <p>
-    <b>1.0.116.0 - May XX, 2022 <font color="red">(release scheduled)</font></b>
+    <b>1.0.116.0 - June 1, 2022</b>
 </p>
 <ul>
     <li>Updated to [https://www.sqlite.org/releaselog/3_38_5.html|SQLite 3.38.5].</li>

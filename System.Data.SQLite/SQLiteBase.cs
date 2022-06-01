@@ -572,6 +572,65 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+#if PLATFORM_COMPACTFRAMEWORK
+    protected static int BumpCreateCount()
+    {
+        return Interlocked.Increment(ref _createCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static int BumpOpenCount()
+    {
+        return Interlocked.Increment(ref _openCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static int BumpCloseCount()
+    {
+        return Interlocked.Increment(ref _closeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static int BumpDisposeCount()
+    {
+        return Interlocked.Increment(ref _disposeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int _createCount;
+    internal static int CreateCount
+    {
+        get { return Interlocked.CompareExchange(ref _createCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int _openCount;
+    internal static int OpenCount
+    {
+        get { return Interlocked.CompareExchange(ref _openCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int _closeCount;
+    internal static int CloseCount
+    {
+        get { return Interlocked.CompareExchange(ref _closeCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int _disposeCount;
+    internal static int DisposeCount
+    {
+        get { return Interlocked.CompareExchange(ref _disposeCount, 0, 0); }
+    }
+#else
     protected static long BumpCreateCount()
     {
         return Interlocked.Increment(ref _createCount);
@@ -629,6 +688,7 @@ namespace System.Data.SQLite
     {
         get { return Interlocked.CompareExchange(ref _disposeCount, 0, 0); }
     }
+#endif
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

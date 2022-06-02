@@ -26,6 +26,11 @@
     Enter the following commands to build all the x86 and x64 binaries:
     <br />
     <br />
+    <b>SET LOGDIR=%ROOT%\Setup\Output</b>
+    <br />
+    <b>IF NOT EXIST &quot;%LOGDIR%&quot; MKDIR &quot;%LOGDIR%&quot;</b>
+    <br />
+    <br />
     <b>SET BUILD_FULL=1</b>
     <br />
     <b>SET BUILD_DEBUG=1</b>
@@ -493,7 +498,8 @@
   <li>Change the current directory to &quot;&lt;root&gt;\Setup&quot;.</li>
 
   <li>
-    Enter the following commands to build all the Mono release packages:
+    Enter the following commands to build all the .NET Standard 2.0 release
+    packages:
     <br />
     <br />
     <b>SET RELEASE_DEBUG=1</b>
@@ -516,7 +522,8 @@
   <li>Change the current directory to &quot;&lt;root&gt;\Setup&quot;.</li>
 
   <li>
-    Enter the following commands to build all the Mono release packages:
+    Enter the following commands to build all the .NET Standard 2.1 release
+    packages:
     <br />
     <br />
     <b>SET RELEASE_DEBUG=1</b>
@@ -575,6 +582,10 @@
   <li>
     Enter the following command to build all the NuGet packages:
     <br />
+    <br />
+    <b>SET NO_NUGET_XPLATFORM=1</b>
+    <br />
+    <b>SET NUGET_LEGACY_ONLY=1</b>
     <br />
     <b>build_nuget.bat</b>
     <br />

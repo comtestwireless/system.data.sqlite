@@ -26,6 +26,11 @@
     Enter the following commands to build all the x86 and x64 binaries:
     <br />
     <br />
+    <b>SET LOGDIR=%ROOT%\Setup\Output</b>
+    <br />
+    <b>IF NOT EXIST &quot;%LOGDIR%&quot; MKDIR &quot;%LOGDIR%&quot;</b>
+    <br />
+    <br />
     <b>SET BUILD_FULL=1</b>
     <br />
     <b>SET BUILD_DEBUG=1</b>

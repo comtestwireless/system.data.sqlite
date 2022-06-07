@@ -455,6 +455,11 @@ IF DEFINED USEDOTNET IF DEFINED INTEROPONLY (
 %_VECHO% InteropYear = '%INTEROPYEAR%'
 %_VECHO% NoBuildToolDir = '%NOBUILDTOOLDIR%'
 %_VECHO% UseDotNet = '%USEDOTNET%'
+%_VECHO% Solution = '%SOLUTION%'
+%_VECHO% CoreOnly = '%COREONLY%'
+%_VECHO% InteropOnly = '%INTEROPONLY%'
+%_VECHO% StaticOnly = '%STATICONLY%'
+%_VECHO% BuildFull = '%BUILD_FULL%'
 
 CALL :fn_SetupSolution
 
@@ -1031,7 +1036,7 @@ REM ****************************************************************************
     SET SOLUTION=.\SQLite.NET.%YEAR%.sln
     GOTO :EOF
   )
-  %_AECHO% Building all projects...
+  %_AECHO% Building all MSBuild projects...
   SET SOLUTION=.\SQLite.NET.%YEAR%.MSBuild.sln
   GOTO :EOF
 

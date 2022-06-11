@@ -15,6 +15,7 @@ REM SET __ECHO=ECHO
 REM SET __ECHO3=ECHO
 IF NOT DEFINED _AECHO (SET _AECHO=REM)
 IF NOT DEFINED _CECHO (SET _CECHO=REM)
+IF NOT DEFINED _CECHO3 (SET _CECHO3=REM)
 IF NOT DEFINED _VECHO (SET _VECHO=REM)
 
 %_AECHO% Running %0 %*
@@ -32,6 +33,7 @@ SET TOOLS=%TOOLS:~0,-1%
 
 CALL :fn_ResetErrorLevel
 
+%_CECHO3% CALL "%TOOLS%\vsSp.bat"
 %__ECHO3% CALL "%TOOLS%\vsSp.bat"
 
 IF ERRORLEVEL 1 (
@@ -46,6 +48,7 @@ REM
 SET NONETSTANDARD20=1
 SET NONETSTANDARD21=1
 
+%_CECHO3% CALL "%TOOLS%\set_common.bat"
 %__ECHO3% CALL "%TOOLS%\set_common.bat"
 
 IF ERRORLEVEL 1 (
@@ -76,6 +79,7 @@ FOR %%C IN (%RELEASE_CONFIGURATIONS%) DO (
     FOR %%Y IN (%YEARS%) DO (
       CALL :fn_SetExtraPlatform "%%~P"
 
+      %_CECHO3% CALL "%TOOLS%\release.bat" %%C %%P %%Y
       %__ECHO3% CALL "%TOOLS%\release.bat" %%C %%P %%Y
 
       IF ERRORLEVEL 1 (

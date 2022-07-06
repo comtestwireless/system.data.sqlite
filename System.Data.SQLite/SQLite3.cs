@@ -435,6 +435,9 @@ namespace System.Data.SQLite
           _sql = null;
       }
 
+      if (wasDisposed)
+          GC.SuppressFinalize(this);
+
       return wasDisposed;
     }
 

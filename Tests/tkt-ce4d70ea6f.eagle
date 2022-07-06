@@ -1,0 +1,93 @@
+###############################################################################
+#
+# tkt-ce4d70ea6f.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test tkt-ce4d70ea6f-1.1 {finalizer queue depth} -setup {
+  set fileName tkt-ce4d70ea6f-1.1.db
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+  set rootName [file rootname [file tail $bin_file]]
+  set count 50000
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Diagnostics;
+    using System.Data.SQLite;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        public static int Main()
+        {
+          int result = 0;
+
+          using (PerformanceCounter counter = new PerformanceCounter(
+              ".NET CLR Memory", "Finalization Survivors", "${rootName}"))
+          {
+            GC.GetTotalMemory(true);
+
+            for (int iteration = 0; iteration < ${count}; iteration++)
+            {
+              int beforeCount = (int)counter.NextValue();
+
+              using (SQLiteConnection connection = new SQLiteConnection(
+                  "Data Source=${dataSource};[getTestProperties]"))
+              {
+                connection.Open();
+              }
+
+              int afterCount = (int)counter.NextValue();
+              if (afterCount > beforeCount) result++;
+            }
+
+            return result;
+          }
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+
+  if {$code ne "Ok"} then {
+    error $errors
+  }
+
+  set result [object invoke _Dynamic${id}.Test${id} Main]
+
+  list $result [object invoke -flags +NonPublic \
+      System.Data.SQLite.SQLiteBase FinalizeCount] \
+      [expr {$result <= 2}]; # <3 per 50K
+} -cleanup {
+  cleanupPerformanceCounters
+
+  unset -nocomplain count rootName dataSource id fileName
+  unset -nocomplain result results errors code
+} -constraints [fixConstraints {eagle !mono !dotNetCore command.object\
+command.sql compile.DATA SQLite System.Data.SQLite}] -match regexp -result \
+{^\d+ 0 True$}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

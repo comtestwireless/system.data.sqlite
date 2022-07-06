@@ -601,6 +601,13 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    protected static int BumpFinalizeCount()
+    {
+        return Interlocked.Increment(ref _finalizeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     private static int _createCount;
     internal static int CreateCount
     {
@@ -630,6 +637,14 @@ namespace System.Data.SQLite
     {
         get { return Interlocked.CompareExchange(ref _disposeCount, 0, 0); }
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static int _finalizeCount;
+    internal static int FinalizeCount
+    {
+        get { return Interlocked.CompareExchange(ref _finalizeCount, 0, 0); }
+    }
 #else
     protected static long BumpCreateCount()
     {
@@ -655,6 +670,13 @@ namespace System.Data.SQLite
     protected static long BumpDisposeCount()
     {
         return Interlocked.Increment(ref _disposeCount);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected static long BumpFinalizeCount()
+    {
+        return Interlocked.Increment(ref _finalizeCount);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -687,6 +709,14 @@ namespace System.Data.SQLite
     internal static long DisposeCount
     {
         get { return Interlocked.CompareExchange(ref _disposeCount, 0, 0); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static long _finalizeCount;
+    internal static long FinalizeCount
+    {
+        get { return Interlocked.CompareExchange(ref _finalizeCount, 0, 0); }
     }
 #endif
 
@@ -746,6 +776,7 @@ namespace System.Data.SQLite
     #region Destructor
     ~SQLiteBase()
     {
+        BumpFinalizeCount();
         Dispose(false);
     }
     #endregion

@@ -2355,7 +2355,33 @@ namespace System.Data.SQLite
       /// <summary>
       /// A native resource was closed (i.e. released) to the pool.
       /// </summary>
-      ClosedToPool = 16
+      ClosedToPool = 16,
+
+      /// <summary>
+      /// The connection is being disposed.
+      /// </summary>
+      DisposingConnection = 17,
+
+      /// <summary>
+      /// The connection was disposed.
+      /// </summary>
+      DisposedConnection = 18,
+
+      /// <summary>
+      /// The connection is being finalized.
+      /// </summary>
+      FinalizingConnection = 19,
+
+      /// <summary>
+      /// The connection was finalized.
+      /// </summary>
+      FinalizedConnection = 20,
+
+      /// <summary>
+      /// The closing of the object had no effect, e.g. because the
+      /// underlying resource was not actually allocated or opened.
+      /// </summary>
+      NothingToDo = 21
   }
 
   /// <summary>

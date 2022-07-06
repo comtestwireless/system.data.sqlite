@@ -3647,14 +3647,10 @@ runTest {test data-1.74 {bind functions using delegate} -setup {
   }
 
   proc getHashCode { value } {
-    if {[isObjectHandle $value]} then {
-      if {$value eq "null"} then {
-        return 0
-      } else {
-        return [object invoke $value GetHashCode]
-      }
+    if {[isNonNullObjectHandle $value]} then {
+      return [object invoke $value GetHashCode]
     } else {
-      if {[string length $value] == 0} then {
+      if {[string length $value] == 0 || $value eq "null"} then {
         return 0
       } else {
         set string [object create String $value]
@@ -3667,7 +3663,7 @@ runTest {test data-1.74 {bind functions using delegate} -setup {
   proc hashManagedArray { array } {
     set data ""
 
-    if {[isObjectHandle $array] && $array ne "null"} then {
+    if {[isNonNullObjectHandle $array]} then {
       if {[object invoke $array GetType.IsArray]} then {
         for {set index 0} {$index < [$array Length]} {incr index} {
           set element [$array -create -alias GetValue $index]
@@ -3691,7 +3687,7 @@ runTest {test data-1.74 {bind functions using delegate} -setup {
 
     set name [lindex $args 0]
 
-    if {[isObjectHandle $name] && $name ne "null"} then {
+    if {[isNonNullObjectHandle $name]} then {
       set name [object invoke $name ToString]
     }
 

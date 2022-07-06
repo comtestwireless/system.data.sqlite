@@ -38,7 +38,7 @@ runTest {test tkt-3113734605-1.1 {ColumnSize and NumericPrecision} -setup {
   foreach collectionName [list TABLECOLUMNS VIEWCOLUMNS] {
     set dataTable [object invoke -alias $connection GetSchema $collectionName]
 
-    if {[string length $dataTable] > 0} then {
+    if {[isNonNullObjectHandle $dataTable]} then {
       set dataRows [$dataTable Rows]
 
       object foreach -alias dataRow $dataRows {

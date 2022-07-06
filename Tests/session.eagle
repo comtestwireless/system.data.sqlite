@@ -86,10 +86,10 @@ proc cleanupSomeText {} {
 proc forDisplay { object member } {
   set isArray false
 
-  if {[isObjectHandle $object] && $object ne "null"} then {
+  if {[isNonNullObjectHandle $object]} then {
     set value [object invoke -create -- $object $member]
 
-    if {[isObjectHandle $value] && $value ne "null"} then {
+    if {[isNonNullObjectHandle $value]} then {
       set isArray [object invoke -- $value GetType.IsArray]
     }
   } else {
@@ -109,7 +109,7 @@ proc forDisplay { object member } {
 ###############################################################################
 
 proc createMemoryChangeSetForConnection { connection rawData flags } {
-  if {[isObjectHandle $connection] && $connection ne "null"} then {
+  if {[isNonNullObjectHandle $connection]} then {
     return [$connection -alias CreateChangeSet $rawData $flags]
   }
 
@@ -119,7 +119,7 @@ proc createMemoryChangeSetForConnection { connection rawData flags } {
 ###############################################################################
 
 proc createMemoryChangeSetForObject { object {patch false} } {
-  if {[isObjectHandle $object] && $object ne "null"} then {
+  if {[isNonNullObjectHandle $object]} then {
     set byteArray null
 
     if {$patch} then {
@@ -140,7 +140,7 @@ proc createMemoryChangeSetForObject { object {patch false} } {
 ###############################################################################
 
 proc writeRawDataToFile { fileName rawData } {
-  if {[isObjectHandle $rawData] && $rawData ne "null"} then {
+  if {[isNonNullObjectHandle $rawData]} then {
     set stream [object create -alias \
         System.IO.FileStream $fileName Create Write]
 
@@ -157,7 +157,7 @@ proc writeRawDataToFile { fileName rawData } {
 
 proc openStreamChangeSetForConnection {
         connection inputFileName outputFileName flags {varName ""} } {
-  if {[isObjectHandle $connection] && $connection ne "null"} then {
+  if {[isNonNullObjectHandle $connection]} then {
     if {[string length $varName] > 0} then {
       upvar 1 $varName state
     }
@@ -189,7 +189,7 @@ proc openStreamChangeSetForConnection {
 ###############################################################################
 
 proc addStreamChangeSetForObject { object fileName } {
-  if {[isObjectHandle $object] && $object ne "null"} then {
+  if {[isNonNullObjectHandle $object]} then {
     set stream [object create -alias \
         System.IO.FileStream $fileName Open Read]
 
@@ -204,7 +204,7 @@ proc addStreamChangeSetForObject { object fileName } {
 ###############################################################################
 
 proc writeStreamChangeSetForObject { object fileName {patch false} } {
-  if {[isObjectHandle $object] && $object ne "null"} then {
+  if {[isNonNullObjectHandle $object]} then {
     set stream [object create -alias \
         System.IO.FileStream $fileName Create Write]
 
@@ -227,7 +227,7 @@ proc writeStreamChangeSetForObject { object fileName {patch false} } {
 proc changeSetFileToString { connection fileName flags includeValues } {
   set result [list]
 
-  if {[isObjectHandle $connection] && $connection ne "null"} then {
+  if {[isNonNullObjectHandle $connection]} then {
     if {[openStreamChangeSetForConnection \
         $connection $fileName "" $flags state]} then {
       return [changeSetToString $state(changeSet) $includeValues]
@@ -242,7 +242,7 @@ proc changeSetFileToString { connection fileName flags includeValues } {
 proc metadataItemToString { item includeValues } {
   set result [list]
 
-  if {[isObjectHandle $item] && $item ne "null"} then {
+  if {[isNonNullObjectHandle $item]} then {
     lappend result TableName [$item TableName]
     lappend result NumberOfColumns [$item NumberOfColumns]
     lappend result OperationCode [$item OperationCode]
@@ -281,7 +281,7 @@ proc metadataItemToString { item includeValues } {
 proc changeSetToString { changeSet includeValues } {
   set result [list]
 
-  if {[isObjectHandle $changeSet] && $changeSet ne "null"} then {
+  if {[isNonNullObjectHandle $changeSet]} then {
     object foreach -alias item $changeSet {
       lappend result [metadataItemToString $item $includeValues]
     }
@@ -293,12 +293,12 @@ proc changeSetToString { changeSet includeValues } {
 ###############################################################################
 
 proc matchSession { connection session flags expr } {
-  if {[isObjectHandle $session] && $session ne "null"} then {
+  if {[isNonNullObjectHandle $session]} then {
     if {![$session IsEmpty]} then {
       set rawData [createMemoryChangeSetForObject $session]
       object removeref $rawData
 
-      if {[isObjectHandle $rawData] && $rawData ne "null"} then {
+      if {[isNonNullObjectHandle $rawData]} then {
         return [matchChangeSet [set changeSet \
             [$connection -alias CreateChangeSet $rawData $flags]] $expr]
       }
@@ -311,7 +311,7 @@ proc matchSession { connection session flags expr } {
 ###############################################################################
 
 proc matchChangeSet { changeSet expr } {
-  if {[isObjectHandle $changeSet] && $changeSet ne "null"} then {
+  if {[isNonNullObjectHandle $changeSet]} then {
     object foreach -alias item $changeSet {
       if {[expr $expr]} then {return true}
     }
@@ -381,14 +381,14 @@ proc makeSomeChanges { db table types {rowId ""} {count 5} } {
 
 proc captureChangeSetRawData {
         connection databaseName tableName script {patch false} } {
-  if {![isObjectHandle $connection] || $connection eq "null"} then {
+  if {![isNonNullObjectHandle $connection]} then {
     error "connection is invalid"
   }
 
   set session [$connection -alias CreateSession $databaseName]
   $session AttachTable $tableName
 
-  if {![isObjectHandle $session] || $session eq "null"} then {
+  if {![isNonNullObjectHandle $session]} then {
     error "cannot create session"
   }
 
@@ -403,14 +403,14 @@ proc captureChangeSetRawData {
 
 proc captureChangeSetFile {
         connection databaseName tableName script fileName {patch false} } {
-  if {![isObjectHandle $connection] || $connection eq "null"} then {
+  if {![isNonNullObjectHandle $connection]} then {
     error "connection is invalid"
   }
 
   set session [$connection -alias CreateSession $databaseName]
   $session AttachTable $tableName
 
-  if {![isObjectHandle $session] || $session eq "null"} then {
+  if {![isNonNullObjectHandle $session]} then {
     error "cannot create session"
   }
 
@@ -470,11 +470,11 @@ proc tableFilterCallbackT1 { clientData name } {
 proc conflictCallback { clientData type item } {
   set result Abort
 
-  if {[isObjectHandle $item] && $item ne "null"} then {
+  if {[isNonNullObjectHandle $item]} then {
     set result Omit
 
     if {[$item OperationCode] ne "Delete"} then {
-      if {[isObjectHandle $type] && $type ne "null" && \
+      if {[isNonNullObjectHandle $type] && \
           [$type ToString] in [list Data Conflict]} then {
         set result Replace
       }

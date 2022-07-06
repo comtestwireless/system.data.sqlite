@@ -23,10 +23,10 @@ runSQLiteTestPrologue
 proc bindValueCallback1 {
         convert command flags parameter typeName index userData
         completeVarName } {
-  lappend ::log(bind) [list convert [isObjectHandle $convert]]
-  lappend ::log(bind) [list command [isObjectHandle $command]]
+  lappend ::log(bind) [list convert [isNonNullObjectHandle $convert]]
+  lappend ::log(bind) [list command [isNonNullObjectHandle $command]]
   lappend ::log(bind) [list flags [getStringFromObjectHandle $flags]]
-  lappend ::log(bind) [list parameter [isObjectHandle $parameter]]
+  lappend ::log(bind) [list parameter [isNonNullObjectHandle $parameter]]
   lappend ::log(bind) [list typeName [getStringFromObjectHandle $typeName]]
   lappend ::log(bind) [list index [getStringFromObjectHandle $index]]
   lappend ::log(bind) [list userData [getStringFromObjectHandle $userData]]
@@ -52,10 +52,10 @@ proc bindValueCallback1 {
 proc readValueCallback1 {
         convert dataReader flags eventArgs typeName index userData
         completeVarName } {
-  lappend ::log(read) [list convert [isObjectHandle $convert]]
-  lappend ::log(read) [list dataReader [isObjectHandle $dataReader]]
+  lappend ::log(read) [list convert [isNonNullObjectHandle $convert]]
+  lappend ::log(read) [list dataReader [isNonNullObjectHandle $dataReader]]
   lappend ::log(read) [list flags [getStringFromObjectHandle $flags]]
-  lappend ::log(read) [list eventArgs [isObjectHandle $eventArgs]]
+  lappend ::log(read) [list eventArgs [isNonNullObjectHandle $eventArgs]]
   lappend ::log(read) [list typeName [getStringFromObjectHandle $typeName]]
   lappend ::log(read) [list index [getStringFromObjectHandle $index]]
   lappend ::log(read) [list userData [getStringFromObjectHandle $userData]]
@@ -177,7 +177,11 @@ set expectedResults [list \
 ###############################################################################
 
 set savedDateTimeFormat [object invoke Interpreter.GetActive DateTimeFormat]
-if {![isObjectHandle $savedDateTimeFormat]} then {set savedDateTimeFormat null}
+
+if {![isNonNullObjectHandle $savedDateTimeFormat]} then {
+  set savedDateTimeFormat null
+}
+
 object invoke Interpreter.GetActive DateTimeFormat [getDateTimeFormat]
 
 set savedDateTimeKind [object invoke Interpreter.GetActive DateTimeKind]

@@ -2412,7 +2412,7 @@ namespace eval ::Eagle {
       set count 0
       set names [list]
 
-      if {[isObjectHandle $object] && $object ne "null"} then {
+      if {[isNonNullObjectHandle $object]} then {
         eval lappend names [object members \
             -membertypes Property -nameonly $object]
 
@@ -2424,7 +2424,7 @@ namespace eval ::Eagle {
         if {[catch {
           object invoke -objectflags +NoDispose $object $name
         } value] == 0} then {
-          if {[isObjectHandle $value] && $value ne "null"} then {
+          if {[isNonNullObjectHandle $value]} then {
             set error null; object invoke -flags +NonPublic \
                 -marshalflags +NoHandle Interpreter.GetActive \
                 AddObjectReference Ok $value error
@@ -2487,7 +2487,7 @@ namespace eval ::Eagle {
             set name [appendArgs $arrayName ( $elementName )]
             set varValue [uplevel 1 [list set $name]]
 
-            if {$objects && [isObjectHandle $varValue]} then {
+            if {$objects && [isNonNullObjectHandle $varValue]} then {
               unset -nocomplain properties
               getAllProperties $varValue properties
 
@@ -2499,7 +2499,7 @@ namespace eval ::Eagle {
         } else {
           set varValue [uplevel 1 [list set $varName]]
 
-          if {$objects && [isObjectHandle $varValue]} then {
+          if {$objects && [isNonNullObjectHandle $varValue]} then {
             unset -nocomplain properties
             getAllProperties $varValue properties
 
@@ -2516,12 +2516,12 @@ namespace eval ::Eagle {
     proc enumerableToList { enumerable } {
       set result [list]
 
-      if {[string length $enumerable] == 0 || $enumerable eq "null"} then {
+      if {![isNonNullObjectHandle $enumerable]} then {
         return $result
       }
 
       object foreach -alias item $enumerable {
-        if {[string length $item] > 0} then {
+        if {[isNonNullObjectHandle $item]} then {
           lappend result [$item ToString]
         }
       }
@@ -3559,7 +3559,7 @@ namespace eval ::Eagle {
           }
 
           if {$code == $Continue} then {
-            if {[string length $value] > 0 && \
+            if {[isNonNullObjectHandle $value] && \
                 ![object invoke Convert IsDBNull $value]} then {
               lappend row [list $names($index) [$value ToString]]
             } else {

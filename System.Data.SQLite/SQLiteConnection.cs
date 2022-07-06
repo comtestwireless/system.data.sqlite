@@ -3239,6 +3239,9 @@ namespace System.Data.SQLite
     {
       CheckDisposed();
 
+      if (Object.ReferenceEquals(_lastConnectionInOpen, this))
+          _lastConnectionInOpen = null; /* THREAD-SAFE: per-thread datum. */
+
       OnChanged(this, new ConnectionEventArgs(
           SQLiteConnectionEventType.Closing, null, null, null, null, null,
           null, null));

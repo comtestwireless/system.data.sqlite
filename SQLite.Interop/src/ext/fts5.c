@@ -6735,6 +6735,9 @@ static Fts5ExprNearset *sqlite3Fts5ParseNearset(
   }else{
     if( pRet->nPhrase>0 ){
       Fts5ExprPhrase *pLast = pRet->apPhrase[pRet->nPhrase-1];
+      assert( pParse!=0 );
+      assert( pParse->apPhrase!=0 );
+      assert( pParse->nPhrase>=2 );
       assert( pLast==pParse->apPhrase[pParse->nPhrase-2] );
       if( pPhrase->nTerm==0 ){
         fts5ExprPhraseFree(pPhrase);
@@ -9036,7 +9039,7 @@ struct Fts5Index {
   sqlite3_stmt *pWriter;          /* "INSERT ... %_data VALUES(?,?)" */
   sqlite3_stmt *pDeleter;         /* "DELETE FROM %_data ... id>=? AND id<=?" */
   sqlite3_stmt *pIdxWriter;       /* "INSERT ... %_idx VALUES(?,?,?,?)" */
-  sqlite3_stmt *pIdxDeleter;      /* "DELETE FROM %_idx WHERE segid=? */
+  sqlite3_stmt *pIdxDeleter;      /* "DELETE FROM %_idx WHERE segid=?" */
   sqlite3_stmt *pIdxSelect;
   int nRead;                      /* Total number of blocks read */
 
@@ -18354,7 +18357,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2022-05-06 15:25:27 78d9c993d404cdfaa7fdd2973fa1052e3da9f66215cff9c5540ebe55c407d9fe", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2022-06-25 14:57:57 14e166f40dbfa6e055543f8301525f2ca2e96a02a57269818b9e69e162e98918", -1, SQLITE_TRANSIENT);
 }
 
 /*

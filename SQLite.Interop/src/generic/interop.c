@@ -1115,6 +1115,27 @@ SQLITE_API int WINAPI sqlite3_table_cursor_interop(sqlite3_stmt *pstmt, int iDb,
   return ret;
 }
 
+#if SQLITE_VERSION_NUMBER >= 3039000
+SQLITE_PRIVATE int sqlite3VdbeCursorMoveto(VdbeCursor **pp, u32 *piCol){
+  VdbeCursor *p = *pp;
+  assert( p->eCurType==CURTYPE_BTREE || p->eCurType==CURTYPE_PSEUDO );
+  if( p->deferredMoveto ){
+    u32 iMap;
+    assert( !p->isEphemeral );
+    if( p->ub.aAltMap && (iMap = p->ub.aAltMap[1+*piCol])>0 && !p->nullRow ){
+      *pp = p->pAltCursor;
+      *piCol = iMap - 1;
+      return SQLITE_OK;
+    }
+    return sqlite3VdbeFinishMoveto(p);
+  }
+  if( sqlite3BtreeCursorHasMoved(p->uc.pCursor) ){
+    return sqlite3VdbeHandleMovedCursor(p);
+  }
+  return SQLITE_OK;
+}
+#endif
+
 SQLITE_API int WINAPI sqlite3_cursor_rowid_interop(sqlite3_stmt *pstmt, int cursor, sqlite_int64 *prowid)
 {
   Vdbe *p = (Vdbe *)pstmt;

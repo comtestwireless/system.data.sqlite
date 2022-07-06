@@ -3447,7 +3447,8 @@ namespace eval ::Eagle {
       return ""
     }
 
-    proc freeDbConnection { {varName connection} } {
+    proc freeDbConnection {
+            {varName connection} {dispose true} {quiet false} } {
       #
       # NOTE: Refer to the specified variable (e.g. "connection") in the
       #       context of our caller.  The opaque object handle for an ADO.NET
@@ -3458,18 +3459,24 @@ namespace eval ::Eagle {
 
       #
       # NOTE: Attempt to remove the opaque object handle from the interpreter
-      #       now.  This [object dispose] call will not actually dispose of the
-      #       underlying object because the +NoDispose flag was set on it
+      #       now.  This [object dispose] call will not actually dispose of
+      #       the underlying object because the +NoDispose flag was set on it
       #       during creation of the opaque object handle.
       #
-      if {[info exists connection] && \
-          [catch {object dispose $connection} error]} then {
-        #
-        # NOTE: We somehow failed to remove the handle, report why.
-        #
-        tputs $::test_channel [appendArgs \
-            "==== WARNING: failed to remove connection handle \"" $connection \
-            "\", error: " \n\t $error \n]
+      if {[info exists connection] && [catch {
+        set command [list object dispose]
+
+        if {!$dispose} then {
+          lappend command -nodispose
+        }
+
+        lappend command $connection; eval $command
+      } error]} then {
+        if {!$quiet} then {
+          tputs $::test_channel [appendArgs \
+              "==== WARNING: failed to remove connection object handle \"" \
+              $connection "\", error: " \n\t $error \n]
+        }
       }
     }
 
@@ -3494,6 +3501,13 @@ namespace eval ::Eagle {
       #
       object invoke -flags +NonPublic Interpreter.GetActive.connections Add \
           $db $connection
+    }
+
+    proc removeDbConnection { {varName db} } {
+      upvar 1 $varName db
+
+      object invoke -flags +NonPublic \
+          Interpreter.GetActive.connections Remove $db
     }
 
     proc removeDbTransaction { transaction } {
@@ -3598,7 +3612,7 @@ namespace eval ::Eagle {
     }
 
     proc cleanupDb { fileName {varName db} {collect true} {qualify true}
-                     {delete true} } {
+            {delete true} {quiet false} } {
       #
       # NOTE: Attempt to force all pending "garbage" objects to be collected,
       #       including SQLite statements and backup objects; this should allow
@@ -3609,9 +3623,9 @@ namespace eval ::Eagle {
       }
 
       #
-      # NOTE: Refer to the specified variable (e.g. "db") in the context of our
-      #       caller.  The handle to the database previously opened via the
-      #       [setupDb] procedure should be stored there.
+      # NOTE: Refer to the specified variable (e.g. "db") in the context of
+      #       our caller.  The handle to the database previously opened via
+      #       the [setupDb] procedure should be stored there.
       #
       upvar 1 $varName db
 
@@ -3620,12 +3634,13 @@ namespace eval ::Eagle {
       #       to delete the underlying database file.
       #
       if {[info exists db] && [catch {sql close $db} error]} then {
-        #
-        # NOTE: We somehow failed to close the database, report why.
-        #
-        tputs $::test_channel [appendArgs \
-            "==== WARNING: failed to close database \"" $db "\", error: " \
-            \n\t $error \n]
+        if {!$quiet} then {
+          tputs $::test_channel [appendArgs \
+              "==== WARNING: failed to close database \"" $db \
+              "\", error: " \n\t $error \n]
+        }
+
+        removeDbConnection
       }
 
       #
@@ -3640,16 +3655,16 @@ namespace eval ::Eagle {
       set isMemory [isMemoryDb $fileName]
 
       #
-      # NOTE: Build the full path to the database file name.  For now, all test
-      #       database files are stored in the temporary directory.
+      # NOTE: Build the full path to the database file name.  For now, all
+      #       test database files are stored in the temporary directory.
       #
       if {!$isMemory && $qualify} then {
         set fileName [file join [getDatabaseDirectory] [file tail $fileName]]
       }
 
       #
-      # NOTE: Check if the file still exists; initially, assume all files will
-      #       be deleted successfully, if necessary.
+      # NOTE: Check if the file still exists; initially, assume all files
+      #       will be deleted successfully, if necessary.
       #
       set success true
 
@@ -3666,24 +3681,30 @@ namespace eval ::Eagle {
 
           if {[file exists $walFileName]} then {
             #
-            # NOTE: If there is a WAL file, it should be zero bytes at this
-            #       point.
+            # NOTE: If there is a WAL file, it should be zero bytes at
+            #       this point.
             #
             if {[set size [file size $walFileName]] == 0} then {
-              #
-              # NOTE: We somehow failed to delete the WAL file, report why.
-              #
               if {[catch {file delete $walFileName} error]} then {
-                tputs $::test_channel [appendArgs \
-                    "==== WARNING: failed to delete WAL file \"" $walFileName \
-                    "\" during cleanup, error: " \n\t $error \n]
+                #
+                # NOTE: We somehow failed to delete the WAL file, report
+                #       why.
+                #
+                if {!$quiet} then {
+                  tputs $::test_channel [appendArgs \
+                      "==== WARNING: failed to delete WAL file \"" \
+                      $walFileName "\" during cleanup, error: " \n\t \
+                      $error \n]
+                }
 
                 set success false
               }
             } else {
-              tputs $::test_channel [appendArgs \
-                  "==== WARNING: WAL file \"" $walFileName "\" is " $size \
-                  " bytes in size, skipping all file deletions...\n"]
+              if {!$quiet} then {
+                tputs $::test_channel [appendArgs \
+                    "==== WARNING: WAL file \"" $walFileName "\" is " \
+                    $size " bytes in size, skipping file deletions...\n"]
+              }
 
               return 1; # error
             }
@@ -3696,12 +3717,12 @@ namespace eval ::Eagle {
 
           if {[file exists $shmFileName] && \
               [catch {file delete $shmFileName} error]} then {
-            #
-            # NOTE: We somehow failed to delete the SHM file, report why.
-            #
-            tputs $::test_channel [appendArgs \
-                "==== WARNING: failed to delete SHM file \"" $shmFileName \
-                "\" during cleanup, error: " \n\t $error \n]
+            if {!$quiet} then {
+              tputs $::test_channel [appendArgs \
+                  "==== WARNING: failed to delete SHM file \"" \
+                  $shmFileName "\" during cleanup, error: " \n\t \
+                  $error \n]
+            }
 
             set success false
           }
@@ -3710,22 +3731,24 @@ namespace eval ::Eagle {
           # NOTE: Attempt to delete the test database file now.
           #
           if {[catch {file delete $fileName} error]} then {
-            #
-            # NOTE: We somehow failed to delete the file, report why.
-            #
-            tputs $::test_channel [appendArgs \
-                "==== WARNING: failed to delete database file \"" $fileName \
-                "\" during cleanup, error: " \n\t $error \n]
+            if {!$quiet} then {
+              tputs $::test_channel [appendArgs \
+                  "==== WARNING: failed to delete database file \"" \
+                  $fileName "\" during cleanup, error: " \n\t \
+                  $error \n]
+            }
 
             set success false
           }
         } else {
           #
-          # NOTE: Show that we skipped deleting the file.
+          # NOTE: Skipped deleting test database file.
           #
-          tputs $::test_channel [appendArgs \
-              "==== WARNING: skipped deleting database file \"" $fileName \
-              "\" during cleanup\n"]
+          if {!$quiet} then {
+            tputs $::test_channel [appendArgs \
+                "==== WARNING: skipped deleting database file \"" \
+                $fileName "\" during cleanup\n"]
+          }
         }
       }
 

@@ -135,7 +135,7 @@ DisposingCommand 1} {1 NewCommand 1} {1 NewDataReader 1 1} {NewCriticalHandle\
 
 ###############################################################################
 
-runTest {test tkt-aba4549801-1.2 {Changed disposal events} -setup {
+runTest {test tkt-aba4549801-1.2 {Changed "Dispose" events} -setup {
   proc onChanged { sender e } {
     if {![isNonNullObjectHandle $sender] || \
         ![regexp -- $::patterns(connection) $sender]} then {
@@ -200,11 +200,11 @@ runTest {test tkt-aba4549801-1.2 {Changed disposal events} -setup {
 
   set result
 } -cleanup {
-  freeDbConnection
+  freeDbConnection connection false
 
   unset -nocomplain connection
 
-  cleanupDb $fileName
+  cleanupDb $fileName db true true true true
 
   object invoke System.Data.SQLite.SQLiteConnection remove_Changed $callback
   catch {object removecallback $callback}
@@ -216,6 +216,96 @@ runTest {test tkt-aba4549801-1.2 {Changed disposal events} -setup {
 compile.DATA SQLite System.Data.SQLite} -result {Opening Closing NothingToDo\
 Closed ConnectionString Opened DisposingConnection Closing Closed\
 DisposedConnection}}
+
+###############################################################################
+
+runTest {test tkt-aba4549801-1.3 {Changed "Finalize" events} -setup {
+  proc onChanged { sender e } {
+    if {![isNonNullObjectHandle $sender] || \
+        ![regexp -- $::patterns(connection) $sender]} then {
+      #
+      # NOTE: Skip tracking any events that do not pertain
+      #       to a connection.
+      #
+      return
+    }
+
+    set connectionString [$sender -flags +NonPublic _connectionString]
+
+    if {![string match "*\[/\\\]tkt-aba4549801-1.3.db\;*" \
+        $connectionString]} then {
+      #
+      # NOTE: This is a "stray" connection (i.e. it is not
+      #       part of this test); therefore, ignore events
+      #       for it.
+      #
+      return
+    }
+
+    if {![isNonNullObjectHandle $e]} then {
+      #
+      # NOTE: Skip tracking events without the appropriate
+      #       metadata.
+      #
+      return
+    }
+
+    set eventType [$e EventType]
+
+    if {$eventType ni [list \
+        Opening ConnectionString Opened Closing Closed \
+        OpenedFromPool ClosedToPool DisposingConnection \
+        DisposedConnection FinalizingConnection \
+        FinalizedConnection NothingToDo]} then {
+      #
+      # NOTE: Skip tracking events of types that we are not
+      #       interested in.
+      #
+      return
+    }
+
+    lappend ::result $eventType
+  }
+
+  set patterns(connection) {^System#Data#SQLite#SQLiteConnection#\d+$}
+
+  set callback onChanged
+  object invoke System.Data.SQLite.SQLiteConnection add_Changed $callback
+} -body {
+  setupDb [set fileName tkt-aba4549801-1.3.db]
+  set connection [getDbConnection]
+
+  sql execute $db "CREATE TABLE t1(x);"
+
+  sql execute -execute reader $db \
+      "INSERT INTO t1(x) VALUES(1); SELECT x FROM t1;"
+
+  object invoke -flags +NonPublic \
+      System.Data.SQLite.SQLiteConnection _lastConnectionInOpen null
+
+  freeDbConnection connection false
+  removeDbConnection
+
+  collectGarbage $test_channel
+
+  set result
+} -cleanup {
+  freeDbConnection connection true true
+
+  unset -nocomplain connection
+
+  cleanupDb $fileName db true true true true
+
+  object invoke System.Data.SQLite.SQLiteConnection remove_Changed $callback
+  catch {object removecallback $callback}
+
+  unset -nocomplain rows result callback patterns db fileName
+
+  rename onChanged ""
+} -constraints {eagle command.object monoBug28 monoBug211 command.sql\
+compile.DATA SQLite System.Data.SQLite} -result {Opening Closing NothingToDo\
+Closed ConnectionString Opened FinalizingConnection Closing Closed\
+FinalizedConnection}}
 
 ###############################################################################
 

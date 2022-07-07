@@ -22,6 +22,9 @@ runSQLiteTestPrologue
 
 runTest {test tkt-ce4d70ea6f-1.1 {finalizer queue depth} -setup {
   set fileName tkt-ce4d70ea6f-1.1.db
+
+  object invoke -flags +NonPublic \
+      System.Data.SQLite.SQLiteBase _finalizeCount 0
 } -body {
   set id [object invoke Interpreter.GetActive NextId]
   set dataSource [file join [getDatabaseDirectory] $fileName]
@@ -76,11 +79,9 @@ runTest {test tkt-ce4d70ea6f-1.1 {finalizer queue depth} -setup {
   set result [object invoke _Dynamic${id}.Test${id} Main]
 
   list $result [object invoke -flags +NonPublic \
-      System.Data.SQLite.SQLiteBase FinalizeCount] \
+      System.Data.SQLite.SQLiteBase _finalizeCount] \
       [expr {$result <= 2}]; # <3 per 50K
 } -cleanup {
-  cleanupPerformanceCounters
-
   unset -nocomplain count rootName dataSource id fileName
   unset -nocomplain result results errors code
 } -constraints [fixConstraints {eagle !mono !dotNetCore command.object\

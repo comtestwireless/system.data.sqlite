@@ -265,9 +265,9 @@ namespace System.Data.SQLite
 
                 _InvokeFunc = null;
                 _StepFunc = null;
-                _InverseFunc = null;
                 _FinalFunc = null;
                 _ValueFunc = null;
+                _InverseFunc = null;
                 _CompareFunc = null;
                 _base = null;
             }
@@ -1348,14 +1348,14 @@ namespace System.Data.SQLite
         function._StepFunc = (functionType == FunctionType.Aggregate) || (functionType == FunctionType.Window) ?
             new SQLiteCallback(function.StepCallback) : null;
 
-        function._InverseFunc = (functionType == FunctionType.Window) ?
-            new SQLiteCallback(function.InverseCallback) : null;
-
         function._FinalFunc = (functionType == FunctionType.Aggregate) || (functionType == FunctionType.Window) ?
             new SQLiteFinalCallback(function.FinalCallback) : null;
 
         function._ValueFunc = (functionType == FunctionType.Window) ?
             new SQLiteFinalCallback(function.ValueCallback) : null;
+
+        function._InverseFunc = (functionType == FunctionType.Window) ?
+            new SQLiteCallback(function.InverseCallback) : null;
 
         function._CompareFunc = (functionType == FunctionType.Collation) ?
             new SQLiteCollation(function.CompareCallback) : null;

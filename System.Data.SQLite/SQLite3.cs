@@ -2419,8 +2419,8 @@ namespace System.Data.SQLite
     {
       SQLiteErrorCode n;
 
-      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
       SQLiteFunctionFlags flags16 = SQLiteFunctionFlags.SQLITE_UTF16 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
+      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
 
       if (type == FunctionType.Window)
       {

@@ -2605,6 +2605,26 @@ namespace System.Data.SQLite
       return UnsafeNativeMethods.sqlite3_value_type(ptr);
     }
 
+    internal override uint GetParamValueSubType(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_subtype(ptr);
+    }
+
+    internal override TypeAffinity GetParamValueNumericType(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_numeric_type(ptr);
+    }
+
+    internal override int GetParamValueNoChange(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_nochange(ptr);
+    }
+
+    internal override int GetParamValueFromBind(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_frombind(ptr);
+    }
+
     internal override void ReturnBlob(IntPtr context, byte[] value)
     {
       UnsafeNativeMethods.sqlite3_result_blob(context, value, value.Length, (IntPtr)(-1));
@@ -2651,6 +2671,11 @@ namespace System.Data.SQLite
     {
       byte[] b = ToUTF8(value);
       UnsafeNativeMethods.sqlite3_result_text(context, ToUTF8(value), b.Length - 1, (IntPtr)(-1));
+    }
+
+    internal override void ReturnSubType(IntPtr context, uint value)
+    {
+      UnsafeNativeMethods.sqlite3_result_subtype(context, value);
     }
 
 #if INTEROP_VIRTUAL_TABLE

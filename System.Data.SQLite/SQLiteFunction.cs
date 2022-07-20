@@ -122,7 +122,8 @@ namespace System.Data.SQLite
   {
     private class AggregateData
     {
-      internal int _count = 1;
+      internal int _stepCount = 1;
+      internal int _inverseCount = 1;
       internal object _data;
     }
 
@@ -171,6 +172,15 @@ namespace System.Data.SQLite
     private SQLiteCollation _CompareFunc;
 
     private SQLiteCollation _CompareFunc16;
+
+    /// <summary>
+    /// Raw parameter pointers for the current callback.  Only valid during a callback.
+    /// </summary>
+#if !PLATFORM_COMPACTFRAMEWORK
+    private IntPtr[] _params;
+#else
+    private int[] _params;
+#endif
 
     /// <summary>
     /// Current context of the current callback.  Only valid during a callback
@@ -421,6 +431,131 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Gets and returns the sub-type associated with the specified function parameter.
+    /// </summary>
+    /// <param name="index">
+    /// The parameter index to check.
+    /// </param>
+    /// <returns>
+    /// The sub-type associated with the specified function parameter.
+    /// </returns>
+    public uint GetParameterSubType(int index)
+    {
+      CheckDisposed();
+      CheckParameterIndex(index);
+      return _base.GetParamValueSubType((IntPtr)_params[index]);
+    }
+
+    /// <summary>
+    /// Attempts to convert the specified function parameter to numeric and
+    /// then gets and returns the new type affinity associated with this
+    /// value.
+    /// </summary>
+    /// <param name="index">
+    /// The parameter index to check.
+    /// </param>
+    /// <returns>
+    /// The new type affinity associated with this value.
+    /// </returns>
+    public TypeAffinity GetParameterNumericType(int index)
+    {
+      CheckDisposed();
+      CheckParameterIndex(index);
+      return _base.GetParamValueNumericType((IntPtr)_params[index]);
+    }
+
+    /// <summary>
+    /// Gets and returns the "no change" flag associated with the specified
+    /// function parameter.  This method can only be used while within a call
+    /// to the <see cref="ISQLiteNativeModule.xUpdate" /> method of a virtual
+    /// table implementation.
+    /// </summary>
+    /// <param name="index">
+    /// The parameter index to check.
+    /// </param>
+    /// <returns>
+    /// Non-zero if the column associated with the function parameter is
+    /// unchanged in an UPDATE against a virtual table.
+    /// </returns>
+    public int GetParameterNoChange(int index)
+    {
+      CheckDisposed();
+      CheckParameterIndex(index);
+      return _base.GetParamValueNoChange((IntPtr)_params[index]);
+    }
+
+    /// <summary>
+    /// Gets and returns the "from bind" flag associated with the specified
+    /// function parameter.
+    /// </summary>
+    /// <param name="index">
+    /// The parameter index to check.
+    /// </param>
+    /// <returns>
+    /// Non-zero if the function parameter at the specified index was
+    /// originally specified via a bound parameter.
+    /// </returns>
+    public int GetParameterFromBind(int index)
+    {
+      CheckDisposed();
+      CheckParameterIndex(index);
+      return _base.GetParamValueFromBind((IntPtr)_params[index]);
+    }
+
+    /// <summary>
+    /// Arranges for the specified sub-type value to be associated
+    /// with the function result.
+    /// </summary>
+    /// <param name="value">
+    /// The desired sub-type of the function result.
+    /// </param>
+    public void SetReturnSubType(uint value)
+    {
+      CheckDisposed();
+      _base.ReturnSubType(_context, value);
+    }
+
+    /// <summary>
+    /// Performs some sanity checks on the index and how it relates
+    /// to the current function parameters.
+    /// </summary>
+    /// <param name="index">
+    /// The parameter index to be checked for bounds, etc.
+    /// </param>
+    private void CheckParameterIndex(int index)
+    {
+      if (_params == null)
+      {
+        throw new InvalidOperationException(
+          "parameters are unavailable");
+      }
+
+      int length = _params.Length;
+
+      if ((index <= 0) || (index >= length))
+      {
+        throw new ArgumentException(String.Format(
+          "parameter index {0} is out-of-bounds",
+          index));
+      }
+
+#if !PLATFORM_COMPACTFRAMEWORK
+      IntPtr value = _params[index];
+
+      if (value == IntPtr.Zero)
+#else
+      int value = _params[index];
+
+      if (value == 0)
+#endif
+      {
+        throw new ArgumentException(String.Format(
+          "parameter {0} value cannot be null",
+          index));
+      }
+    }
+
+    /// <summary>
     /// Converts an IntPtr array of context arguments to an object array containing the resolved parameters the pointers point to.
     /// </summary>
     /// <remarks>
@@ -430,8 +565,17 @@ namespace System.Data.SQLite
     /// </remarks>
     /// <param name="nArgs">The number of arguments</param>
     /// <param name="argsptr">A pointer to the array of arguments</param>
+    /// <param name="paramptrs">Pointer values for the arguments</param>
     /// <returns>An object array of the arguments once they've been converted to .NET values</returns>
-    internal object[] ConvertParams(int nArgs, IntPtr argsptr)
+    internal object[] ConvertParams(
+        int nArgs,
+        IntPtr argsptr,
+#if !PLATFORM_COMPACTFRAMEWORK
+        out IntPtr[] paramptrs
+#else
+        out int[] paramptrs
+#endif
+        )
     {
       object[] parms = new object[nArgs];
 #if !PLATFORM_COMPACTFRAMEWORK
@@ -440,6 +584,12 @@ namespace System.Data.SQLite
       int[] argint = new int[nArgs];
 #endif
       Marshal.Copy(argsptr, argint, 0, nArgs);
+#if !PLATFORM_COMPACTFRAMEWORK
+      paramptrs = new IntPtr[nArgs];
+#else
+      paramptrs = new int[nArgs];
+#endif
+      Array.Copy(argint, paramptrs, nArgs);
 
       for (int n = 0; n < nArgs; n++)
       {
@@ -539,7 +689,7 @@ namespace System.Data.SQLite
         {
             _context = context;
             SetReturnValue(context,
-                Invoke(ConvertParams(nArgs, argsptr))); /* throw */
+                Invoke(ConvertParams(nArgs, argsptr, out _params))); /* throw */
         }
         catch (Exception e) /* NOTE: Must catch ALL. */
         {
@@ -688,12 +838,12 @@ namespace System.Data.SQLite
             try
             {
                 _context = context;
-                Step(ConvertParams(nArgs, argsptr),
-                    data._count, ref data._data); /* throw */
+                Step(ConvertParams(nArgs, argsptr, out _params),
+                    data._stepCount, ref data._data); /* throw */
             }
             finally
             {
-                data._count++;
+                data._stepCount++;
             }
         }
         catch (Exception e) /* NOTE: Must catch ALL. */
@@ -755,12 +905,12 @@ namespace System.Data.SQLite
             try
             {
                 _context = context;
-                Inverse(ConvertParams(nArgs, argsptr),
-                    data._count, ref data._data); /* throw */
+                Inverse(ConvertParams(nArgs, argsptr, out _params),
+                    data._inverseCount, ref data._data); /* throw */
             }
             finally
             {
-                data._count++;
+                data._inverseCount++;
             }
         }
         catch (Exception e) /* NOTE: Must catch ALL. */

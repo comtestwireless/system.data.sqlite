@@ -299,6 +299,10 @@ namespace System.Data.SQLite
     internal abstract Int64 GetParamValueInt64(IntPtr ptr);
     internal abstract string GetParamValueText(IntPtr ptr);
     internal abstract TypeAffinity GetParamValueType(IntPtr ptr);
+    internal abstract uint GetParamValueSubType(IntPtr ptr);
+    internal abstract TypeAffinity GetParamValueNumericType(IntPtr ptr);
+    internal abstract int GetParamValueNoChange(IntPtr ptr);
+    internal abstract int GetParamValueFromBind(IntPtr ptr);
 
     internal abstract void ReturnBlob(IntPtr context, byte[] value);
     internal abstract void ReturnDouble(IntPtr context, double value);
@@ -307,6 +311,7 @@ namespace System.Data.SQLite
     internal abstract void ReturnInt64(IntPtr context, Int64 value);
     internal abstract void ReturnNull(IntPtr context);
     internal abstract void ReturnText(IntPtr context, string value);
+    internal abstract void ReturnSubType(IntPtr context, uint value);
 
 #if INTEROP_VIRTUAL_TABLE
     /// <summary>

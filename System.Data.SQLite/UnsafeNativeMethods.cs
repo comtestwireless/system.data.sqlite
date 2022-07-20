@@ -4310,6 +4310,13 @@ namespace System.Data.SQLite
 #else
     [DllImport(SQLITE_DLL)]
 #endif
+    internal static extern int sqlite3_vtab_nochange(IntPtr context);
+
+#if !PLATFORM_COMPACTFRAMEWORK
+    [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl)]
+#else
+    [DllImport(SQLITE_DLL)]
+#endif
     internal static extern int sqlite3_value_frombind(IntPtr p);
 
 #if !PLATFORM_COMPACTFRAMEWORK

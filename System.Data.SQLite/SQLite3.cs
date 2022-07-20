@@ -2430,8 +2430,8 @@ namespace System.Data.SQLite
         n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
         if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
 #else
-        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal);
-        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal);
+        n = UnsafeNativeMethods.sqlite3_create_window_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, null);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, null);
 #endif
       }
       else

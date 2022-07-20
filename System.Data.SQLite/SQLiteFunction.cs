@@ -2602,6 +2602,14 @@ namespace System.Data.SQLite
 #endif
   internal delegate void SQLiteFinalCallback(IntPtr context);
   /// <summary>
+  /// An internal destroy callback delegate declaration.
+  /// </summary>
+  /// <param name="pUserData">Raw pointer to the data to free.</param>
+#if !PLATFORM_COMPACTFRAMEWORK
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+#endif
+  internal delegate void SQLiteDestroyCallback(IntPtr pUserData);
+  /// <summary>
   /// Internal callback delegate for implementing collating sequences
   /// </summary>
   /// <param name="puser">Not used</param>

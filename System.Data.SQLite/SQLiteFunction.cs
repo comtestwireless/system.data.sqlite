@@ -130,10 +130,6 @@ namespace System.Data.SQLite
     /// Holds a reference to the callback function for getting a window function value
     /// </summary>
     private SQLiteFinalCallback _ValueFunc;
-    /// <summary>
-    /// Holds a reference to the callback function when freeing the function user data
-    /// </summary>
-    private SQLiteDestroyCallback _DestroyFunc;
 
     /// <summary>
     /// Holds a reference to the callback function for collating sequences
@@ -253,7 +249,9 @@ namespace System.Data.SQLite
 
                 _InvokeFunc = null;
                 _StepFunc = null;
+                _InverseFunc = null;
                 _FinalFunc = null;
+                _ValueFunc = null;
                 _CompareFunc = null;
                 _base = null;
             }
@@ -327,6 +325,19 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// This method is only required for window aggregate functions, not legacy aggregate function implementations. It is invoked
+    /// to remove the oldest presently aggregated result of xStep from the current window. The function arguments, if any, are
+    /// those passed to xStep for the row being removed.
+    /// </summary>
+    /// <param name="args">The arguments for the command to process</param>
+    /// <param name="stepNumber">The 1-based step number.  This is incrememted each time the step method is called.</param>
+    /// <param name="contextData">A placeholder for implementers to store contextual data pertaining to the current context.</param>
+    public virtual void Inverse(object[] args, int stepNumber, ref object contextData)
+    {
+        CheckDisposed();
+    }
+
+    /// <summary>
     /// Aggregate functions override this method to finish their aggregate processing.
     /// </summary>
     /// <remarks>
@@ -346,6 +357,21 @@ namespace System.Data.SQLite
     {
       CheckDisposed();
       return null;
+    }
+
+    /// <summary>
+    /// This method is only required window aggregate functions, not legacy aggregate function implementations. It is invoked to
+    /// return the current value of the aggregate. Unlike xFinal, the implementation should not delete any context.
+    /// </summary>
+    /// <param name="contextData">Your own assigned contextData, provided for you so you can return your final results.</param>
+    /// <returns>You may return most simple types as a return value, null or DBNull.Value to return null, DateTime, or
+    /// you may return an Exception-derived class if you wish to return an error to SQLite.  Do not actually throw the error,
+    /// just return it!
+    /// </returns>
+    public virtual object Value(object contextData)
+    {
+        CheckDisposed();
+        return null;
     }
 
     /// <summary>
@@ -656,6 +682,73 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// The internal aggregate Inverse function callback, which wraps the raw context pointer and calls the virtual Inverse() method.
+    /// WARNING: Must not throw exceptions.
+    /// </summary>
+    /// <remarks>
+    /// This function takes care of doing the lookups and getting the important information put together to call the Inverse() function.
+    /// That includes pulling out the user's contextData and updating it after the call is made.  We use a sorted list for this so
+    /// binary searches can be done to find the data.
+    /// </remarks>
+    /// <param name="context">A raw context pointer</param>
+    /// <param name="nArgs">Number of arguments passed in</param>
+    /// <param name="argsptr">A pointer to the array of arguments</param>
+    internal void InverseCallback(IntPtr context, int nArgs, IntPtr argsptr)
+    {
+        try
+        {
+            AggregateData data = null;
+
+            if (_base != null)
+            {
+                IntPtr nAux = _base.AggregateContext(context);
+
+                if ((_contextDataList != null) &&
+                    !_contextDataList.TryGetValue(nAux, out data))
+                {
+                    //
+                    // TODO: This should not be required here since
+                    //       Step should have already been called?
+                    //
+                    data = new AggregateData();
+                    _contextDataList[nAux] = data;
+                }
+            }
+
+            if (data == null)
+                data = new AggregateData();
+
+            try
+            {
+                _context = context;
+                Inverse(ConvertParams(nArgs, argsptr),
+                    data._count, ref data._data); /* throw */
+            }
+            finally
+            {
+                data._count++;
+            }
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Inverse", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+    }
+
+    /// <summary>
     /// An internal aggregate Final function callback, which wraps the context pointer and calls the virtual Final() method.
     /// WARNING: Must not throw exceptions.
     /// </summary>
@@ -700,6 +793,51 @@ namespace System.Data.SQLite
                         HelperMethods.StringFormat(CultureInfo.CurrentCulture,
                         UnsafeNativeMethods.ExceptionMessageFormat,
                         "Final", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+    }
+
+    /// <summary>
+    /// An internal aggregate Value function callback, which wraps the context pointer and calls the virtual Value() method.
+    /// WARNING: Must not throw exceptions.
+    /// </summary>
+    /// <param name="context">A raw context pointer</param>
+    internal void ValueCallback(IntPtr context)
+    {
+        try
+        {
+            object obj = null;
+
+            if (_base != null)
+            {
+                IntPtr n = _base.AggregateContext(context);
+                AggregateData aggData;
+
+                if ((_contextDataList != null) &&
+                    _contextDataList.TryGetValue(n, out aggData))
+                {
+                    obj = aggData._data;
+                }
+            }
+
+            _context = context;
+            SetReturnValue(context, Value(obj)); /* throw */
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Value", e)); /* throw */
                 }
             }
             catch
@@ -1119,11 +1257,17 @@ namespace System.Data.SQLite
         function._InvokeFunc = (functionType == FunctionType.Scalar) ?
             new SQLiteCallback(function.ScalarCallback) : null;
 
-        function._StepFunc = (functionType == FunctionType.Aggregate) ?
+        function._StepFunc = (functionType == FunctionType.Aggregate) || (functionType == FunctionType.Window) ?
             new SQLiteCallback(function.StepCallback) : null;
 
-        function._FinalFunc = (functionType == FunctionType.Aggregate) ?
+        function._InverseFunc = (functionType == FunctionType.Window) ?
+            new SQLiteCallback(function.InverseCallback) : null;
+
+        function._FinalFunc = (functionType == FunctionType.Aggregate) || (functionType == FunctionType.Window) ?
             new SQLiteFinalCallback(function.FinalCallback) : null;
+
+        function._ValueFunc = (functionType == FunctionType.Window) ?
+            new SQLiteFinalCallback(function.ValueCallback) : null;
 
         function._CompareFunc = (functionType == FunctionType.Collation) ?
             new SQLiteCollation(function.CompareCallback) : null;
@@ -1141,7 +1285,7 @@ namespace System.Data.SQLite
                 name, functionAttribute.Arguments, needCollSeq,
                 function._InvokeFunc, function._StepFunc,
                 function._InverseFunc, function._FinalFunc,
-                function._ValueFunc, function._DestroyFunc, true);
+                function._ValueFunc, true);
         }
         else
         {
@@ -1195,7 +1339,7 @@ namespace System.Data.SQLite
 
             return sqliteBase.CreateFunction(functionType,
                 name, functionAttribute.Arguments, needCollSeq,
-                null, null, null, null, null, null, false) == SQLiteErrorCode.Ok;
+                null, null, null, null, null, false) == SQLiteErrorCode.Ok;
         }
         else
         {
@@ -1930,16 +2074,6 @@ namespace System.Data.SQLite
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
   internal delegate int SQLiteCollation(IntPtr puser, int len1, IntPtr pv1, int len2, IntPtr pv2);
-  /// <summary>
-  /// Internal callback delegate for freeing data associated with a function.
-  /// </summary>
-  /// <param name="pUserData">
-  /// Pointer to the data being freed.
-  /// </param>
-#if !PLATFORM_COMPACTFRAMEWORK
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-#endif
-  internal delegate void SQLiteDestroyCallback(IntPtr pUserData);
 
   /// <summary>
   /// The type of collating sequence

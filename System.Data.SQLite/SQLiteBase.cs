@@ -285,7 +285,7 @@ namespace System.Data.SQLite
     internal abstract bool IsNull(SQLiteStatement stmt, int index);
 
     internal abstract SQLiteErrorCode CreateCollation(string strCollation, SQLiteCollation func, SQLiteCollation func16, bool @throw);
-    internal abstract SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteCallback funcinverse, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, SQLiteDestroyCallback funcdestroy, bool @throw);
+    internal abstract SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteCallback funcinverse, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, bool @throw);
     internal abstract CollationSequence GetCollationSequence(SQLiteFunction func, IntPtr context);
     internal abstract int ContextCollateCompare(CollationEncodingEnum enc, IntPtr context, string s1, string s2);
     internal abstract int ContextCollateCompare(CollationEncodingEnum enc, IntPtr context, char[] c1, char[] c2);

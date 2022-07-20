@@ -1131,7 +1131,7 @@ namespace System.Data.SQLite
 
             RegisterFunction(
                 at.Name, at.Arguments, at.FuncType, at.FuncFlags, typ,
-                at.Callback1, at.Callback2, at.Callback3, at.Callback3);
+                at.Callback1, at.Callback2, at.Callback3, at.Callback4);
         }
     }
 

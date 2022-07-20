@@ -2415,7 +2415,7 @@ namespace System.Data.SQLite
       return UnsafeNativeMethods.sqlite3_aggregate_count(context);
     }
 
-    internal override SQLiteErrorCode CreateFunction(string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, bool canThrow)
+    internal override SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteCallback funcinverse, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, SQLiteDestroyCallback funcdestroy, bool canThrow)
     {
       SQLiteErrorCode n;
 

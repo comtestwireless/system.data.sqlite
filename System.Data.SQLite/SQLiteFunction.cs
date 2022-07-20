@@ -13,6 +13,62 @@ namespace System.Data.SQLite
   using System.Globalization;
 
   /// <summary>
+  /// These constants are used with the sqlite3_create_function() API, et al.
+  /// </summary>
+  public enum SQLiteFunctionFlags
+  {
+    /// <summary>
+    /// The new function always gives the same output when the input parameters
+    /// are the same. The abs() function is deterministic, for example, but
+    /// randomblob() is not. Functions must be deterministic in order to be used
+    /// in certain contexts such as with the WHERE clause of partial indexes or
+    /// in generated columns. SQLite might also optimize deterministic functions
+    /// by factoring them out of inner loops.
+    /// </summary>
+    SQLITE_DETERMINISTIC = 0x800,
+    /// <summary>
+    /// The function may only be invoked from top-level SQL, and cannot be used
+    /// in VIEWs or TRIGGERs nor in schema structures such as CHECK constraints,
+    /// DEFAULT clauses, expression indexes, partial indexes, or generated columns.
+    /// The SQLITE_DIRECTONLY flags is a security feature which is recommended for
+    /// all application-defined SQL functions, and especially for functions that
+    /// have side-effects or that could potentially leak sensitive information.
+    /// </summary>
+    SQLITE_DIRECTONLY = 0x80000,
+    /// <summary>
+    /// The function may call sqlite3_value_subtype() to inspect the sub-types of
+    /// its arguments. Specifying this flag makes no difference for scalar or
+    /// aggregate user functions. However, if it is not specified for a user-defined
+    /// window function, then any sub-types belonging to arguments passed to the
+    /// window function may be discarded before the window function is called
+    /// (i.e. sqlite3_value_subtype() will always return 0).
+    /// </summary>
+    SQLITE_SUBTYPE = 0x100000,
+    /// <summary>
+    /// The function is unlikely to cause problems even if misused. An innocuous
+    /// function should have no side effects and should not depend on any values
+    /// other than its input parameters. The abs() function is an example of an
+    /// innocuous function. The load_extension() SQL function is not innocuous
+    /// because of its side effects.
+    ///
+    /// SQLITE_INNOCUOUS is similar to SQLITE_DETERMINISTIC, but is not exactly
+    /// the same. The random() function is an example of a function that is
+    /// innocuous but not deterministic.
+    ///
+    /// Some heightened security settings (SQLITE_DBCONFIG_TRUSTED_SCHEMA and
+    /// PRAGMA trusted_schema=OFF) disable the use of SQL functions inside views
+    /// and triggers and in schema structures such as CHECK constraints, DEFAULT
+    /// clauses, expression indexes, partial indexes, and generated columns unless
+    /// the function is tagged with SQLITE_INNOCUOUS. Most built-in functions are
+    /// innocuous. Developers are advised to avoid using the SQLITE_INNOCUOUS flag
+    /// for application-defined functions unless the function has been carefully
+    /// audited and found to be free of potentially security-adverse side-effects
+    /// and information-leaks.
+    /// </summary>
+    SQLITE_INNOCUOUS = 0x200000
+  }
+
+  /// <summary>
   /// This abstract class is designed to handle user-defined functions easily.  An instance of the derived class is made for each
   /// connection to the database.
   /// </summary>
@@ -59,13 +115,26 @@ namespace System.Data.SQLite
     /// </summary>
     private SQLiteCallback  _InvokeFunc;
     /// <summary>
-    /// Holds a reference to the callbakc function for stepping in an aggregate function
+    /// Holds a reference to the callback function for stepping in an aggregate function
     /// </summary>
     private SQLiteCallback  _StepFunc;
+    /// <summary>
+    /// Holds a reference to the callback function for inverse in a window function
+    /// </summary>
+    private SQLiteCallback _InverseFunc;
     /// <summary>
     /// Holds a reference to the callback function for finalizing an aggregate function
     /// </summary>
     private SQLiteFinalCallback  _FinalFunc;
+    /// <summary>
+    /// Holds a reference to the callback function for getting a window function value
+    /// </summary>
+    private SQLiteFinalCallback _ValueFunc;
+    /// <summary>
+    /// Holds a reference to the callback function when freeing the function user data
+    /// </summary>
+    private SQLiteDestroyCallback _DestroyFunc;
+
     /// <summary>
     /// Holds a reference to the callback function for collating sequences
     /// </summary>
@@ -1068,10 +1137,11 @@ namespace System.Data.SQLite
         {
             bool needCollSeq = (function is SQLiteFunctionEx);
 
-            sqliteBase.CreateFunction(
+            sqliteBase.CreateFunction(functionType,
                 name, functionAttribute.Arguments, needCollSeq,
                 function._InvokeFunc, function._StepFunc,
-                function._FinalFunc, true);
+                function._InverseFunc, function._FinalFunc,
+                function._ValueFunc, function._DestroyFunc, true);
         }
         else
         {
@@ -1123,9 +1193,9 @@ namespace System.Data.SQLite
         {
             bool needCollSeq = (function is SQLiteFunctionEx);
 
-            return sqliteBase.CreateFunction(
+            return sqliteBase.CreateFunction(functionType,
                 name, functionAttribute.Arguments, needCollSeq,
-                null, null, null, false) == SQLiteErrorCode.Ok;
+                null, null, null, null, null, null, false) == SQLiteErrorCode.Ok;
         }
         else
         {
@@ -1822,6 +1892,10 @@ namespace System.Data.SQLite
     /// in a user-defined manner.
     /// </summary>
     Collation = 2,
+    /// <summary>
+    /// Window functions are designed to apply aggregate and ranking functions over a particular set of rows.
+    /// </summary>
+    Window = 3
   }
 
   /// <summary>
@@ -1856,6 +1930,16 @@ namespace System.Data.SQLite
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
   internal delegate int SQLiteCollation(IntPtr puser, int len1, IntPtr pv1, int len2, IntPtr pv2);
+  /// <summary>
+  /// Internal callback delegate for freeing data associated with a function.
+  /// </summary>
+  /// <param name="pUserData">
+  /// Pointer to the data being freed.
+  /// </param>
+#if !PLATFORM_COMPACTFRAMEWORK
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+#endif
+  internal delegate void SQLiteDestroyCallback(IntPtr pUserData);
 
   /// <summary>
   /// The type of collating sequence

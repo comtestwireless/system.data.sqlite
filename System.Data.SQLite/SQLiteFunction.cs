@@ -690,6 +690,8 @@ namespace System.Data.SQLite
         try
         {
             _context = context;
+            _params = null;
+
             SetReturnValue(context,
                 Invoke(ConvertParams(nArgs, argsptr, out _params))); /* throw */
         }
@@ -709,6 +711,11 @@ namespace System.Data.SQLite
             {
                 // do nothing.
             }
+        }
+        finally
+        {
+            _params = null;
+            _context = IntPtr.Zero;
         }
     }
 
@@ -840,6 +847,8 @@ namespace System.Data.SQLite
             try
             {
                 _context = context;
+                _params = null;
+
                 Step(ConvertParams(nArgs, argsptr, out _params),
                     data._stepCount, ref data._data); /* throw */
             }
@@ -864,6 +873,124 @@ namespace System.Data.SQLite
             {
                 // do nothing.
             }
+        }
+        finally
+        {
+            _params = null;
+            _context = IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
+    /// An internal aggregate Final function callback, which wraps the context pointer and calls the virtual Final() method.
+    /// WARNING: Must not throw exceptions.
+    /// </summary>
+    /// <param name="context">A raw context pointer</param>
+    internal void FinalCallback(IntPtr context)
+    {
+        try
+        {
+            object obj = null;
+
+            if (_base != null)
+            {
+                IntPtr n = _base.AggregateContext(context);
+                AggregateData aggData;
+
+                if ((_contextDataList != null) &&
+                    _contextDataList.TryGetValue(n, out aggData))
+                {
+                    obj = aggData._data;
+                    _contextDataList.Remove(n);
+                }
+            }
+
+            try
+            {
+                _context = context;
+                _params = null;
+
+                SetReturnValue(context, Final(obj)); /* throw */
+            }
+            finally
+            {
+                IDisposable disp = obj as IDisposable;
+                if (disp != null) disp.Dispose(); /* throw */
+            }
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Final", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+        finally
+        {
+            _params = null;
+            _context = IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
+    /// An internal aggregate Value function callback, which wraps the context pointer and calls the virtual Value() method.
+    /// WARNING: Must not throw exceptions.
+    /// </summary>
+    /// <param name="context">A raw context pointer</param>
+    internal void ValueCallback(IntPtr context)
+    {
+        try
+        {
+            object obj = null;
+
+            if (_base != null)
+            {
+                IntPtr n = _base.AggregateContext(context);
+                AggregateData aggData;
+
+                if ((_contextDataList != null) &&
+                    _contextDataList.TryGetValue(n, out aggData))
+                {
+                    obj = aggData._data;
+                }
+            }
+
+            _context = context;
+            _params = null;
+
+            SetReturnValue(context, Value(obj)); /* throw */
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Value", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+        finally
+        {
+            _params = null;
+            _context = IntPtr.Zero;
         }
     }
 
@@ -907,6 +1034,8 @@ namespace System.Data.SQLite
             try
             {
                 _context = context;
+                _params = null;
+
                 Inverse(ConvertParams(nArgs, argsptr, out _params),
                     data._inverseCount, ref data._data); /* throw */
             }
@@ -932,104 +1061,10 @@ namespace System.Data.SQLite
                 // do nothing.
             }
         }
-    }
-
-    /// <summary>
-    /// An internal aggregate Final function callback, which wraps the context pointer and calls the virtual Final() method.
-    /// WARNING: Must not throw exceptions.
-    /// </summary>
-    /// <param name="context">A raw context pointer</param>
-    internal void FinalCallback(IntPtr context)
-    {
-        try
+        finally
         {
-            object obj = null;
-
-            if (_base != null)
-            {
-                IntPtr n = _base.AggregateContext(context);
-                AggregateData aggData;
-
-                if ((_contextDataList != null) &&
-                    _contextDataList.TryGetValue(n, out aggData))
-                {
-                    obj = aggData._data;
-                    _contextDataList.Remove(n);
-                }
-            }
-
-            try
-            {
-                _context = context;
-                SetReturnValue(context, Final(obj)); /* throw */
-            }
-            finally
-            {
-                IDisposable disp = obj as IDisposable;
-                if (disp != null) disp.Dispose(); /* throw */
-            }
-        }
-        catch (Exception e) /* NOTE: Must catch ALL. */
-        {
-            try
-            {
-                if (HelperMethods.LogCallbackExceptions(_flags))
-                {
-                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
-                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
-                        UnsafeNativeMethods.ExceptionMessageFormat,
-                        "Final", e)); /* throw */
-                }
-            }
-            catch
-            {
-                // do nothing.
-            }
-        }
-    }
-
-    /// <summary>
-    /// An internal aggregate Value function callback, which wraps the context pointer and calls the virtual Value() method.
-    /// WARNING: Must not throw exceptions.
-    /// </summary>
-    /// <param name="context">A raw context pointer</param>
-    internal void ValueCallback(IntPtr context)
-    {
-        try
-        {
-            object obj = null;
-
-            if (_base != null)
-            {
-                IntPtr n = _base.AggregateContext(context);
-                AggregateData aggData;
-
-                if ((_contextDataList != null) &&
-                    _contextDataList.TryGetValue(n, out aggData))
-                {
-                    obj = aggData._data;
-                }
-            }
-
-            _context = context;
-            SetReturnValue(context, Value(obj)); /* throw */
-        }
-        catch (Exception e) /* NOTE: Must catch ALL. */
-        {
-            try
-            {
-                if (HelperMethods.LogCallbackExceptions(_flags))
-                {
-                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
-                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
-                        UnsafeNativeMethods.ExceptionMessageFormat,
-                        "Value", e)); /* throw */
-                }
-            }
-            catch
-            {
-                // do nothing.
-            }
+            _params = null;
+            _context = IntPtr.Zero;
         }
     }
 

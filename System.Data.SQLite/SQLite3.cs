@@ -1205,6 +1205,7 @@ namespace System.Data.SQLite
       Random rnd = null;
       uint starttick = (uint)Environment.TickCount;
       uint timeout = (uint)(stmt._command._commandTimeout * 1000);
+      int maximumSleepTime = stmt._command._maximumSleepTime;
 
       ResetCancelCount();
 
@@ -1260,8 +1261,8 @@ namespace System.Data.SQLite
             }
             else
             {
-              // Otherwise sleep for a random amount of time up to 150ms
-              System.Threading.Thread.Sleep(rnd.Next(1, 150));
+              // Otherwise sleep for a random amount of time up to Xms
+              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
             }
           }
         }
@@ -1498,6 +1499,7 @@ namespace System.Data.SQLite
       SQLiteStatement cmd = null;
       Random rnd = null;
       uint starttick = (uint)Environment.TickCount;
+      int maximumSleepTime = cnn._defaultMaximumSleepTime;
 
       ResetCancelCount();
 
@@ -1629,8 +1631,8 @@ namespace System.Data.SQLite
             }
             else
             {
-              // Otherwise sleep for a random amount of time up to 150ms
-              System.Threading.Thread.Sleep(rnd.Next(1, 150));
+              // Otherwise sleep for a random amount of time up to Xms
+              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
             }
           }
         }
@@ -2428,8 +2430,8 @@ namespace System.Data.SQLite
         n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
         if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
 #else
-        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
-        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
+        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal);
 #endif
       }
       else
@@ -2438,8 +2440,8 @@ namespace System.Data.SQLite
         n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
         if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
 #else
-        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
-        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
+        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal);
 #endif
       }
       if (canThrow && (n != SQLiteErrorCode.Ok)) throw new SQLiteException(n, GetLastError());
@@ -2448,8 +2450,11 @@ namespace System.Data.SQLite
 
     internal override SQLiteErrorCode CreateCollation(string strCollation, SQLiteCollation func, SQLiteCollation func16, bool canThrow)
     {
-      SQLiteErrorCode n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), 2, IntPtr.Zero, func16);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), 1, IntPtr.Zero, func);
+      SQLiteFunctionFlags flags16 = SQLiteFunctionFlags.SQLITE_UTF16LE;
+      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8;
+
+      SQLiteErrorCode n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), flags16, IntPtr.Zero, func16);
+      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), flags8, IntPtr.Zero, func);
       if (canThrow && (n != SQLiteErrorCode.Ok)) throw new SQLiteException(n, GetLastError());
       return n;
     }

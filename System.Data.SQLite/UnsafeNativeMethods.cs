@@ -4230,7 +4230,7 @@ namespace System.Data.SQLite
 #else
     [DllImport(SQLITE_DLL)]
 #endif
-    internal static extern SQLiteErrorCode sqlite3_create_collation(IntPtr db, byte[] strName, int nType, IntPtr pvUser, SQLiteCollation func);
+    internal static extern SQLiteErrorCode sqlite3_create_collation(IntPtr db, byte[] strName, SQLiteFunctionFlags nType, IntPtr pvUser, SQLiteCollation func);
 
 #if !PLATFORM_COMPACTFRAMEWORK
     [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl)]

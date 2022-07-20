@@ -1383,7 +1383,7 @@ namespace System.Data.SQLite
     private const int DefaultCacheSize = -2000;
     private const int DefaultMaxPoolSize = 100;
     private const int DefaultConnectionTimeout = 30;
-    private const int DefaultConnectionMaximumSleepTime = 150;
+    internal const int DefaultConnectionMaximumSleepTime = 150;
     private const int DefaultBusyTimeout = 0;
     private const int DefaultWaitTimeout = 30000;
     private const bool DefaultNoDefaultFlags = false;

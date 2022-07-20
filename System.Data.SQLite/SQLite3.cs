@@ -1494,12 +1494,12 @@ namespace System.Data.SQLite
       SQLiteErrorCode n = SQLiteErrorCode.Schema;
       int retries = 0;
       int maximumRetries = (cnn != null) ? cnn._prepareRetries : SQLiteConnection.DefaultPrepareRetries;
+      int maximumSleepTime = (cnn != null) ? cnn._defaultMaximumSleepTime : SQLiteConnection.DefaultConnectionMaximumSleepTime;
       byte[] b = ToUTF8(strSql);
       string typedefs = null;
       SQLiteStatement cmd = null;
       Random rnd = null;
       uint starttick = (uint)Environment.TickCount;
-      int maximumSleepTime = cnn._defaultMaximumSleepTime;
 
       ResetCancelCount();
 

@@ -154,10 +154,6 @@ namespace System.Data.SQLite
     /// </summary>
     private SQLiteCallback  _StepFunc;
     /// <summary>
-    /// Holds a reference to the callback function for inverse in a window function
-    /// </summary>
-    private SQLiteCallback _InverseFunc;
-    /// <summary>
     /// Holds a reference to the callback function for finalizing an aggregate function
     /// </summary>
     private SQLiteFinalCallback  _FinalFunc;
@@ -165,6 +161,10 @@ namespace System.Data.SQLite
     /// Holds a reference to the callback function for getting a window function value
     /// </summary>
     private SQLiteFinalCallback _ValueFunc;
+    /// <summary>
+    /// Holds a reference to the callback function for inverse in a window function
+    /// </summary>
+    private SQLiteCallback _InverseFunc;
 
     /// <summary>
     /// Holds a reference to the callback function for collating sequences

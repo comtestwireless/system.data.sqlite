@@ -2415,14 +2415,18 @@ namespace System.Data.SQLite
       return UnsafeNativeMethods.sqlite3_aggregate_count(context);
     }
 
-    internal override SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteCallback funcinverse, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, bool canThrow)
+    internal override SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, SQLiteFunctionFlags flags, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, SQLiteCallback funcinverse, bool canThrow)
     {
       SQLiteErrorCode n;
+
+      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
+      SQLiteFunctionFlags flags16 = SQLiteFunctionFlags.SQLITE_UTF16 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
+
       if (type == FunctionType.Window)
       {
 #if !SQLITE_STANDARD
-        n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
-        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
+        n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
 #else
         n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
         if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
@@ -2431,8 +2435,8 @@ namespace System.Data.SQLite
       else
       {
 #if !SQLITE_STANDARD
-        n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
-        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
 #else
         n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
         if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);

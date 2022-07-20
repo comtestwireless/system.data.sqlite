@@ -18,6 +18,22 @@ namespace System.Data.SQLite
   public enum SQLiteFunctionFlags
   {
     /// <summary>
+    /// Initial flags value, no flags set.
+    /// </summary>
+    NONE = 0x0,
+    /// <summary>
+    /// The new function uses UTF-8.
+    /// </summary>
+    SQLITE_UTF8 = 0x1,
+    /// <summary>
+    /// The new function uses UTF-16.
+    /// </summary>
+    SQLITE_UTF16 = 0x4,
+    /// <summary>
+    /// Used to mask off the flags related to encodings.
+    /// </summary>
+    ENCODING_MASK = 0xF,
+    /// <summary>
     /// The new function always gives the same output when the input parameters
     /// are the same. The abs() function is deterministic, for example, but
     /// randomblob() is not. Functions must be deterministic in order to be used
@@ -325,19 +341,6 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
-    /// This method is only required for window aggregate functions, not legacy aggregate function implementations. It is invoked
-    /// to remove the oldest presently aggregated result of xStep from the current window. The function arguments, if any, are
-    /// those passed to xStep for the row being removed.
-    /// </summary>
-    /// <param name="args">The arguments for the command to process</param>
-    /// <param name="stepNumber">The 1-based step number.  This is incrememted each time the step method is called.</param>
-    /// <param name="contextData">A placeholder for implementers to store contextual data pertaining to the current context.</param>
-    public virtual void Inverse(object[] args, int stepNumber, ref object contextData)
-    {
-        CheckDisposed();
-    }
-
-    /// <summary>
     /// Aggregate functions override this method to finish their aggregate processing.
     /// </summary>
     /// <remarks>
@@ -370,8 +373,21 @@ namespace System.Data.SQLite
     /// </returns>
     public virtual object Value(object contextData)
     {
-        CheckDisposed();
-        return null;
+      CheckDisposed();
+      return null;
+    }
+
+    /// <summary>
+    /// This method is only required for window aggregate functions, not legacy aggregate function implementations. It is invoked
+    /// to remove the oldest presently aggregated result of xStep from the current window. The function arguments, if any, are
+    /// those passed to xStep for the row being removed.
+    /// </summary>
+    /// <param name="args">The arguments for the command to process</param>
+    /// <param name="stepNumber">The 1-based step number.  This is incrememted each time the step method is called.</param>
+    /// <param name="contextData">A placeholder for implementers to store contextual data pertaining to the current context.</param>
+    public virtual void Inverse(object[] args, int stepNumber, ref object contextData)
+    {
+      CheckDisposed();
     }
 
     /// <summary>
@@ -944,8 +960,8 @@ namespace System.Data.SQLite
                 continue;
 
             RegisterFunction(
-                at.Name, at.Arguments, at.FuncType, typ,
-                at.Callback1, at.Callback2);
+                at.Name, at.Arguments, at.FuncType, at.FuncFlags, typ,
+                at.Callback1, at.Callback2, at.Callback3, at.Callback3);
         }
     }
 
@@ -961,7 +977,7 @@ namespace System.Data.SQLite
     /// The number of arguments accepted by the function.
     /// </param>
     /// <param name="functionType">
-    /// The type of SQLite function being resitered (e.g. scalar,
+    /// The type of SQLite function being registered (e.g. scalar,
     /// aggregate, or collating sequence).
     /// </param>
     /// <param name="instanceType">
@@ -995,6 +1011,74 @@ namespace System.Data.SQLite
         at.InstanceType = instanceType;
         at.Callback1 = callback1;
         at.Callback2 = callback2;
+
+        ReplaceFunction(at, null);
+    }
+
+    /// <summary>
+    /// Alternative method of registering a function.  This method
+    /// does not require the specified type to be annotated with
+    /// <see cref="SQLiteFunctionAttribute" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the function to register.
+    /// </param>
+    /// <param name="argumentCount">
+    /// The number of arguments accepted by the function.
+    /// </param>
+    /// <param name="functionType">
+    /// The type of SQLite function being registered (e.g. scalar,
+    /// aggregate, or collating sequence).
+    /// </param>
+    /// <param name="functionFlags">
+    /// The extra flags for the function being registered.
+    /// </param>
+    /// <param name="instanceType">
+    /// The <see cref="Type" /> that actually implements the function.
+    /// This will only be used if the <paramref name="callback1" />
+    /// and <paramref name="callback2" /> parameters are null.
+    /// </param>
+    /// <param name="callback1">
+    /// The <see cref="Delegate" /> to be used for all calls into the
+    /// <see cref="SQLiteFunction.Invoke" />,
+    /// <see cref="SQLiteFunction.Step" />,
+    /// and <see cref="SQLiteFunction.Compare" /> virtual methods.
+    /// </param>
+    /// <param name="callback2">
+    /// The <see cref="Delegate" /> to be used for all calls into the
+    /// <see cref="SQLiteFunction.Final" /> virtual method.  This
+    /// parameter is only necessary for aggregate functions.
+    /// </param>
+    /// <param name="callback3">
+    /// The <see cref="Delegate" /> to be used for all calls into the
+    /// <see cref="SQLiteFunction.Value" /> virtual method.  This
+    /// parameter is only necessary for window functions.
+    /// </param>
+    /// <param name="callback4">
+    /// The <see cref="Delegate" /> to be used for all calls into the
+    /// <see cref="SQLiteFunction.Inverse" /> virtual method.  This
+    /// parameter is only necessary for window functions.
+    /// </param>
+    public static void RegisterFunction(
+        string name,
+        int argumentCount,
+        FunctionType functionType,
+        SQLiteFunctionFlags functionFlags,
+        Type instanceType,
+        Delegate callback1,
+        Delegate callback2,
+        Delegate callback3,
+        Delegate callback4
+        )
+    {
+        SQLiteFunctionAttribute at = new SQLiteFunctionAttribute(
+            name, argumentCount, functionType, functionFlags);
+
+        at.InstanceType = instanceType;
+        at.Callback1 = callback1;
+        at.Callback2 = callback2;
+        at.Callback3 = callback3;
+        at.Callback4 = callback4;
 
         ReplaceFunction(at, null);
     }
@@ -1065,11 +1149,15 @@ namespace System.Data.SQLite
             return false;
         }
         else if ((functionAttribute.Callback1 != null) ||
-                (functionAttribute.Callback2 != null))
+                 (functionAttribute.Callback2 != null) ||
+                 (functionAttribute.Callback3 != null) ||
+                 (functionAttribute.Callback4 != null))
         {
             function = new SQLiteDelegateFunction(
                 functionAttribute.Callback1,
-                functionAttribute.Callback2);
+                functionAttribute.Callback2,
+                functionAttribute.Callback3,
+                functionAttribute.Callback4);
 
             return true;
         }
@@ -1281,11 +1369,12 @@ namespace System.Data.SQLite
         {
             bool needCollSeq = (function is SQLiteFunctionEx);
 
-            sqliteBase.CreateFunction(functionType,
-                name, functionAttribute.Arguments, needCollSeq,
+            sqliteBase.CreateFunction(
+                functionType, name, functionAttribute.Arguments,
+                functionAttribute.FuncFlags, needCollSeq,
                 function._InvokeFunc, function._StepFunc,
-                function._InverseFunc, function._FinalFunc,
-                function._ValueFunc, true);
+                function._FinalFunc, function._ValueFunc,
+                function._InverseFunc, true);
         }
         else
         {
@@ -1337,9 +1426,10 @@ namespace System.Data.SQLite
         {
             bool needCollSeq = (function is SQLiteFunctionEx);
 
-            return sqliteBase.CreateFunction(functionType,
-                name, functionAttribute.Arguments, needCollSeq,
-                null, null, null, null, null, false) == SQLiteErrorCode.Ok;
+            return sqliteBase.CreateFunction(
+                functionType, name, functionAttribute.Arguments,
+                functionAttribute.FuncFlags, needCollSeq, null,
+                null, null, null, null, false) == SQLiteErrorCode.Ok;
         }
         else
         {
@@ -1498,7 +1588,7 @@ namespace System.Data.SQLite
       /// Constructs an empty instance of this class.
       /// </summary>
       public SQLiteDelegateFunction()
-          : this(null, null)
+          : this(null, null, null, null)
       {
           // do nothing.
       }
@@ -1528,6 +1618,47 @@ namespace System.Data.SQLite
       {
           this.callback1 = callback1;
           this.callback2 = callback2;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// Constructs an instance of this class using the specified
+      /// <see cref="Delegate" /> as the <see cref="SQLiteFunction" />
+      /// implementation.
+      /// </summary>
+      /// <param name="callback1">
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Invoke" />, <see cref="Step" />, and
+      /// <see cref="Compare" /> virtual methods needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </param>
+      /// <param name="callback2">
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Final" /> virtual methods needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </param>
+      /// <param name="callback3">
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Value" /> virtual method needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </param>
+      /// <param name="callback4">
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Inverse" /> virtual method needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </param>
+      public SQLiteDelegateFunction(
+          Delegate callback1,
+          Delegate callback2,
+          Delegate callback3,
+          Delegate callback4
+          )
+      {
+          this.callback1 = callback1;
+          this.callback2 = callback2;
+          this.callback3 = callback3;
+          this.callback4 = callback4;
       }
       #endregion
 
@@ -1679,6 +1810,120 @@ namespace System.Data.SQLite
       /////////////////////////////////////////////////////////////////////////
 
       /// <summary>
+      /// Returns the list of arguments for the <see cref="Value" /> method,
+      /// as an <see cref="Array" /> of <see cref="Object" />.  The first
+      /// argument is always the literal string "Value".
+      /// </summary>
+      /// <param name="contextData">
+      /// A placeholder for implementers to store contextual data pertaining
+      /// to the current context.
+      /// </param>
+      /// <param name="earlyBound">
+      /// Non-zero if the returned arguments are going to be used with the
+      /// <see cref="SQLiteFinalDelegate" /> type; otherwise, zero.
+      /// </param>
+      /// <returns>
+      /// The arguments to pass to the configured <see cref="Delegate" />.
+      /// </returns>
+      protected virtual object[] GetValueArgs(
+          object contextData,
+          bool earlyBound
+          )
+      {
+          object[] newArgs = new object[] { "Value", contextData };
+
+          if (!earlyBound)
+              newArgs = new object[] { newArgs }; // WRAP
+
+          return newArgs;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// Returns the list of arguments for the <see cref="Inverse" /> method,
+      /// as an <see cref="Array" /> of <see cref="Object" />.  The first
+      /// argument is always the literal string "Inverse".
+      /// </summary>
+      /// <param name="args">
+      /// The original arguments received by the <see cref="Inverse" /> method.
+      /// </param>
+      /// <param name="stepNumber">
+      /// The step number (one based).  This is incrememted each time the
+      /// <see cref="Inverse" /> method is called.
+      /// </param>
+      /// <param name="contextData">
+      /// A placeholder for implementers to store contextual data pertaining
+      /// to the current context.
+      /// </param>
+      /// <param name="earlyBound">
+      /// Non-zero if the returned arguments are going to be used with the
+      /// <see cref="SQLiteStepDelegate" /> type; otherwise, zero.
+      /// </param>
+      /// <returns>
+      /// The arguments to pass to the configured <see cref="Delegate" />.
+      /// </returns>
+      protected virtual object[] GetInverseArgs(
+          object[] args,
+          int stepNumber,
+          object contextData,
+          bool earlyBound
+          )
+      {
+          object[] newArgs = new object[] {
+              "Inverse", args, stepNumber, contextData
+          };
+
+          if (!earlyBound)
+              newArgs = new object[] { newArgs }; // WRAP
+
+          return newArgs;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// Updates the output arguments for the <see cref="Inverse" /> method,
+      /// using an <see cref="Array" /> of <see cref="Object" />.  The first
+      /// argument is always the literal string "Inverse".  Currently, only the
+      /// <paramref name="contextData" /> parameter is updated.
+      /// </summary>
+      /// <param name="args">
+      /// The original arguments received by the <see cref="Inverse" /> method.
+      /// </param>
+      /// <param name="contextData">
+      /// A placeholder for implementers to store contextual data pertaining
+      /// to the current context.
+      /// </param>
+      /// <param name="earlyBound">
+      /// Non-zero if the returned arguments are going to be used with the
+      /// <see cref="SQLiteStepDelegate" /> type; otherwise, zero.
+      /// </param>
+      /// <returns>
+      /// The arguments to pass to the configured <see cref="Delegate" />.
+      /// </returns>
+      protected virtual void UpdateInverseArgs(
+          object[] args,
+          ref object contextData,
+          bool earlyBound
+          )
+      {
+          object[] newArgs;
+
+          if (earlyBound)
+              newArgs = args;
+          else
+              newArgs = args[0] as object[];
+
+          if (newArgs == null)
+              return;
+
+          contextData = newArgs[newArgs.Length - 1];
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
       /// Returns the list of arguments for the <see cref="Compare" /> method,
       /// as an <see cref="Array" /> of <see cref="Object" />.  The first
       /// argument is always the literal string "Compare".
@@ -1739,6 +1984,34 @@ namespace System.Data.SQLite
       {
           get { return callback2; }
           set { callback2 = value; }
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      private Delegate callback3;
+      /// <summary>
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Value" /> virtual methods needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </summary>
+      public virtual Delegate Callback3
+      {
+          get { return callback3; }
+          set { callback3 = value; }
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      private Delegate callback4;
+      /// <summary>
+      /// The <see cref="Delegate" /> to be used for all calls into the
+      /// <see cref="Inverse" /> virtual methods needed by the
+      /// <see cref="SQLiteFunction" /> base class.
+      /// </summary>
+      public virtual Delegate Callback4
+      {
+          get { return callback4; }
+          set { callback4 = value; }
       }
       #endregion
 
@@ -1878,6 +2151,104 @@ namespace System.Data.SQLite
 #if !PLATFORM_COMPACTFRAMEWORK
               return callback1.DynamicInvoke(GetFinalArgs(
                   contextData, false)); /* throw */
+#else
+              throw new NotImplementedException();
+#endif
+          }
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// This virtual method is part of the implementation for aggregate
+      /// functions.  See the <see cref="SQLiteFunction.Value" /> method
+      /// for more details.
+      /// </summary>
+      /// <param name="contextData">
+      /// A placeholder for implementers to store contextual data pertaining
+      /// to the current context.
+      /// </param>
+      /// <returns>
+      /// The result of the aggregate function.
+      /// </returns>
+      public override object Value(
+          object contextData /* in */
+          )
+      {
+          if (callback2 == null)
+          {
+              throw new InvalidOperationException(
+                  HelperMethods.StringFormat(
+                  CultureInfo.CurrentCulture,
+                  NoCallbackError, "Final"));
+          }
+
+          SQLiteFinalDelegate valueDelegate = callback2 as SQLiteFinalDelegate;
+
+          if (valueDelegate != null)
+          {
+              return valueDelegate.Invoke("Value", contextData); /* throw */
+          }
+          else
+          {
+#if !PLATFORM_COMPACTFRAMEWORK
+              return callback3.DynamicInvoke(GetValueArgs(
+                  contextData, false)); /* throw */
+#else
+              throw new NotImplementedException();
+#endif
+          }
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// This virtual method is part of the implementation for aggregate
+      /// functions.  See the <see cref="SQLiteFunction.Inverse" /> method
+      /// for more details.
+      /// </summary>
+      /// <param name="args">
+      /// The arguments for the aggregate function.
+      /// </param>
+      /// <param name="stepNumber">
+      /// The step number (one based).  This is incrememted each time the
+      /// <see cref="Inverse" /> method is called.
+      /// </param>
+      /// <param name="contextData">
+      /// A placeholder for implementers to store contextual data pertaining
+      /// to the current context.
+      /// </param>
+      public override void Inverse(
+          object[] args,         /* in */
+          int stepNumber,        /* in */
+          ref object contextData /* in, out */
+          )
+      {
+          if (callback1 == null)
+          {
+              throw new InvalidOperationException(
+                  HelperMethods.StringFormat(
+                  CultureInfo.CurrentCulture,
+                  NoCallbackError, "Inverse"));
+          }
+
+          SQLiteStepDelegate inverseDelegate = callback1 as SQLiteStepDelegate;
+
+          if (inverseDelegate != null)
+          {
+              inverseDelegate.Invoke(
+                  "Inverse", args, stepNumber, ref contextData); /* throw */
+          }
+          else
+          {
+#if !PLATFORM_COMPACTFRAMEWORK
+              object[] newArgs = GetInverseArgs(
+                  args, stepNumber, contextData, false);
+
+              /* IGNORED */
+              callback1.DynamicInvoke(newArgs); /* throw */
+
+              UpdateInverseArgs(newArgs, ref contextData, false);
 #else
               throw new NotImplementedException();
 #endif

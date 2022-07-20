@@ -3623,10 +3623,10 @@ namespace System.Data.SQLite
     internal static extern SQLiteErrorCode sqlite3_close_interop(IntPtr db);
 
     [DllImport(SQLITE_DLL)]
-    internal static extern SQLiteErrorCode sqlite3_create_function_interop(IntPtr db, byte[] strName, int nArgs, int nType, IntPtr pvUser, SQLiteCallback func, SQLiteCallback fstep, SQLiteFinalCallback ffinal, int needCollSeq);
+    internal static extern SQLiteErrorCode sqlite3_create_function_interop(IntPtr db, byte[] strName, int nArgs, SQLiteFunctionFlags nType, IntPtr pvUser, SQLiteCallback func, SQLiteCallback fstep, SQLiteFinalCallback ffinal, int needCollSeq);
 
     [DllImport(SQLITE_DLL)]
-    internal static extern SQLiteErrorCode sqlite3_create_window_function_interop(IntPtr db, byte[] strName, int nArgs, int nType, IntPtr pvUser, SQLiteCallback fstep, SQLiteFinalCallback ffinal, SQLiteFinalCallback fvalue, SQLiteCallback finverse, int needCollSeq);
+    internal static extern SQLiteErrorCode sqlite3_create_window_function_interop(IntPtr db, byte[] strName, int nArgs, SQLiteFunctionFlags nType, IntPtr pvUser, SQLiteCallback fstep, SQLiteFinalCallback ffinal, SQLiteFinalCallback fvalue, SQLiteCallback finverse, int needCollSeq);
 
     [DllImport(SQLITE_DLL)]
     internal static extern SQLiteErrorCode sqlite3_finalize_interop(IntPtr stmt);

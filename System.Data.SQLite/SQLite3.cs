@@ -2418,14 +2418,26 @@ namespace System.Data.SQLite
     internal override SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteCallback funcinverse, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, bool canThrow)
     {
       SQLiteErrorCode n;
-
+      if (type == FunctionType.Window)
+      {
 #if !SQLITE_STANDARD
-      n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
 #else
-      n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
+        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
 #endif
+      }
+      else
+      {
+#if !SQLITE_STANDARD
+        n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+#else
+        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
+#endif
+      }
       if (canThrow && (n != SQLiteErrorCode.Ok)) throw new SQLiteException(n, GetLastError());
       return n;
     }

@@ -2319,7 +2319,7 @@ namespace System.Data.SQLite
           else
           {
 #if !PLATFORM_COMPACTFRAMEWORK
-              return callback1.DynamicInvoke(GetFinalArgs(
+              return callback2.DynamicInvoke(GetFinalArgs(
                   contextData, false)); /* throw */
 #else
               throw new NotImplementedException();
@@ -2345,15 +2345,15 @@ namespace System.Data.SQLite
           object contextData /* in */
           )
       {
-          if (callback2 == null)
+          if (callback3 == null)
           {
               throw new InvalidOperationException(
                   HelperMethods.StringFormat(
                   CultureInfo.CurrentCulture,
-                  NoCallbackError, "Final"));
+                  NoCallbackError, "Value"));
           }
 
-          SQLiteFinalDelegate valueDelegate = callback2 as SQLiteFinalDelegate;
+          SQLiteFinalDelegate valueDelegate = callback3 as SQLiteFinalDelegate;
 
           if (valueDelegate != null)
           {
@@ -2394,7 +2394,7 @@ namespace System.Data.SQLite
           ref object contextData /* in, out */
           )
       {
-          if (callback1 == null)
+          if (callback4 == null)
           {
               throw new InvalidOperationException(
                   HelperMethods.StringFormat(
@@ -2402,7 +2402,7 @@ namespace System.Data.SQLite
                   NoCallbackError, "Inverse"));
           }
 
-          SQLiteStepDelegate inverseDelegate = callback1 as SQLiteStepDelegate;
+          SQLiteStepDelegate inverseDelegate = callback4 as SQLiteStepDelegate;
 
           if (inverseDelegate != null)
           {
@@ -2416,7 +2416,7 @@ namespace System.Data.SQLite
                   args, stepNumber, contextData, false);
 
               /* IGNORED */
-              callback1.DynamicInvoke(newArgs); /* throw */
+              callback4.DynamicInvoke(newArgs); /* throw */
 
               UpdateInverseArgs(newArgs, ref contextData, false);
 #else

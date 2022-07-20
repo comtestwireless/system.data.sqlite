@@ -501,6 +501,7 @@ namespace System.Data.SQLite
         /// has been previously persisted via the <see cref="Persist" />) method,
         /// that sub-type is returned; otherwise, an exception is thrown.
         /// </summary>
+#pragma warning disable 3003
         public uint SubType
         {
             get
@@ -514,6 +515,7 @@ namespace System.Data.SQLite
                 return subType;
             }
         }
+#pragma warning restore 3003
 
         ///////////////////////////////////////////////////////////////////////
 
@@ -569,11 +571,13 @@ namespace System.Data.SQLite
         /// <returns>
         /// The sub-type associated with this value.
         /// </returns>
+#pragma warning disable 3002
         public uint GetSubType()
         {
             if (pValue == IntPtr.Zero) return default(uint);
             return UnsafeNativeMethods.sqlite3_value_subtype(pValue);
         }
+#pragma warning restore 3002
 
         ///////////////////////////////////////////////////////////////////////
 

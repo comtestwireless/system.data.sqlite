@@ -439,12 +439,14 @@ namespace System.Data.SQLite
     /// <returns>
     /// The sub-type associated with the specified function parameter.
     /// </returns>
+#pragma warning disable 3002
     public uint GetParameterSubType(int index)
     {
       CheckDisposed();
       CheckParameterIndex(index);
       return _base.GetParamValueSubType((IntPtr)_params[index]);
     }
+#pragma warning restore 3002
 
     /// <summary>
     /// Attempts to convert the specified function parameter to numeric and

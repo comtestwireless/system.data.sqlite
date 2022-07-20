@@ -15,6 +15,7 @@ namespace System.Data.SQLite
   /// <summary>
   /// These constants are used with the sqlite3_create_function() API, et al.
   /// </summary>
+  [Flags()]
   public enum SQLiteFunctionFlags
   {
     /// <summary>
@@ -22,17 +23,34 @@ namespace System.Data.SQLite
     /// </summary>
     NONE = 0x0,
     /// <summary>
-    /// The new function uses UTF-8.
+    /// The function uses UTF-8.
     /// </summary>
     SQLITE_UTF8 = 0x1,
     /// <summary>
-    /// The new function uses UTF-16.
+    /// The function uses little-endian UTF-16.
+    /// </summary>
+    SQLITE_UTF16LE = 0x2,
+    /// <summary>
+    /// The function uses big-endian UTF-16.
+    /// </summary>
+    SQLITE_UTF16BE = 0x3,
+    /// <summary>
+    /// The function uses UTF-16 in native byte order.
     /// </summary>
     SQLITE_UTF16 = 0x4,
     /// <summary>
+    /// Deprecated, do not use.
+    /// </summary>
+    SQLITE_ANY = 0x5,
+    /// <summary>
+    /// For sqlite3_create_collation() only, do not use.
+    /// </summary>
+    SQLITE_UTF16_ALIGNED = 0x8,
+    /// <summary>
     /// Used to mask off the flags related to encodings.
     /// </summary>
-    ENCODING_MASK = 0xF,
+    ENCODING_MASK = SQLITE_UTF8 | SQLITE_UTF16LE | SQLITE_UTF16BE |
+                    SQLITE_UTF16 | SQLITE_ANY | SQLITE_UTF16_ALIGNED, /* 0xF */
     /// <summary>
     /// The new function always gives the same output when the input parameters
     /// are the same. The abs() function is deterministic, for example, but

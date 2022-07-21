@@ -2251,7 +2251,8 @@ namespace System.Data.SQLite
 
           if (invokeDelegate != null)
           {
-              return invokeDelegate.Invoke("Invoke", args); /* throw */
+              return invokeDelegate.Invoke(
+                  "Invoke", args); /* throw */
           }
           else
           {
@@ -2296,12 +2297,14 @@ namespace System.Data.SQLite
                   NoCallbackError, "Step"));
           }
 
-          SQLiteStepDelegate stepDelegate = callback1 as SQLiteStepDelegate;
+          SQLiteStepDelegate stepDelegate =
+              callback1 as SQLiteStepDelegate;
 
           if (stepDelegate != null)
           {
               stepDelegate.Invoke(
-                  "Step", args, stepNumber, ref contextData); /* throw */
+                  "Step", args, stepNumber,
+                  ref contextData); /* throw */
           }
           else
           {
@@ -2345,11 +2348,13 @@ namespace System.Data.SQLite
                   NoCallbackError, "Final"));
           }
 
-          SQLiteFinalDelegate finalDelegate = callback2 as SQLiteFinalDelegate;
+          SQLiteFinalDelegate finalDelegate =
+              callback2 as SQLiteFinalDelegate;
 
           if (finalDelegate != null)
           {
-              return finalDelegate.Invoke("Final", contextData); /* throw */
+              return finalDelegate.Invoke(
+                  "Final", contextData); /* throw */
           }
           else
           {
@@ -2388,11 +2393,13 @@ namespace System.Data.SQLite
                   NoCallbackError, "Value"));
           }
 
-          SQLiteFinalDelegate valueDelegate = callback3 as SQLiteFinalDelegate;
+          SQLiteFinalDelegate valueDelegate =
+              callback3 as SQLiteFinalDelegate;
 
           if (valueDelegate != null)
           {
-              return valueDelegate.Invoke("Value", contextData); /* throw */
+              return valueDelegate.Invoke(
+                  "Value", contextData); /* throw */
           }
           else
           {
@@ -2437,12 +2444,14 @@ namespace System.Data.SQLite
                   NoCallbackError, "Inverse"));
           }
 
-          SQLiteStepDelegate inverseDelegate = callback4 as SQLiteStepDelegate;
+          SQLiteStepDelegate inverseDelegate =
+              callback4 as SQLiteStepDelegate;
 
           if (inverseDelegate != null)
           {
               inverseDelegate.Invoke(
-                  "Inverse", args, stepNumber, ref contextData); /* throw */
+                  "Inverse", args, stepNumber,
+                  ref contextData); /* throw */
           }
           else
           {

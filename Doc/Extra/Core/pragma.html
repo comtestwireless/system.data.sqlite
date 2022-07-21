@@ -134,8 +134,8 @@ built-in PRAGMA statements.</p>
 <hr /><a name="syntax"></a>
 <h2>PRAGMA command syntax</h2>
 <p><b><a href="syntax/pragma-stmt.html">pragma-stmt:</a></b>
-<button id='x2343' onclick='hideorshow("x2343","x2344")'>hide</button></p>
- <div id='x2344' class='imgcontainer'>
+<button id='x2347' onclick='hideorshow("x2347","x2348")'>hide</button></p>
+ <div id='x2348' class='imgcontainer'>
  <div style="max-width:824px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 824.352 99.576">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="32,17 20,21 20,12" style="fill:rgb(0,0,0)"/>
@@ -189,8 +189,8 @@ built-in PRAGMA statements.</p>
 </svg>
 </div>
 <p><b><a href="syntax/pragma-value.html">pragma-value:</a></b>
-<button id='x2345' onclick='hideorshow("x2345","x2346")'>hide</button></p>
- <div id='x2346' class='imgcontainer'>
+<button id='x2349' onclick='hideorshow("x2349","x2350")'>hide</button></p>
+ <div id='x2350' class='imgcontainer'>
  <div style="max-width:264px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 264.499 110.16">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="63,17 51,21 51,12" style="fill:rgb(0,0,0)"/>
@@ -217,8 +217,8 @@ built-in PRAGMA statements.</p>
 </svg>
 </div>
 <p><b><a href="syntax/signed-number.html">signed-number:</a></b>
-<button id='x2347' onclick='hideorshow("x2347","x2348")'>show</button></p>
- <div id='x2348' style='display:none;' class='imgcontainer'>
+<button id='x2351' onclick='hideorshow("x2351","x2352")'>show</button></p>
+ <div id='x2352' style='display:none;' class='imgcontainer'>
  <div style="max-width:292px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 292.013 99.576">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="50,44 39,48 39,40" style="fill:rgb(0,0,0)"/>
@@ -441,7 +441,7 @@ for use in application programs.</ol></p>
    <p><b>PRAGMA analysis_limit;
         <br>PRAGMA analysis_limit = </b><i>N</i><b>;</b></p>
    <p>Query or change a limit on the <a href="lang_analyze.html#approx">approximate ANALYZE</a> setting.
-      This is approximate number of
+      This is the approximate number of
       rows examined in each index by the <a href="lang_analyze.html">ANALYZE</a> command.
       If the argument <i>N</i> is omitted, then the analysis limit
       is unchanged.
@@ -1300,7 +1300,7 @@ for use in application programs.</ol></p>
     New applications should leave this flag turned off.
     <p>For compatibility with older <a href="vtab.html">virtual table</a> implementations,
     this flag is turned on temporarily while the <a href="vtab.html#xrename">sqlite3_module.xRename</a>
-    method is being run.  The value of this flag is restore after the 
+    method is being run.  The value of this flag is restored after the 
     <a href="vtab.html#xrename">sqlite3_module.xRename</a> method finishes.
     <p>The legacy alter table behavior can also be toggled on and off
     using the <a href="c3ref/c_dbconfig_defensive.html#sqlitedbconfiglegacyaltertable">SQLITE_DBCONFIG_LEGACY_ALTER_TABLE</a> option to the
@@ -1361,7 +1361,7 @@ for use in application programs.</ol></p>
 PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     </blockquote>
 
-    <p>Then the locking mode applies only to the named database.  If no
+    <p>then the locking mode applies only to the named database.  If no
     database name qualifier precedes the "locking_mode" keyword then
     the locking mode is applied to all databases, including any new
     databases added by subsequent <a href="lang_attach.html">ATTACH</a> commands.</p>
@@ -1415,7 +1415,7 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     <p>The <a href="pragma.html#pragma_mmap_size">PRAGMA mmap_size</a> statement will never increase the amount
        of address space used for memory-mapped I/O above the
        hard limit set by the <a href="compile.html#max_mmap_size">SQLITE_MAX_MMAP_SIZE</a> compile-time option,
-       nor the hard limit set start-time by the second argument to
+       nor the hard limit set at startup-time by the second argument to
        sqlite3_config(<a href="c3ref/c_config_covering_index_scan.html#sqliteconfigmmapsize">SQLITE_CONFIG_MMAP_SIZE</a>)</p>
 
     <p>The size of the memory-mapped I/O region cannot be changed while
@@ -1668,7 +1668,7 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
   
 
 <p>    For the purposes of this pragma, the <a href="lang_vacuum.html">VACUUM</a> command is considered
-       a schema change, since <a href="lang_vacuum.html">VACUUM</a> will usual alter the "rootpage"
+       a schema change, since <a href="lang_vacuum.html">VACUUM</a> will usually alter the "rootpage"
        values for entries in the <a href="schematab.html">sqlite_schema table</a>.
 
 
@@ -1823,7 +1823,7 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     a checkpoint, but no sync operations occur during most transactions.
     With synchronous=FULL in WAL mode, an additional
     sync operation of the WAL file happens after each transaction commit.
-    The extra WAL sync following each transaction help ensure that 
+    The extra WAL sync following each transaction helps ensure that 
     transactions are durable across a power loss.  Transactions are
     consistent with or without the extra syncs provided by
     synchronous=FULL.
@@ -1895,8 +1895,8 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     When temp_store is DEFAULT (0), the compile-time C preprocessor macro
     <a href="compile.html#temp_store">SQLITE_TEMP_STORE</a> is used to determine where temporary tables and indices
     are stored.  When
-    temp_store is MEMORY (2) <a href="inmemorydb.html#temp_db">temporary tables</a> and indices are kept in
-    as if they were pure <a href="inmemorydb.html">in-memory databases</a> memory.
+    temp_store is MEMORY (2) <a href="inmemorydb.html#temp_db">temporary tables</a> and indices are kept
+    as if they were in pure <a href="inmemorydb.html">in-memory databases</a>.
     When temp_store is FILE (1) <a href="inmemorydb.html#temp_db">temporary tables</a> and indices are stored
     in a file.  The <a href="pragma.html#pragma_temp_store_directory">temp_store_directory</a> pragma can be used to specify
     the directory containing temporary files when
@@ -2026,7 +2026,7 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
       <br>PRAGMA </b><i>schema.</i><b>user_version = </b><i>integer </i><b>;</b>
 
   
-<p>    The user_version pragma will to get or set
+<p>    The user_version pragma will get or set
        the value of the user-version integer at offset 60 in the
        <a href="fileformat2.html#database_header">database header</a>.  The user-version is an integer that is
        available to applications to use however they want.  SQLite

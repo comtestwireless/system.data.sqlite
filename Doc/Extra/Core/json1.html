@@ -212,7 +212,7 @@ There are 15 scalar functions and operators:
 </li>
 
 <li value='15'>
-<a href='#jvalid'>json_quote</a>(<i>value</i>)
+<a href='#jquote'>json_quote</a>(<i>value</i>)
 </li>
 
 
@@ -964,8 +964,8 @@ JSON and return 0 if the argument X is not well-formed JSON.
 </p><h2 id="the_json_quote_function"><span>4.12. </span>The json_quote() function</h2>
 
 <p>The json_quote(X) function converts the SQL value X (a number or a
-string) into its corresponding JSON representation.  If X is already
-well-formed JSON, then this function is a no-op.
+string) into its corresponding JSON representation.  If X is a JSON value
+returned by another JSON function, then this function is a no-op.
 
 </p><p>Examples:
 
@@ -974,13 +974,16 @@ well-formed JSON, then this function is a no-op.
 <span class='jans'>&rarr; 3.14159</span></li>
 
 <li><span class='jex'>json_quote('verdant')</span>
-<span class='jans'>&rarr; "verdant"</span></li>
+<span class='jans'>&rarr; '"verdant"'</span></li>
 
 <li><span class='jex'>json_quote('[1]')</span>
+<span class='jans'>&rarr; '"[1]"'</span></li>
+
+<li><span class='jex'>json_quote(json('[1]'))</span>
 <span class='jans'>&rarr; '[1]'</span></li>
 
 <li><span class='jex'>json_quote('[1,')</span>
-<span class='jans'>&rarr; '\"[1\"'</span></li>
+<span class='jans'>&rarr; '"[1"'</span></li>
 
 </ul>
 

@@ -18,7 +18,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install fossil client
         run: sudo apt-get install fossil
-      - name: Checkout libspatialite
+      - name: Checkout sds
         run: fossil clone https://system.data.sqlite.org/ sds.fossil > /dev/null
       - name: Export FOSSIL repository to git
         run: fossil git export sds-git -R sds.fossil > /dev/null

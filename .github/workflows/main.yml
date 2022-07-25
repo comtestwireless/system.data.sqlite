@@ -1,0 +1,33 @@
+name: Update from FOSSIL Repository
+on:
+  schedule:
+    - cron:  '0 0 * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Install fossil client
+        run: sudo apt-get install fossil
+      - name: Checkout libspatialite
+        run: fossil clone https://system.data.sqlite.org/ sds.fossil > /dev/null
+      - name: Export FOSSIL repository to git
+        run: fossil git export sds-git -R sds.fossil > /dev/null
+      - name: Update GIT repo
+        run: |
+          dir=$(pwd)
+          cd $GITHUB_WORKSPACE
+          git remote add fossil $dir/sds-git
+          git fetch fossil
+          git branch --no-track -f master fossil/master
+          git push -f origin master
+          

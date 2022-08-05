@@ -1663,7 +1663,7 @@
     <tr>
       <td colspan="4">
         <a name="nuGetPackages"></a>
-        <b>Official NuGet Packages <font color="red">(Release Pending)</font></b>
+        <b>Official NuGet Packages</b>
       </td>
     </tr>
 

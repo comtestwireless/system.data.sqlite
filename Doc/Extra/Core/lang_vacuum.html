@@ -102,8 +102,8 @@ VACUUM
 
 <h1 id="syntax"><span>1. </span>Syntax</h1>
 <p><b><a href="syntax/vacuum-stmt.html">vacuum-stmt:</a></b>
-<button id='x2251' onclick='hideorshow("x2251","x2252")'>hide</button></p>
- <div id='x2252' class='imgcontainer'>
+<button id='x2255' onclick='hideorshow("x2255","x2256")'>hide</button></p>
+ <div id='x2256' class='imgcontainer'>
  <div style="max-width:599px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 599.669 64.8">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="32,17 20,21 20,12" style="fill:rgb(0,0,0)"/>
@@ -171,7 +171,7 @@ VACUUM
      support property can be changed using VACUUM.
 </p></li></ul>
 
-<p>By default, VACUUM only works only on the main database.
+<p>By default, VACUUM operates on the main database.
 <a href="lang_attach.html">Attached databases</a> can be vacuumed by appending the appropriate
 <span class='yyterm'>schema-name</span> to the VACUUM statement.
 
@@ -186,7 +186,7 @@ vacuumed.</p>
 <h2 id="vacuum_with_an_into_clause"><span>2.1. </span>VACUUM with an INTO clause</h2>
 
 <p>If the INTO clause is included, then the original database file is
-unchanged and a new database is created in the filename given by the
+unchanged and a new database is created in a file named by the
 argument to the INTO clause.  The new database will contain the same
 logical content as the original database, fully vacuumed.
 

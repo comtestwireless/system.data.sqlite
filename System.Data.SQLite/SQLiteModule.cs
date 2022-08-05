@@ -64,6 +64,31 @@ namespace System.Data.SQLite
 
         #region Public Methods
         /// <summary>
+        /// Attempts to determine if a specific column being fetched via the
+        /// <see cref="ISQLiteNativeModule.xColumn" /> method as part of an
+        /// UPDATE operation will not change.  Use of this method is invalid
+        /// in any other context.
+        /// </summary>
+        /// <returns>
+        /// Non-zero if the column being fetched via a pending call to the
+        /// <see cref="ISQLiteNativeModule.xColumn" /> method as part of an
+        /// UPDATE operation during which the column value will not change.
+        /// The virtual table implementation can use this hint as permission
+        /// to substitute a return value that is less expensive to compute
+        /// and that the corresponding xUpdate method understands as a
+        /// "no-change" value.
+        /// </returns>
+        public int NoChange()
+        {
+            if (pContext == IntPtr.Zero)
+                throw new InvalidOperationException();
+
+            return UnsafeNativeMethods.sqlite3_vtab_nochange(pContext);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
         /// Sets the context result to NULL.
         /// </summary>
         public void SetNull()
@@ -269,6 +294,22 @@ namespace System.Data.SQLite
         ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
+        /// Sets the context result sub-type to the desired value.
+        /// </summary>
+        /// <param name="value">
+        /// The sub-type value to use.
+        /// </param>
+        public void SetSubType(uint value)
+        {
+            if (pContext == IntPtr.Zero)
+                throw new InvalidOperationException();
+
+            UnsafeNativeMethods.sqlite3_result_subtype(pContext, value);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
         /// Sets the context result to the specified <see cref="SQLiteValue" />.
         /// </summary>
         /// <param name="value">
@@ -451,11 +492,138 @@ namespace System.Data.SQLite
                 return value;
             }
         }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private uint subType;
+        /// <summary>
+        /// If the managed value for this object instance is available (i.e. it
+        /// has been previously persisted via the <see cref="Persist" />) method,
+        /// that sub-type is returned; otherwise, an exception is thrown.
+        /// </summary>
+#pragma warning disable 3003
+        public uint SubType
+        {
+            get
+            {
+                if (!persisted)
+                {
+                    throw new InvalidOperationException(
+                        "value was not persisted");
+                }
+
+                return subType;
+            }
+        }
+#pragma warning restore 3003
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private int noChange;
+        /// <summary>
+        /// If the managed value for this object instance is available (i.e. it
+        /// has been previously persisted via the <see cref="Persist" />) method,
+        /// that "no change" flag is returned; otherwise, an exception is thrown.
+        /// </summary>
+        public int NoChange
+        {
+            get
+            {
+                if (!persisted)
+                {
+                    throw new InvalidOperationException(
+                        "value was not persisted");
+                }
+
+                return noChange;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private int fromBind;
+        /// <summary>
+        /// If the managed value for this object instance is available (i.e. it
+        /// has been previously persisted via the <see cref="Persist" />) method,
+        /// that "from bind" flag is returned; otherwise, an exception is thrown.
+        /// </summary>
+        public int FromBind
+        {
+            get
+            {
+                if (!persisted)
+                {
+                    throw new InvalidOperationException(
+                        "value was not persisted");
+                }
+
+                return fromBind;
+            }
+        }
         #endregion
 
         ///////////////////////////////////////////////////////////////////////
 
         #region Public Methods
+        /// <summary>
+        /// Gets and returns the sub-type associated with this value.
+        /// </summary>
+        /// <returns>
+        /// The sub-type associated with this value.
+        /// </returns>
+#pragma warning disable 3002
+        public uint GetSubType()
+        {
+            if (pValue == IntPtr.Zero) return default(uint);
+            return UnsafeNativeMethods.sqlite3_value_subtype(pValue);
+        }
+#pragma warning restore 3002
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Gets and returns the "no change" flag associated with this value.
+        /// </summary>
+        /// <returns>
+        /// The "no change" flag associated with this value.
+        /// </returns>
+        public int GetNoChange()
+        {
+            if (pValue == IntPtr.Zero) return default(int);
+            return UnsafeNativeMethods.sqlite3_value_nochange(pValue);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Gets and returns the "from bind" flag associated with this value.
+        /// </summary>
+        /// <returns>
+        /// The "from bind" flag associated with this value.
+        /// </returns>
+        public int GetFromBind()
+        {
+            if (pValue == IntPtr.Zero) return default(int);
+            return UnsafeNativeMethods.sqlite3_value_frombind(pValue);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Attempts to convert this value to numeric and then gets and
+        /// returns the new type affinity associated with this value.
+        /// </summary>
+        /// <returns>
+        /// The new type affinity associated with this value.
+        /// </returns>
+        public TypeAffinity GetNumericType()
+        {
+            if (pValue == IntPtr.Zero) return TypeAffinity.None;
+            return UnsafeNativeMethods.sqlite3_value_numeric_type(pValue);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
         /// <summary>
         /// Gets and returns the type affinity associated with this value.
         /// </summary>
@@ -659,37 +827,67 @@ namespace System.Data.SQLite
                 case TypeAffinity.Uninitialized:
                     {
                         value = null;
+                        subType = 0;
+                        noChange = 0;
+                        fromBind = 0;
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 case TypeAffinity.Int64:
                     {
                         value = GetInt64();
+                        subType = GetSubType();
+                        noChange = GetNoChange();
+                        fromBind = GetFromBind();
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 case TypeAffinity.Double:
                     {
                         value = GetDouble();
+                        subType = GetSubType();
+                        noChange = GetNoChange();
+                        fromBind = GetFromBind();
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 case TypeAffinity.Text:
                     {
                         value = GetString();
+                        subType = GetSubType();
+                        noChange = GetNoChange();
+                        fromBind = GetFromBind();
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 case TypeAffinity.Blob:
                     {
                         value = GetBytes();
+                        subType = GetSubType();
+                        noChange = GetNoChange();
+                        fromBind = GetFromBind();
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 case TypeAffinity.Null:
                     {
                         value = DBNull.Value;
+                        subType = GetSubType();
+                        noChange = GetNoChange();
+                        fromBind = GetFromBind();
+
                         PreventNativeAccess();
+
                         return (persisted = true);
                     }
                 default:

@@ -19,9 +19,12 @@ namespace System.Data.SQLite
     private string       _name;
     private int          _argumentCount;
     private FunctionType _functionType;
+    private SQLiteFunctionFlags _functionFlags;
     private Type         _instanceType;
     private Delegate     _callback1;
     private Delegate     _callback2;
+    private Delegate     _callback3;
+    private Delegate     _callback4;
 
     /// <summary>
     /// Default constructor, initializes the internal variables for the function.
@@ -52,13 +55,45 @@ namespace System.Data.SQLite
         int argumentCount,
         FunctionType functionType
         )
+        : this(name, argumentCount, functionType, SQLiteFunctionFlags.NONE)
+    {
+        // do nothing.
+    }
+
+    /// <summary>
+    /// Constructs an instance of this class.  This sets the initial
+    /// <see cref="InstanceType" />, <see cref="Callback1" />, and
+    /// <see cref="Callback2" /> properties to null.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the function, as seen by the SQLite core library.
+    /// </param>
+    /// <param name="argumentCount">
+    /// The number of arguments that the function will accept.
+    /// </param>
+    /// <param name="functionType">
+    /// The type of function being declared.  This will either be Scalar,
+    /// Aggregate, or Collation.
+    /// </param>
+    /// <param name="functionFlags">
+    /// The extra flags for the function being declared.
+    /// </param>
+    public SQLiteFunctionAttribute(
+        string name,
+        int argumentCount,
+        FunctionType functionType,
+        SQLiteFunctionFlags functionFlags
+        )
     {
         _name = name;
         _argumentCount = argumentCount;
         _functionType = functionType;
+        _functionFlags = functionFlags;
         _instanceType = null;
         _callback1 = null;
         _callback2 = null;
+        _callback3 = null;
+        _callback4 = null;
     }
 
     /// <summary>
@@ -86,6 +121,15 @@ namespace System.Data.SQLite
     {
       get { return _functionType; }
       set { _functionType = value; }
+    }
+
+    /// <summary>
+    /// The flags for this function.
+    /// </summary>
+    public SQLiteFunctionFlags FuncFlags
+    {
+        get { return _functionFlags; }
+        set { _functionFlags = value; }
     }
 
     /// <summary>
@@ -120,6 +164,28 @@ namespace System.Data.SQLite
     {
         get { return _callback2; }
         set { _callback2 = value; }
+    }
+
+    /// <summary>
+    /// The <see cref="Delegate" /> that refers to the implementation for the
+    /// associated function.  If this property value is set to non-null, it will
+    /// be used instead of the <see cref="InstanceType" /> property value.
+    /// </summary>
+    internal Delegate Callback3
+    {
+        get { return _callback3; }
+        set { _callback3 = value; }
+    }
+
+    /// <summary>
+    /// The <see cref="Delegate" /> that refers to the implementation for the
+    /// associated function.  If this property value is set to non-null, it will
+    /// be used instead of the <see cref="InstanceType" /> property value.
+    /// </summary>
+    internal Delegate Callback4
+    {
+        get { return _callback4; }
+        set { _callback4 = value; }
     }
   }
 }

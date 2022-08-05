@@ -285,7 +285,7 @@ namespace System.Data.SQLite
     internal abstract bool IsNull(SQLiteStatement stmt, int index);
 
     internal abstract SQLiteErrorCode CreateCollation(string strCollation, SQLiteCollation func, SQLiteCollation func16, bool @throw);
-    internal abstract SQLiteErrorCode CreateFunction(string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, bool @throw);
+    internal abstract SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, SQLiteFunctionFlags flags, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, SQLiteCallback funcinverse, bool @throw);
     internal abstract CollationSequence GetCollationSequence(SQLiteFunction func, IntPtr context);
     internal abstract int ContextCollateCompare(CollationEncodingEnum enc, IntPtr context, string s1, string s2);
     internal abstract int ContextCollateCompare(CollationEncodingEnum enc, IntPtr context, char[] c1, char[] c2);
@@ -299,6 +299,10 @@ namespace System.Data.SQLite
     internal abstract Int64 GetParamValueInt64(IntPtr ptr);
     internal abstract string GetParamValueText(IntPtr ptr);
     internal abstract TypeAffinity GetParamValueType(IntPtr ptr);
+    internal abstract uint GetParamValueSubType(IntPtr ptr);
+    internal abstract TypeAffinity GetParamValueNumericType(IntPtr ptr);
+    internal abstract int GetParamValueNoChange(IntPtr ptr);
+    internal abstract int GetParamValueFromBind(IntPtr ptr);
 
     internal abstract void ReturnBlob(IntPtr context, byte[] value);
     internal abstract void ReturnDouble(IntPtr context, double value);
@@ -307,6 +311,7 @@ namespace System.Data.SQLite
     internal abstract void ReturnInt64(IntPtr context, Int64 value);
     internal abstract void ReturnNull(IntPtr context);
     internal abstract void ReturnText(IntPtr context, string value);
+    internal abstract void ReturnSubType(IntPtr context, uint value);
 
 #if INTEROP_VIRTUAL_TABLE
     /// <summary>

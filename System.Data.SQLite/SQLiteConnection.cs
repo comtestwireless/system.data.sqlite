@@ -1209,6 +1209,12 @@ namespace System.Data.SQLite
   /// <description>30</description>
   /// </item>
   /// <item>
+  /// <description>DefaultMaximumSleepTime</description>
+  /// <description>{time in milliseconds}<br/>The default maximum sleep time for new commands</description>
+  /// <description>N</description>
+  /// <description>150</description>
+  /// </item>
+  /// <item>
   /// <description>BusyTimeout</description>
   /// <description>{time in milliseconds}<br/>Sets the busy timeout for the core library.</description>
   /// <description>N</description>
@@ -1377,6 +1383,7 @@ namespace System.Data.SQLite
     private const int DefaultCacheSize = -2000;
     private const int DefaultMaxPoolSize = 100;
     private const int DefaultConnectionTimeout = 30;
+    internal const int DefaultConnectionMaximumSleepTime = 150;
     private const int DefaultBusyTimeout = 0;
     private const int DefaultWaitTimeout = 30000;
     private const bool DefaultNoDefaultFlags = false;
@@ -1603,6 +1610,11 @@ namespace System.Data.SQLite
     private int _defaultTimeout;
 
     /// <summary>
+    /// Default command maximum sleep time.
+    /// </summary>
+    internal int _defaultMaximumSleepTime;
+
+    /// <summary>
     /// The default busy timeout to use with the SQLite core library.  This is
     /// only used when opening a connection.
     /// </summary>
@@ -1782,6 +1794,7 @@ namespace System.Data.SQLite
         _defaultTypeName = _DefaultTypeName;
         _vfsName = DefaultVfsName;
         _defaultTimeout = DefaultConnectionTimeout;
+        _defaultMaximumSleepTime = DefaultConnectionMaximumSleepTime;
         _busyTimeout = DefaultBusyTimeout;
 
 #if !PLATFORM_COMPACTFRAMEWORK
@@ -4678,6 +4691,11 @@ namespace System.Data.SQLite
         if (stringValue != null)
             _defaultTimeout = Convert.ToInt32(stringValue, CultureInfo.InvariantCulture);
 
+        stringValue = FindKey(opts, "DefaultMaximumSleepTime", null);
+
+        if (stringValue != null)
+            _defaultMaximumSleepTime = Convert.ToInt32(stringValue, CultureInfo.InvariantCulture);
+
         stringValue = FindKey(opts, "BusyTimeout", null);
 
         if (stringValue != null)
@@ -5058,6 +5076,16 @@ namespace System.Data.SQLite
     {
       get { CheckDisposed(); return _defaultTimeout; }
       set { CheckDisposed(); _defaultTimeout = value; }
+    }
+
+    /// <summary>
+    /// Gets/sets the default maximum sleep time for newly-created commands.
+    /// This can also be set in the ConnectionString with "DefaultMaximumSleepTime"
+    /// </summary>
+    public int DefaultMaximumSleepTime
+    {
+        get { CheckDisposed(); return _defaultMaximumSleepTime; }
+        set { CheckDisposed(); _defaultMaximumSleepTime = value; }
     }
 
     /// <summary>

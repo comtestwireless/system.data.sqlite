@@ -59,6 +59,7 @@
 </p>
 <ul>
     <li>Updated to [https://www.sqlite.org/releaselog/3_39_2.html|SQLite 3.39.2].</li>
+    <li>Add support for creating custom window functions. Pursuant to forum post [https://www.sqlite.org/forum/forumpost/21de219031|21de219031].</li>
     <li>Suppress finalizer calls for SQLite3 objects that are closed. Fix for [ce4d70ea6f].</li>
     <li>Improvements to object disposal diagnostics. Pursuant to [ce4d70ea6f].</li>
 </ul>

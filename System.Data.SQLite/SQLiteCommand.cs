@@ -52,6 +52,10 @@ namespace System.Data.SQLite
     /// </summary>
     internal int _commandTimeout;
     /// <summary>
+    /// The maximum amount of time to sleep when retrying a call to prepare or step for the current command.
+    /// </summary>
+    internal int _maximumSleepTime;
+    /// <summary>
     /// Designer support
     /// </summary>
     private bool _designTimeVisible;
@@ -136,6 +140,7 @@ namespace System.Data.SQLite
     public SQLiteCommand(string commandText, SQLiteConnection connection, SQLiteTransaction transaction)
     {
       _commandTimeout = 30;
+      _maximumSleepTime = 150;
       _parameterCollection = new SQLiteParameterCollection(this);
       _designTimeVisible = true;
       _updateRowSource = UpdateRowSource.None;
@@ -147,6 +152,7 @@ namespace System.Data.SQLite
       {
         DbConnection = connection;
         _commandTimeout = connection.DefaultTimeout;
+        _maximumSleepTime = connection.DefaultMaximumSleepTime;
       }
 
       if (transaction != null)
@@ -471,6 +477,27 @@ namespace System.Data.SQLite
       {
         CheckDisposed();
         _commandTimeout = value;
+      }
+    }
+
+    /// <summary>
+    /// The maximum amount of time to sleep when retrying a call to prepare or step for the
+    /// current command.
+    /// </summary>
+#if !PLATFORM_COMPACTFRAMEWORK
+    [DefaultValue((int)150)]
+#endif
+    public int MaximumSleepTime
+    {
+      get
+      {
+        CheckDisposed();
+        return _maximumSleepTime;
+      }
+      set
+      {
+        CheckDisposed();
+        _maximumSleepTime = value;
       }
     }
 

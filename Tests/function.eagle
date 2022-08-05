@@ -1,0 +1,200 @@
+###############################################################################
+#
+# function.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test function-1.1 {custom window function} -setup {
+  set fileName function-1.1.db
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+
+    namespace _Dynamic${id}
+    {
+      internal sealed class Test${id}Context
+      {
+        public long Sum;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+
+      \[SQLiteFunction(Name = "sumint", FuncType = FunctionType.Window)\]
+      public class Test${id} : SQLiteFunction
+      {
+        public override void Step(
+          object\[\] args,
+          int stepNumber,
+          ref object contextData
+          )
+        {
+          if (args == null)
+            throw new ArgumentException("missing arguments");
+
+          if (args.Length != 1)
+            throw new ArgumentException(String.Format(
+              "need exactly one argument, got {0}", args.Length));
+
+          object arg = args\[0\];
+
+          if (arg == null)
+            return;
+
+          Type type = arg.GetType();
+
+          if (type == typeof(DBNull))
+            return;
+
+          if (type != typeof(long))
+            throw new ArgumentException(String.Format(
+              "argument must be integer, got {0}", type));
+
+          Test${id}Context context = contextData as Test${id}Context;
+
+          if (context == null)
+          {
+            context = new Test${id}Context();
+            contextData = context;
+          }
+
+          context.Sum += (long)arg;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public override object Final(
+          object contextData
+          )
+        {
+          Test${id}Context context = contextData as Test${id}Context;
+
+          if (context == null)
+            return DBNull.Value;
+
+          return context.Sum;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public override object Value(
+          object contextData
+          )
+        {
+          Test${id}Context context = contextData as Test${id}Context;
+
+          if (context == null)
+            return DBNull.Value;
+
+          return context.Sum;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public override void Inverse(
+          object\[\] args,
+          int stepNumber,
+          ref object contextData
+          )
+        {
+          if (args == null)
+            throw new ArgumentException("missing arguments");
+
+          if (args.Length != 1)
+            throw new ArgumentException(String.Format(
+              "need exactly one argument, got {0}", args.Length));
+
+          object arg = args\[0\];
+
+          if (arg == null)
+            return;
+
+          Type type = arg.GetType();
+
+          if (type == typeof(DBNull))
+            return;
+
+          if (type != typeof(long))
+            throw new ArgumentException(String.Format(
+              "argument must be integer, got {0}", type));
+
+          Test${id}Context context = contextData as Test${id}Context;
+
+          if (context == null)
+          {
+            context = new Test${id}Context();
+            contextData = context;
+          }
+
+          context.Sum -= (long)arg;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void Main()
+        {
+          SQLiteFunction.RegisterFunction(typeof(Test${id}));
+        }
+      }
+    }
+  }] true false true results errors System.Data.SQLite.dll]
+
+  #
+  # NOTE: Compile the C# code (above) to register the custom SQLite function
+  #       and then open the database for this test case and attempt to execute
+  #       the function.  Normally, we would open the database in the test setup
+  #       phase; however, that will not work correctly because newly registered
+  #       functions are only picked up and used by databases opened after they
+  #       have been registered.
+  #
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Main
+      } result] : [set result ""]}] $result [setupDb $fileName] \
+      [sql execute $db {
+        CREATE TABLE t3(x, y);
+        INSERT INTO t3 VALUES('a', 4),
+                             ('b', 5),
+                             ('c', 3),
+                             ('d', 8),
+                             ('e', 1);
+      }] [sql execute -execute reader -format list $db {
+        SELECT x, sumint(y) OVER (
+          ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING
+        ) AS sum_y
+        FROM t3 ORDER BY x;
+      }]
+} -cleanup {
+  cleanupDb $fileName
+
+  unset -nocomplain result code results errors id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result \
+{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\}\
+System#Data#SQLite#SQLiteConnection#\d+ 5 \{a 9 b 12 c 16 d 12 e 9\}$}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

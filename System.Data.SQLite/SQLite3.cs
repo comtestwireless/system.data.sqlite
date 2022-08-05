@@ -1205,6 +1205,7 @@ namespace System.Data.SQLite
       Random rnd = null;
       uint starttick = (uint)Environment.TickCount;
       uint timeout = (uint)(stmt._command._commandTimeout * 1000);
+      int maximumSleepTime = stmt._command._maximumSleepTime;
 
       ResetCancelCount();
 
@@ -1260,8 +1261,8 @@ namespace System.Data.SQLite
             }
             else
             {
-              // Otherwise sleep for a random amount of time up to 150ms
-              System.Threading.Thread.Sleep(rnd.Next(1, 150));
+              // Otherwise sleep for a random amount of time up to Xms
+              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
             }
           }
         }
@@ -1493,6 +1494,7 @@ namespace System.Data.SQLite
       SQLiteErrorCode n = SQLiteErrorCode.Schema;
       int retries = 0;
       int maximumRetries = (cnn != null) ? cnn._prepareRetries : SQLiteConnection.DefaultPrepareRetries;
+      int maximumSleepTime = (cnn != null) ? cnn._defaultMaximumSleepTime : SQLiteConnection.DefaultConnectionMaximumSleepTime;
       byte[] b = ToUTF8(strSql);
       string typedefs = null;
       SQLiteStatement cmd = null;
@@ -1629,8 +1631,8 @@ namespace System.Data.SQLite
             }
             else
             {
-              // Otherwise sleep for a random amount of time up to 150ms
-              System.Threading.Thread.Sleep(rnd.Next(1, 150));
+              // Otherwise sleep for a random amount of time up to Xms
+              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
             }
           }
         }
@@ -2415,25 +2417,44 @@ namespace System.Data.SQLite
       return UnsafeNativeMethods.sqlite3_aggregate_count(context);
     }
 
-    internal override SQLiteErrorCode CreateFunction(string strFunction, int nArgs, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, bool canThrow)
+    internal override SQLiteErrorCode CreateFunction(FunctionType type, string strFunction, int nArgs, SQLiteFunctionFlags flags, bool needCollSeq, SQLiteCallback func, SQLiteCallback funcstep, SQLiteFinalCallback funcfinal, SQLiteFinalCallback funcvalue, SQLiteCallback funcinverse, bool canThrow)
     {
       SQLiteErrorCode n;
 
+      SQLiteFunctionFlags flags16 = SQLiteFunctionFlags.SQLITE_UTF16 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
+      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8 | (flags & ~SQLiteFunctionFlags.ENCODING_MASK);
+
+      if (type == FunctionType.Window)
+      {
 #if !SQLITE_STANDARD
-      n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, (needCollSeq == true) ? 1 : 0);
 #else
-      n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 4, IntPtr.Zero, func, funcstep, funcfinal);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, 1, IntPtr.Zero, func, funcstep, funcfinal);
+        n = UnsafeNativeMethods.sqlite3_create_window_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, null);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_window_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, funcstep, funcfinal, funcvalue, funcinverse, null);
 #endif
+      }
+      else
+      {
+#if !SQLITE_STANDARD
+        n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function_interop(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal, (needCollSeq == true) ? 1 : 0);
+#else
+        n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags16, IntPtr.Zero, func, funcstep, funcfinal);
+        if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_function(_sql, ToUTF8(strFunction), nArgs, flags8, IntPtr.Zero, func, funcstep, funcfinal);
+#endif
+      }
       if (canThrow && (n != SQLiteErrorCode.Ok)) throw new SQLiteException(n, GetLastError());
       return n;
     }
 
     internal override SQLiteErrorCode CreateCollation(string strCollation, SQLiteCollation func, SQLiteCollation func16, bool canThrow)
     {
-      SQLiteErrorCode n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), 2, IntPtr.Zero, func16);
-      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), 1, IntPtr.Zero, func);
+      SQLiteFunctionFlags flags16 = SQLiteFunctionFlags.SQLITE_UTF16LE;
+      SQLiteFunctionFlags flags8 = SQLiteFunctionFlags.SQLITE_UTF8;
+
+      SQLiteErrorCode n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), flags16, IntPtr.Zero, func16);
+      if (n == SQLiteErrorCode.Ok) n = UnsafeNativeMethods.sqlite3_create_collation(_sql, ToUTF8(strCollation), flags8, IntPtr.Zero, func);
       if (canThrow && (n != SQLiteErrorCode.Ok)) throw new SQLiteException(n, GetLastError());
       return n;
     }
@@ -2589,6 +2610,26 @@ namespace System.Data.SQLite
       return UnsafeNativeMethods.sqlite3_value_type(ptr);
     }
 
+    internal override uint GetParamValueSubType(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_subtype(ptr);
+    }
+
+    internal override TypeAffinity GetParamValueNumericType(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_numeric_type(ptr);
+    }
+
+    internal override int GetParamValueNoChange(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_nochange(ptr);
+    }
+
+    internal override int GetParamValueFromBind(IntPtr ptr)
+    {
+      return UnsafeNativeMethods.sqlite3_value_frombind(ptr);
+    }
+
     internal override void ReturnBlob(IntPtr context, byte[] value)
     {
       UnsafeNativeMethods.sqlite3_result_blob(context, value, value.Length, (IntPtr)(-1));
@@ -2635,6 +2676,11 @@ namespace System.Data.SQLite
     {
       byte[] b = ToUTF8(value);
       UnsafeNativeMethods.sqlite3_result_text(context, ToUTF8(value), b.Length - 1, (IntPtr)(-1));
+    }
+
+    internal override void ReturnSubType(IntPtr context, uint value)
+    {
+      UnsafeNativeMethods.sqlite3_result_subtype(context, value);
     }
 
 #if INTEROP_VIRTUAL_TABLE

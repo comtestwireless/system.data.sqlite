@@ -909,6 +909,38 @@ SQLITE_API int WINAPI sqlite3_create_function_interop(sqlite3 *psql, const char 
   return n;
 }
 
+SQLITE_API int WINAPI sqlite3_create_window_function_interop(sqlite3 *psql, const char *zFunctionName, int nArg, int eTextRep, void *pvUser, SQLITEUSERFUNC funcstep, SQLITEFUNCFINAL funcfinal, SQLITEFUNCFINAL funcvalue, SQLITEUSERFUNC funcinverse, int needCollSeq)
+{
+  int n;
+
+  if (eTextRep == SQLITE_UTF16)
+    eTextRep = SQLITE_UTF16NATIVE;
+
+  n = sqlite3_create_window_function(psql, zFunctionName, nArg, eTextRep, pvUser, funcstep, funcfinal, funcvalue, funcinverse, NULL);
+  if (n == SQLITE_OK)
+  {
+    if (needCollSeq)
+    {
+      FuncDef *pFunc = sqlite3FindFunction(
+          psql, zFunctionName,
+#if SQLITE_VERSION_NUMBER < 3012000
+          strlen(zFunctionName),
+#endif
+          nArg, eTextRep, 0);
+      if( pFunc )
+      {
+#if SQLITE_VERSION_NUMBER >= 3008001
+        pFunc->funcFlags |= SQLITE_FUNC_NEEDCOLL;
+#else
+        pFunc->flags |= SQLITE_FUNC_NEEDCOLL;
+#endif
+      }
+    }
+  }
+
+  return n;
+}
+
 SQLITE_API void WINAPI sqlite3_value_double_interop(sqlite3_value *pval, double *val)
 {
   if (!val) return;

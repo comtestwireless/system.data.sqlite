@@ -253,6 +253,26 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Gets/sets the default maximum sleep time for newly-created commands.
+    /// </summary>
+    [DisplayName("Default Maximum Sleep Time")]
+    [Browsable(true)]
+    [DefaultValue(150)]
+    public int DefaultMaximumSleepTime
+    {
+      get
+      {
+        object value;
+        TryGetValue("defaultmaximumsleeptime", out value);
+        return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+      }
+      set
+      {
+        this["defaultmaximumsleeptime"] = value;
+      }
+    }
+
+    /// <summary>
     /// Gets/sets the busy timeout to use with the SQLite core library.
     /// </summary>
     [DisplayName("Busy Timeout")]

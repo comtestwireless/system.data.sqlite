@@ -1025,6 +1025,7 @@ runTest {test data-1.17 {SQLiteConnectionStringBuilder properties} -body {
   if {$code eq "Ok"} then {
     set keys [list null Version Synchronous UseUTF16Encoding Pooling \
                    BinaryGUID "Data Source" Uri FullUri "Default Timeout" \
+                   DefaultMaximumSleepTime \
                    Enlist FailIfMissing "Legacy Format" "Read Only" \
                    Password "Page Size" "Max Page Count" "Cache Size" \
                    DateTimeFormat DateTimeKind DateTimeFormatString \
@@ -1037,7 +1038,7 @@ runTest {test data-1.17 {SQLiteConnectionStringBuilder properties} -body {
 
     set values [list null 3 Normal True False \
                      True test.db test.db file:test.db 60 \
-                     False True False True \
+                     120 False True False True \
                      secret 4096 1024 8192 \
                      UnixEpoch Utc yyyy-MM-dd sqlite_schema \
                      Memory Serializable False \
@@ -1047,6 +1048,7 @@ runTest {test data-1.17 {SQLiteConnectionStringBuilder properties} -body {
 
     set propertyNames [list null Version SyncMode UseUTF16Encoding Pooling \
                             BinaryGUID DataSource Uri FullUri DefaultTimeout \
+                            DefaultMaximumSleepTime \
                             Enlist FailIfMissing LegacyFormat ReadOnly \
                             Password PageSize MaxPageCount CacheSize \
                             DateTimeFormat DateTimeKind DateTimeFormatString \
@@ -1077,8 +1079,9 @@ System.Data.SQLite compileCSharp} -match regexp -result \
 Version=3\} 0 \{Normal, Synchronous=Normal\} 0 \{True, UseUTF16Encoding=True\}\
 0 \{False, Pooling=False\} 0 \{True, BinaryGUID=True\} 0 \{test\.db, Data\
 Source=test\.db\} 0 \{test\.db, Uri=test\.db\} 0 \{file:test.db,\
-FullUri=file:test\.db\} 0 \{60, Default Timeout=60\} 0 \{False, Enlist=False\}\
-0 \{True, FailIfMissing=True\} 0 \{False, Legacy Format=False\} 0 \{True, Read\
+FullUri=file:test\.db\} 0 \{60, Default Timeout=60\} 0 \{120,\
+DefaultMaximumSleepTime=120\} 0 \{False, Enlist=False\} 0 \{True,\
+FailIfMissing=True\} 0 \{False, Legacy Format=False\} 0 \{True, Read\
 Only=True\} 0 \{secret, Password=secret\} 0 \{4096, Page Size=4096\} 0 \{1024,\
 Max Page Count=1024\} 0 \{8192, Cache Size=8192\} 0 \{UnixEpoch,\
 DateTimeFormat=UnixEpoch\} 0 \{Utc, DateTimeKind=Utc\} 0 \{yyyy-MM-dd,\

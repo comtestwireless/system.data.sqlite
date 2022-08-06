@@ -5834,19 +5834,26 @@ namespace System.Data.SQLite
       _sql.LogMessage((SQLiteErrorCode)iErrCode, zMessage);
     }
 
-#if INTEROP_CODEC || INTEROP_INCLUDE_SEE
     /// <summary>
-    /// Change the password (or assign a password) to an open database.
+    /// <code>
+    /// WARNING: This method always throws an exception unless the library
+    ///          has been built with encryption support.
+    /// </code>
+    /// Change the password (or assign a password) to the open database.
     /// </summary>
     /// <remarks>
-    /// No readers or writers may be active for this process.  The database must already be open
-    /// and if it already was password protected, the existing password must already have been supplied.
+    /// No readers or writers may be active for this process.  The database
+    /// must already be open and if it already was password protected, the
+    /// existing password must already have been supplied.
     /// </remarks>
-    /// <param name="newPassword">The new password to assign to the database</param>
+    /// <param name="newPassword">
+    /// The new password to assign to the open database.
+    /// </param>
     public void ChangePassword(string newPassword)
     {
         CheckDisposed();
 
+#if INTEROP_CODEC || INTEROP_INCLUDE_SEE
         if (!String.IsNullOrEmpty(newPassword))
         {
             byte[] newPasswordBytes = UTF8Encoding.UTF8.GetBytes(
@@ -5858,35 +5865,65 @@ namespace System.Data.SQLite
         {
             ChangePassword((byte[])null);
         }
+#else
+        throw new SQLiteException(SQLiteErrorCode.Error,
+            "Cannot use \"ChangePassword\" connection method: " +
+            "library was not built with encryption support, please " +
+            "see \"https://www.sqlite.org/see\" for more information");
+#endif
     }
 
     /// <summary>
-    /// Change the password (or assign a password) to an open database.
+    /// <code>
+    /// WARNING: This method always throws an exception unless the library
+    ///          has been built with encryption support.
+    /// </code>
+    /// Change the password (or assign a password) to the open database.
     /// </summary>
     /// <remarks>
-    /// No readers or writers may be active for this process.  The database must already be open
-    /// and if it already was password protected, the existing password must already have been supplied.
+    /// No readers or writers may be active for this process.  The database
+    /// must already be open and if it already was password protected, the
+    /// existing password must already have been supplied.
     /// </remarks>
-    /// <param name="newPassword">The new password to assign to the database</param>
+    /// <param name="newPassword">
+    /// The new password to assign to the open database.
+    /// </param>
     public void ChangePassword(byte[] newPassword)
     {
       CheckDisposed();
 
+#if INTEROP_CODEC || INTEROP_INCLUDE_SEE
       if (_connectionState != ConnectionState.Open)
         throw new InvalidOperationException("Database must be opened before changing the password.");
 
       _sql.ChangePassword(newPassword, _passwordWasText);
+#else
+      throw new SQLiteException(SQLiteErrorCode.Error,
+          "Cannot use \"ChangePassword\" connection method: " +
+          "library was not built with encryption support, please " +
+          "see \"https://www.sqlite.org/see\" for more information");
+#endif
     }
 
     /// <summary>
-    /// Sets the password for a password-protected database.  A password-protected database is
-    /// unusable for any operation until the password has been set.
+    /// <code>
+    /// WARNING: This method always throws an exception unless the library
+    ///          has been built with encryption support.
+    /// </code>
+    /// Sets existing password for a closed password-protected database.
+    /// Password-protected databases are unusable for any other operation
+    /// until the password has been set.  Generally, this is accomplished
+    /// via setting one of the "*Password" connection string properties,
+    /// because it must be done prior to opening the database.
     /// </summary>
-    /// <param name="databasePassword">The password for the database</param>
+    /// <param name="databasePassword">
+    /// The password for the database.
+    /// </param>
     public void SetPassword(string databasePassword)
     {
         CheckDisposed();
 
+#if INTEROP_CODEC || INTEROP_INCLUDE_SEE
         if (!String.IsNullOrEmpty(databasePassword))
         {
             byte[] databasePasswordBytes = UTF8Encoding.UTF8.GetBytes(
@@ -5898,17 +5935,33 @@ namespace System.Data.SQLite
         {
             SetPassword((byte[])null);
         }
+#else
+        throw new SQLiteException(SQLiteErrorCode.Error,
+            "Cannot use \"SetPassword\" connection method: " +
+            "library was not built with encryption support, please " +
+            "see \"https://www.sqlite.org/see\" for more information");
+#endif
     }
 
     /// <summary>
-    /// Sets the password for a password-protected database.  A password-protected database is
-    /// unusable for any operation until the password has been set.
+    /// <code>
+    /// WARNING: This method always throws an exception unless the library
+    ///          has been built with encryption support.
+    /// </code>
+    /// Sets existing password for a closed password-protected database.
+    /// Password-protected databases are unusable for any other operation
+    /// until the password has been set.  Generally, this is accomplished
+    /// via setting one of the "*Password" connection string properties,
+    /// because it must be done prior to opening the database.
     /// </summary>
-    /// <param name="databasePassword">The password for the database</param>
+    /// <param name="databasePassword">
+    /// The password for the database.
+    /// </param>
     public void SetPassword(byte[] databasePassword)
     {
       CheckDisposed();
 
+#if INTEROP_CODEC || INTEROP_INCLUDE_SEE
       if (_connectionState != ConnectionState.Closed)
         throw new InvalidOperationException("Password can only be set before the database is opened.");
 
@@ -5923,8 +5976,13 @@ namespace System.Data.SQLite
       }
 
       _password = databasePassword;
-    }
+#else
+      throw new SQLiteException(SQLiteErrorCode.Error,
+          "Cannot use \"SetPassword\" connection method: " +
+          "library was not built with encryption support, please " +
+          "see \"https://www.sqlite.org/see\" for more information");
 #endif
+    }
 
     /// <summary>
     /// Queries or modifies the number of retries or the retry interval (in milliseconds) for

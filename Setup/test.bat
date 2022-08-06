@@ -19,6 +19,8 @@ IF NOT DEFINED _CECHO (SET _CECHO=REM)
 IF NOT DEFINED _CECHO3 (SET _CECHO3=REM)
 IF NOT DEFINED _VECHO (SET _VECHO=REM)
 
+CALL :fn_UnsetVariable BREAK
+
 %_AECHO% Running %0 %*
 
 SET ROOT=%~dp0\..
@@ -93,6 +95,19 @@ IF ERRORLEVEL 1 (
 )
 
 GOTO no_errors
+
+:fn_UnsetVariable
+  SETLOCAL
+  SET VALUE=%1
+  IF DEFINED VALUE (
+    SET VALUE=
+    ENDLOCAL
+    SET %VALUE%=
+  ) ELSE (
+    ENDLOCAL
+  )
+  CALL :fn_ResetErrorLevel
+  GOTO :EOF
 
 :fn_AppendVariable
   SET __ECHO_CMD=ECHO %%%1%%

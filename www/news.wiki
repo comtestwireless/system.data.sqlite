@@ -62,6 +62,7 @@
     <li>Add support for creating custom window functions. Pursuant to forum post [https://www.sqlite.org/forum/forumpost/21de219031|21de219031].</li>
     <li>Suppress finalizer calls for SQLite3 objects that are closed. Fix for [ce4d70ea6f].</li>
     <li>Improvements to object disposal diagnostics. Pursuant to [ce4d70ea6f].</li>
+    <li>Add MaximumSleepTime property to the SQLiteCommand class and DefaultMaximumSleepTime connection string property.</li>
 </ul>
 <p>
     <b>1.0.116.0 - June 1, 2022</b>

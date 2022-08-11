@@ -500,9 +500,8 @@ FOR %%E IN (%TESTEXEFILES%) DO (
       %__ECHO% RMDIR "%%~dpF"
 
       IF ERRORLEVEL 1 (
-        ECHO Could not remove "%%~dpF".
+        ECHO WARNING: Could not remove "%%~dpF".
         ECHO.
-        GOTO errors
       ) ELSE (
         %_AECHO% Removed "%%~dpF".
         %_AECHO%.

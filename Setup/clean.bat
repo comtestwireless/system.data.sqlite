@@ -497,7 +497,7 @@ FOR %%E IN (%TESTEXEFILES%) DO (
         %_AECHO%.
       )
 
-      %__ECHO% RMDIR "%%~dpF"
+      %__ECHO% RMDIR "%%~dpF" 2>NUL
 
       IF ERRORLEVEL 1 (
         ECHO WARNING: Could not remove "%%~dpF".
@@ -515,7 +515,7 @@ FOR %%E IN (%TESTEXEFILES%) DO (
 ENDLOCAL
 
 IF EXIST "%TEMP%\logs" (
-  %__ECHO% RMDIR "%TEMP%\logs"
+  %__ECHO% RMDIR "%TEMP%\logs" 2>NUL
 
   IF ERRORLEVEL 1 (
     ECHO WARNING: Could not remove "%TEMP%\logs".

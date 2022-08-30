@@ -145,7 +145,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalOptions>$(INTEROP_ASSEMBLY_RESOURCES) %(AdditionalOptions)</AdditionalOptions>
@@ -191,7 +191,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);$(SQLITE_DISABLE_X64_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalOptions>$(INTEROP_ASSEMBLY_RESOURCES) %(AdditionalOptions)</AdditionalOptions>
@@ -237,7 +237,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -278,7 +278,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);$(SQLITE_DISABLE_X64_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -322,7 +322,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalOptions>$(INTEROP_ASSEMBLY_RESOURCES) %(AdditionalOptions)</AdditionalOptions>
@@ -370,7 +370,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);$(SQLITE_DISABLE_X64_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalOptions>$(INTEROP_ASSEMBLY_RESOURCES) %(AdditionalOptions)</AdditionalOptions>
@@ -418,7 +418,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -462,7 +462,7 @@
       <DisableSpecificWarnings>$(SQLITE_DISABLE_WARNINGS);$(SQLITE_DISABLE_X64_WARNINGS);%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>

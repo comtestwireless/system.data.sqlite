@@ -64,7 +64,7 @@
 	/>
 	<UserMacro
 		Name="INTEROP_RESOURCE_DEFINES"
-		Value=""
+		Value="INTEROP_RESOURCE_PLACEHOLDER=1"
 		PerformEnvironmentSet="true"
 	/>
 	<UserMacro

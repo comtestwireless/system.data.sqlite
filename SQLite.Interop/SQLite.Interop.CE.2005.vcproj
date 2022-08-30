@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
@@ -172,7 +172,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
@@ -272,7 +272,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
@@ -369,7 +369,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
@@ -466,7 +466,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
@@ -565,7 +565,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1400;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>

@@ -70,7 +70,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -168,7 +168,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -265,7 +265,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -358,7 +358,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="_DEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -452,7 +452,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -552,7 +552,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -651,7 +651,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -746,7 +746,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
+				PreprocessorDefinitions="NDEBUG;RC_MSC_VER=1500;$(INTEROP_RESOURCE_DEFINES);&quot;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION)&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"

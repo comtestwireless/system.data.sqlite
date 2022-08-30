@@ -98,7 +98,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;RC_MSC_VER=1700;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -121,7 +121,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;RC_MSC_VER=1700;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -144,7 +144,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;RC_MSC_VER=1700;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>
@@ -167,7 +167,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;RC_MSC_VER=1700;INTEROP_RC_VERSION=$(INTEROP_RC_VERSION);$(INTEROP_RESOURCE_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(INTEROP_LIBRARY_DIRECTORIES)</AdditionalLibraryDirectories>

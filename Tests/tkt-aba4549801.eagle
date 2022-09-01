@@ -204,7 +204,7 @@ runTest {test tkt-aba4549801-1.2 {Changed "Dispose" events} -setup {
 
   unset -nocomplain connection
 
-  cleanupDb $fileName db true true true true
+  cleanupDb $fileName db true true true true true
 
   object invoke System.Data.SQLite.SQLiteConnection remove_Changed $callback
   catch {object removecallback $callback}
@@ -294,7 +294,7 @@ runTest {test tkt-aba4549801-1.3 {Changed "Finalize" events} -setup {
 
   unset -nocomplain connection
 
-  cleanupDb $fileName db true true true true
+  cleanupDb $fileName db true true true true true
 
   object invoke System.Data.SQLite.SQLiteConnection remove_Changed $callback
   catch {object removecallback $callback}

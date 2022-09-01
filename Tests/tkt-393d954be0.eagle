@@ -60,6 +60,7 @@ command.sql compile.DATA SQLite System.Data.SQLite} -match regexp -result \
 {^True False \{\} 0 0 0\
 \{Remove\(".*?[/\\]tkt-393d954be0-1\.1\.db",\
 100, 0\)
+ClearAllPools\(\)
 Add\(".*?[/\\]tkt-393d954be0-1\.1\.db", -?\d+, 0\)
 GetCounts\("tkt-393d954be0-1\.1\.db", , 0, 0, 0\)
 ClearPool\("tkt-393d954be0-1\.1\.db"\)

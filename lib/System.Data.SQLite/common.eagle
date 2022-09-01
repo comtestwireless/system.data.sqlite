@@ -3612,7 +3612,21 @@ namespace eval ::Eagle {
     }
 
     proc cleanupDb { fileName {varName db} {collect true} {qualify true}
-            {delete true} {quiet false} } {
+            {delete true} {pool true} {quiet false} } {
+      #
+      # NOTE: First, if requested, attempt to clear all connection pools in
+      #       this application domain.
+      #
+      if {$pool && [catch {
+        object invoke System.Data.SQLite.SQLiteConnection ClearAllPools
+      } error]} then {
+        if {!$quiet} then {
+          tputs $::test_channel [appendArgs \
+              "==== WARNING: failed to clear all pools, error: " \
+              \n\t $error \n]
+        }
+      }
+
       #
       # NOTE: Attempt to force all pending "garbage" objects to be collected,
       #       including SQLite statements and backup objects; this should allow

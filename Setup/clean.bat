@@ -720,11 +720,7 @@ GOTO no_errors
   )
   CALL :fn_UnquoteVariable EXEFILENAME
   CALL :fn_UnquoteVariable LOGFILENAME
-  REM
-  REM HACK: Must use the "ne" operator here in the expression because of our
-  REM       use of delayed expansion around the calling FOR loop.
-  REM
-  SET CHECK_TESTLOGFILE_CMD=EagleShell.exe -evaluate "if {[regexp -skip 1 -- [appendArgs {[/\\]} [string map [list . \\. * (?:.*?)?] {%EXEFILENAME%}] {\.test\.(\d+)\.log$}] {%LOGFILENAME%} pid] && [string is integer -strict $pid] && ([catch {object invoke -alias System.Diagnostics.Process GetProcessById $pid} process] ne 0 || [$process HasExited])} then {puts stdout 1}"
+  SET CHECK_TESTLOGFILE_CMD=EagleShell.exe -evaluate "catch {maybeForceUseLatestTestPackage}; package require Eagle.Test; checkActiveTestLogFile {%EXEFILENAME%} {%LOGFILENAME%}"
   IF NOT DEFINED __ECHO GOTO exec_checkTestLogFileCmd
   %__ECHO% %CHECK_TESTLOGFILE_CMD%
   GOTO :EOF

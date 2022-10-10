@@ -80,7 +80,7 @@ runTest {test tkt-ce4d70ea6f-1.1 {finalizer queue depth} -setup {
 
   list $result [object invoke -flags +NonPublic \
       System.Data.SQLite.SQLiteBase _finalizeCount] \
-      [expr {$result <= 2}]; # <3 per 50K
+      [expr {$result <= 4}]; # <5 per 50K
 } -cleanup {
   unset -nocomplain count rootName dataSource id fileName
   unset -nocomplain result results errors code

@@ -142,19 +142,25 @@ proc transformCoreDocumentationFile { fileName url } {
   set subSpec(1) 1
 
   #
+  # NOTE: Remove the (superfluous) anti-robot script.
+  #
+  set pattern(2) {var antiRobot.*antiRobotDefense\(\);}
+  set subSpec(2) ""
+
+  #
   # NOTE: In Internet Explorer, you cannot set the innerHTML property for
   #       some DOM elements, e.g. <tr>; therefore, remove those elements.
   #
-  set pattern(2) "<table id='(.*?)' width='100%'></table>"
-  set subSpec(2) {<div id='\1'></div>}
-  set pattern(3) {***="<tr><td><ul class='multicol_list'>"}
-  set subSpec(3) {"<ul class='multicol_list'>"}
-  set pattern(4) {***="</ul></td>\n<td><ul class='multicol_list'>\n"}
-  set subSpec(4) {""}
-  set pattern(5) {***=<html><head>}
-  set subSpec(5) {<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge">}
-  set pattern(6) {( viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)")>}; # SVG
-  set subSpec(6) {\1 width="\2" height="\3">}
+  set pattern(3) "<table id='(.*?)' width='100%'></table>"
+  set subSpec(3) {<div id='\1'></div>}
+  set pattern(4) {***="<tr><td><ul class='multicol_list'>"}
+  set subSpec(4) {"<ul class='multicol_list'>"}
+  set pattern(5) {***="</ul></td>\n<td><ul class='multicol_list'>\n"}
+  set subSpec(5) {""}
+  set pattern(6) {***=<html><head>}
+  set subSpec(6) {<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge">}
+  set pattern(7) {( viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)")>}; # SVG
+  set subSpec(7) {\1 width="\2" height="\3">}
 
   #
   # NOTE: Perform the replacements, if any, keeping track of how many were
@@ -166,6 +172,7 @@ proc transformCoreDocumentationFile { fileName url } {
   incr count [regsub -all -- $pattern(4) $data $subSpec(4) data]
   incr count [regsub -all -- $pattern(5) $data $subSpec(5) data]
   incr count [regsub -all -- $pattern(6) $data $subSpec(6) data]
+  incr count [regsub -all -- $pattern(7) $data $subSpec(7) data]
 
   #
   # NOTE: Process all "href" attribute values from the data.  This pattern is
@@ -173,9 +180,9 @@ proc transformCoreDocumentationFile { fileName url } {
   #       are using it consistently.
   #
   set hrefCount 0
-  set pattern(7) {href=['"](.*?)['"]}
+  set pattern(8) {href=['"](.*?)['"]}
 
-  foreach {dummy href} [regexp -all -inline -nocase -- $pattern(7) $data] {
+  foreach {dummy href} [regexp -all -inline -nocase -- $pattern(8) $data] {
     #
     # NOTE: Skip all references to other items on this page.
     #
@@ -225,14 +232,14 @@ proc transformCoreDocumentationFile { fileName url } {
     #       with [regsub].  Use the literal string syntax supported by the
     #       regular expression engine here.
     #
-    set pattern(8) "***=$dummy"
-    set subSpec(8) "href=\"[escapeSubSpec $url$href]\""
+    set pattern(9) "***=$dummy"
+    set subSpec(9) "href=\"[escapeSubSpec $url$href]\""
 
     #
     # NOTE: Perform the replacements, if any, keeping track of how many were
     #       done.
     #
-    incr hrefCount [regsub -all -- $pattern(8) $data $subSpec(8) data]
+    incr hrefCount [regsub -all -- $pattern(9) $data $subSpec(9) data]
   }
 
   #
@@ -249,9 +256,9 @@ proc transformCoreDocumentationFile { fileName url } {
   #       not univeral; however, as of this writing (Feb 2020), the core docs
   #       are using it consistently.
   #
-  set pattern(9) {src=['"](.*?)['"]}
+  set pattern(10) {src=['"](.*?)['"]}
 
-  foreach {dummy src} [regexp -all -inline -nocase -- $pattern(9) $data] {
+  foreach {dummy src} [regexp -all -inline -nocase -- $pattern(10) $data] {
     #
     # NOTE: Skip all absolute HTTP/HTTPS references.
     #

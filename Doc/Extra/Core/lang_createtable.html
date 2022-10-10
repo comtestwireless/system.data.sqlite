@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -5866,4 +5891,5 @@ rowid automatically. A detailed description of how this is done is provided
 
 <p>The <a href="foreignkeys.html#parentchild">parent key</a> of a <a href="foreignkeys.html">foreign key constraint</a> is not allowed to
 use the rowid.  The parent key must used named columns only.</p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_createtable.in?m=493ed69eed6bcb5a6">2021-11-20 13:21:11</a> UTC </small></i></p>
 

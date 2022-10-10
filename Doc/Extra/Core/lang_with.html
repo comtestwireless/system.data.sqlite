@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -3166,4 +3191,5 @@ The SQL:1999 spec requires that the RECURSIVE keyword follow WITH in any
 WITH clause that includes a recursive common table expression.  However, for
 compatibility with SqlServer and Oracle, SQLite does not enforce this rule.
 </p></li></ul>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_with.in?m=b11c4b9e6087ba2a2">2022-01-17 12:21:35</a> UTC </small></i></p>
 

@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <h1 align='center'>recursive-cte</h1>
 <div class='imgcontainer'>
@@ -140,5 +165,6 @@ return false;
 References:&nbsp;&nbsp; <a href='./cte-table-name.html'>cte-table-name</a><br></br>
 See also:&nbsp;&nbsp; <a href='../lang_with.html'>lang_with.html</a>
 </div>
+
 
 

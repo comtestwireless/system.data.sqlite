@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -11236,28 +11261,37 @@ either <a href="lang_aggfunc.html#min_agg">min()</a> or <a href="lang_aggfunc.ht
 SELECT a, b, max(c) FROM tab1 GROUP BY a;
 </pre></blockquote>
 
-<p>When the <a href="lang_aggfunc.html#max_agg">min()</a> or <a href="lang_aggfunc.html#min_agg">max()</a> aggregate functions 
-are used in an aggregate query, all bare columns in the result set 
-take values from the input
-row which also contains the minimum or maximum.  So in the query
+<p>If there is exactly one <a href="lang_aggfunc.html#max_agg">min()</a> or <a href="lang_aggfunc.html#min_agg">max()</a> aggregate
+in the query, then all bare columns in the result set take values from an
+input row which also contains the minimum or maximum.  So in the query
 above, the value of the "b" column in the output will be the value of
 the "b" column in the input row that has the largest "c" value.
-There is still an ambiguity if two or more of the input rows have the
-same minimum or maximum value or if the query contains more than one
-min() and/or max() aggregate function. Only the built-in <a href="lang_aggfunc.html#min_agg">min()</a> 
-and <a href="lang_aggfunc.html#max_agg">max()</a> functions work this way.
-</p>
+There are limitations on this special behavior of
+<a href="lang_aggfunc.html#max_agg">min()</a> and <a href="lang_aggfunc.html#min_agg">max()</a>:
 
-<p>If bare columns appear in an aggregate query that lacks a GROUP BY clause,
-and the number of input rows is zero, then the values of the bare columns
-are arbitrary.  For example, in this query:
+</p><ol>
+<li>
+<p>If the same minimum or maximum value occurs on two or more rows,
+then bare values might be selected from any of those rows.  The choice
+is arbitrary.  There is no way to predict from which row the bare values
+will be choosen.  The choice might be different for different bare columns
+within the same query.
 
-</p><blockquote><pre>
-SELECT count(*), b FROM tab1;
-</pre></blockquote>
+</p></li><li>
+<p>If there are two or more <a href="lang_aggfunc.html#min_agg">min()</a> or <a href="lang_aggfunc.html#max_agg">max()</a> aggregates
+in the query, then bare column values will be taken from one of the rows
+on which one of the aggregates has their minimum or maximum value.  The choice
+of which <a href="lang_aggfunc.html#min_agg">min()</a> or <a href="lang_aggfunc.html#max_agg">max()</a> aggregate determines the 
+selection of bare column values is arbitrary.  The choice might be different
+for different bare columns within the same query.
 
-<p>If the tab1 table contains no rows (if count(*) evaluates to 0) then
-the bare column "b" will have an arbitrary and meaningless value.</p>
+</p></li><li>
+<p>This special processing for <a href="lang_aggfunc.html#min_agg">min()</a> or <a href="lang_aggfunc.html#max_agg">max()</a> aggregates
+only works for the built-in implementation of those aggregates.  If an
+application overrides the built-in <a href="lang_aggfunc.html#min_agg">min()</a> or <a href="lang_aggfunc.html#max_agg">max()</a> aggregates
+with application-defined alternatives, then the values selected for bare
+columns will be taken from an arbitrary row.
+</p></li></ol>
 
 <p>Most other SQL database engines disallow bare columns.  If you include
 a bare column in a query, other database engines will usually raise an error.
@@ -15879,7 +15913,7 @@ the virtual table.  Additional information can be found in the
 
 </p><h1 id="deviations_from_standard_sql"><span>9. </span>Deviations From Standard SQL</h1>
 
-<p>The SELECT syntax syntax of SQLite differs slightly from standard SQL.
+<p>The SELECT syntax of SQLite differs slightly from standard SQL.
 These differences are due to several reasons:
 
 </p><ul>
@@ -16032,4 +16066,5 @@ programmers instinctively follow all of these suggestions without having to
 be told, and so the lack of precedence difference between comma-joins and
 the JOIN keyword in SQLite rarely comes up in practice.  But you should be aware
 of the problem, in case it ever does appear.
-</p>
+</p><p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_select.in?m=4f18bc0c6a2f76093">2022-08-10 18:45:48</a> UTC </small></i></p>
+

@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -2538,4 +2563,5 @@ The default collating
 sequence is the collating sequence defined for that column in the
 <a href="lang_createtable.html">CREATE TABLE</a> statement.  Or if no collating sequence is otherwise defined,
 the built-in BINARY collating sequence is used.</p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_createindex.in?m=2c45540ea09cab806">2021-11-01 21:09:36</a> UTC </small></i></p>
 

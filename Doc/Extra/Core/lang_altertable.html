@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -3077,7 +3102,7 @@ been modified.
 
 <p>ALTER TABLE will normally fail and make no changes if it encounters
 any entries in the <a href="schematab.html">sqlite_schema table</a> that do not parse.  For
-example, if there is a malformed VIEW or TRIGGER associated some some
+example, if there is a malformed VIEW or TRIGGER associated with
 table named "tbl1", then an attempt to rename "tbl1" to "tbl1neo" will
 fail because the associated views and triggers could not be parsed.
 
@@ -3301,4 +3326,5 @@ that are easier to modify.
 
 
 
-</p>
+</p><p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_altertable.in?m=7d2205713ab27ab4c">2022-08-10 18:45:48</a> UTC </small></i></p>
+

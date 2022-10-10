@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -3768,4 +3793,5 @@ the <a href="c3ref/set_authorizer.html">sqlite3_set_authorizer()</a> interface. 
 returns <a href="c3ref/c_deny.html">SQLITE_IGNORE</a> for an <a href="c3ref/c_alter_table.html">SQLITE_DELETE</a> action code, then
 the DELETE operation will proceed but the truncate optimization will
 be bypassed and rows will be deleted one by one.</p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_delete.in?m=9710a614b3f096162">2021-02-02 12:11:09</a> UTC </small></i></p>
 

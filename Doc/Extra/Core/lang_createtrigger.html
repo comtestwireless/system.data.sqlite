@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -4136,15 +4161,15 @@ restrictions apply:</p>
 
 <h1 id="instead_of_triggers"><span>3. </span>INSTEAD OF triggers</h1>
 
-<p>Triggers may be created on <a href="lang_createview.html">views</a>, as well as ordinary tables, by
-specifying INSTEAD OF in the CREATE TRIGGER statement. 
-If one or more ON INSERT, ON DELETE
-or ON UPDATE triggers are defined on a view, then it is not an
-error to execute an INSERT, DELETE or UPDATE statement on the view, 
-respectively.  Instead,
-executing an INSERT, DELETE or UPDATE on the view causes the associated
-triggers to fire. The real tables underlying the view are not modified
-(except possibly explicitly, by a trigger program).</p>
+<p>BEFORE and AFTER triggers work only on ordinary tables.
+INSTEAD OF triggers work only on views.
+
+</p><p>If an INSTEAD OF INSERT trigger exists on a view, then it is
+possible to execute an INSERT statement against that view.  No actual
+insert occurs.  Instead, the statements contained within the trigger
+are run.  INSTEAD OF DELETE and
+INSTEAD OF UPDATE triggers work the same way for DELETE and UPDATE statements
+against views.</p>
 
 <p>Note that the <a href="c3ref/changes.html">sqlite3_changes()</a> and <a href="c3ref/total_changes.html">sqlite3_total_changes()</a> interfaces
 do not count INSTEAD OF trigger firings, but the
@@ -4325,4 +4350,5 @@ CREATE TEMP TRIGGER ex1 AFTER INSERT ON <b>main.</b>tab1 BEGIN ...
 <p>Failure to specify the schema name on the target table could result
 in the TEMP trigger being reattached to a table with the same name in
 another database whenever any schema change occurs.</p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_createtrigger.in?m=62382caed8a6d9933">2022-09-27 13:16:55</a> UTC </small></i></p>
 

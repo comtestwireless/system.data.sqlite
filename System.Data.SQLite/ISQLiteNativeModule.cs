@@ -842,7 +842,7 @@ namespace System.Data.SQLite
         /// <![CDATA[</li>]]><![CDATA[</ol>]]>
         /// <para>
         /// The xBestIndex method will be invoked once for each of the potential
-        /// plans above.  For plan 1, the aConstraint[].usable flag for for the
+        /// plans above.  For plan 1, the aConstraint[].usable flag for the
         /// SQLITE_CONSTRAINT_EQ constraint on the param1 column will be true because
         /// the right-hand side value for the "param1 = ?" constraint will be known,
         /// since it is determined by the outer realtab loop.

@@ -89,6 +89,31 @@ b.innerHTML='hide';
 }
 return false;
 }
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
 </script>
 <div class=fancy>
 <div class=nosearch>
@@ -2941,7 +2966,7 @@ matrix:
 
 <p>Note that SQLite allows the parenthesized list of scalar values on
 the right-hand side of an IN or NOT IN operator to be an empty list but
-most other SQL database database engines and the SQL92 standard require
+most other SQL database engines and the SQL92 standard require
 the list to contain at least one element.</p>
 
 <h1 id="table_column_names"><span>9. </span>Table Column Names</h1>
@@ -3345,4 +3370,5 @@ function are different.  For example, the <a href="lang_aggfunc.html#max_agg">ma
 single argument is an aggregate and the <a href="lang_corefunc.html#max_scalar">max()</a> function with two or more
 arguments is a simple function.  Aggregate functions can usually also
 be used as window functions.
-</p>
+</p><p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_expr.in?m=899fcd819e5f392c9">2022-08-10 18:45:48</a> UTC </small></i></p>
+

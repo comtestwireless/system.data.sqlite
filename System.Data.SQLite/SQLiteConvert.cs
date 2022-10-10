@@ -497,14 +497,26 @@ namespace System.Data.SQLite
     /// <see cref="DateTime" /> value.
     /// </returns>
     private static long computeJD(
-        DateTime dateTime
+        DateTime? dateTime
         )
     {
+        DateTime localDateTime;
+
+        if (dateTime != null)
+        {
+            localDateTime = (DateTime)dateTime;
+        }
+        else
+        {
+            localDateTime = new DateTime(
+                2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        }
+
         int Y, M, D;
 
-        Y = dateTime.Year;
-        M = dateTime.Month;
-        D = dateTime.Day;
+        Y = localDateTime.Year;
+        M = localDateTime.Month;
+        D = localDateTime.Day;
 
         if (M <= 2)
         {
@@ -523,8 +535,10 @@ namespace System.Data.SQLite
 
         jd = (long)((X1 + X2 + D + B - 1524.5) * 86400000);
 
-        jd += (dateTime.Hour * 3600000) + (dateTime.Minute * 60000) +
-            (dateTime.Second * 1000) + dateTime.Millisecond;
+        jd += (localDateTime.Hour * 3600000);
+        jd += (localDateTime.Minute * 60000);
+        jd += (localDateTime.Second * 1000);
+        jd += (localDateTime.Millisecond);
 
         return jd;
     }
@@ -790,7 +804,7 @@ namespace System.Data.SQLite
     /// </summary>
     /// <param name="value">The DateTime to convert</param>
     /// <returns>The JulianDay value the Datetime represents</returns>
-    public static double ToJulianDay(DateTime value)
+    public static double ToJulianDay(DateTime? value)
     {
         return JdToDouble(computeJD(value));
     }

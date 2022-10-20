@@ -192,7 +192,7 @@ GOTO no_errors
       %__ECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\netCore20\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
       CALL :fn_FixErrorLevel
       IF ERRORLEVEL 1 (
-        ECHO Testing of "%YEAR%/%NATIVE_YEAR%/%CONFIGURATION%" .NET Standard 2.0 assembly failed.
+        ECHO Testing of "%YEAR%/%NATIVE_YEAR%/%CONFIGURATION%" .NET Standard 2.0 assembly via .NET Core 2.0 failed.
         CALL :fn_SetErrorLevel
         GOTO :EOF
       )

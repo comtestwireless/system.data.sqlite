@@ -1,9 +1,9 @@
 @ECHO OFF
 
 ::
-:: test_net_standard_20.bat --
+:: test_net_5.bat --
 ::
-:: .NET Standard 2.0 Multiplexing Wrapper Tool for Unit Tests
+:: .NET 5 Multiplexing Wrapper Tool for Unit Tests
 ::
 :: Written by Joe Mistachkin.
 :: Released to the public domain, use at your own risk!
@@ -47,7 +47,7 @@ SET TOOLS=%TOOLS:~0,-1%
 
 CALL :fn_ResetErrorLevel
 
-SET NONETSTANDARD21=1
+SET NONETSTANDARD20=1
 
 %_CECHO3% CALL "%TOOLS%\set_common.bat"
 %__ECHO3% CALL "%TOOLS%\set_common.bat"
@@ -98,7 +98,7 @@ IF NOT DEFINED PLATFORM (
 %_VECHO% Platform = '%PLATFORM%'
 
 IF NOT DEFINED YEARS (
-  SET YEARS=NetStandard20
+  SET YEARS=NetStandard21
 )
 
 %_VECHO% Years = '%YEARS%'
@@ -186,10 +186,10 @@ GOTO no_errors
   )
   SET CONFIGURATION=%NATIVE_CONFIGURATION%
   SET CONFIGURATION=%CONFIGURATION:NativeOnly=%
-  IF EXIST "bin\%YEAR%\%CONFIGURATION%NetStandard20\bin" (
+  IF EXIST "bin\%YEAR%\%CONFIGURATION%NetStandard21\bin" (
     IF EXIST "bin\%NATIVE_YEAR%\%PLATFORM%\%NATIVE_CONFIGURATION%" (
-      %_CECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\net5\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
-      %__ECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\net5\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
+      %_CECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\net5\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard21" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
+      %__ECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\net5\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard21" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
       CALL :fn_FixErrorLevel
       IF ERRORLEVEL 1 (
         ECHO Testing of "%YEAR%/%NATIVE_YEAR%/%CONFIGURATION%" .NET Standard 2.0 assembly failed.
@@ -200,7 +200,7 @@ GOTO no_errors
       %_AECHO% Native directory "bin\%NATIVE_YEAR%\%PLATFORM%\%NATIVE_CONFIGURATION%" not found, skipped.
     )
   ) ELSE (
-    %_AECHO% Managed directory "bin\%YEAR%\%CONFIGURATION%NetStandard20\bin" not found, skipped.
+    %_AECHO% Managed directory "bin\%YEAR%\%CONFIGURATION%NetStandard21\bin" not found, skipped.
   )
   GOTO :EOF
 

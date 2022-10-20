@@ -1,9 +1,9 @@
 @ECHO OFF
 
 ::
-:: test_net_standard_21.bat --
+:: test_net_6.bat --
 ::
-:: .NET Standard 2.1 Multiplexing Wrapper Tool for Unit Tests
+:: .NET 6 Multiplexing Wrapper Tool for Unit Tests
 ::
 :: Written by Joe Mistachkin.
 :: Released to the public domain, use at your own risk!

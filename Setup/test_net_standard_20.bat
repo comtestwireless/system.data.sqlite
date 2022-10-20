@@ -188,8 +188,8 @@ GOTO no_errors
   SET CONFIGURATION=%CONFIGURATION:NativeOnly=%
   IF EXIST "bin\%YEAR%\%CONFIGURATION%NetStandard20\bin" (
     IF EXIST "bin\%NATIVE_YEAR%\%PLATFORM%\%NATIVE_CONFIGURATION%" (
-      %_CECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\netStandard20\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
-      %__ECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\netStandard20\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
+      %_CECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\netCore20\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
+      %__ECHO% "%DOTNET%" %SUBCOMMANDS% "Externals\Eagle\bin\netCore20\%EAGLESHELL%" %PREARGS% -anyInitialize "set test_year {%YEAR%}; set test_native_year {%NATIVE_YEAR%}; set test_configuration {%CONFIGURATION%}; set test_configuration_suffix NetStandard20" -initialize -postInitialize "unset -nocomplain no(deleteSqliteImplicitNativeFiles); unset -nocomplain no(copySqliteImplicitNativeFiles)" %MIDARGS% -file "%TEST_FILE%" %POSTARGS%
       CALL :fn_FixErrorLevel
       IF ERRORLEVEL 1 (
         ECHO Testing of "%YEAR%/%NATIVE_YEAR%/%CONFIGURATION%" .NET Standard 2.0 assembly failed.

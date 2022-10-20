@@ -2334,11 +2334,11 @@
       <Output ItemName="EagleCopySystemDataSQLiteItem2" TaskParameter="Include" />
     </CreateItem>
 
-    <CreateItem Include="$(EagleDir)\Externals\System.Data.SQLite\netCore20\*">
+    <CreateItem Include="$(EagleDir)\Externals\System.Data.SQLite\netStandard20\*">
       <Output ItemName="EagleCopySystemDataSQLiteItem3" TaskParameter="Include" />
     </CreateItem>
 
-    <CreateItem Include="$(EagleDir)\Externals\System.Data.SQLite\netCore30\*">
+    <CreateItem Include="$(EagleDir)\Externals\System.Data.SQLite\netStandard21\*">
       <Output ItemName="EagleCopySystemDataSQLiteItem4" TaskParameter="Include" />
     </CreateItem>
 

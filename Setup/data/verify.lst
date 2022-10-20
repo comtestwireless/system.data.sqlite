@@ -255,6 +255,10 @@ set sds_manifests(source) {
   Setup/release_static.bat
   Setup/run-mono-tests-debug.sh
   Setup/run-mono-tests-release.sh
+  Setup/run-net5-tests-debug.sh
+  Setup/run-net5-tests-release.sh
+  Setup/run-net6-tests-debug.sh
+  Setup/run-net6-tests-release.sh
   Setup/run-netcore20-tests-debug.sh
   Setup/run-netcore20-tests-release.sh
   Setup/run-netcore30-tests-debug.sh
@@ -392,6 +396,8 @@ set sds_manifests(source) {
   Setup/test.bat
   Setup/test_all.bat
   Setup/test_ce_200x.bat
+  Setup/test_net_5.bat
+  Setup/test_net_6.bat
   Setup/test_net_standard_20.bat
   Setup/test_net_standard_21.bat
   Setup/updateFileInfo.tcl
@@ -957,6 +963,14 @@ set sds_manifests(source) {
 #       suite.
 #
 set sds_manifests(eagle) {
+  Externals/Eagle/bin/net5/
+  Externals/Eagle/bin/net5/Eagle.dll
+  Externals/Eagle/bin/net5/EagleShell.dll
+  Externals/Eagle/bin/net5/EagleShell.runtimeconfig.json
+  Externals/Eagle/bin/net6/
+  Externals/Eagle/bin/net6/Eagle.dll
+  Externals/Eagle/bin/net6/EagleShell.dll
+  Externals/Eagle/bin/net6/EagleShell.runtimeconfig.json
   Externals/Eagle/bin/netCore20/
   Externals/Eagle/bin/netCore20/Eagle.dll
   Externals/Eagle/bin/netCore20/EagleShell.dll

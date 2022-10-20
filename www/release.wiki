@@ -254,7 +254,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_net_standard_20.bat</b>
+    <b>test_net_core_20.bat</b>
   </li>
 
   <li>
@@ -278,7 +278,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_net_standard_21.bat</b>
+    <b>test_net_core_30.bat</b>
   </li>
 
   <li>

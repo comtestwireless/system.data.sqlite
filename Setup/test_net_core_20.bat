@@ -1,9 +1,9 @@
 @ECHO OFF
 
 ::
-:: test_net_standard_20.bat --
+:: test_net_core_20.bat --
 ::
-:: .NET Standard 2.0 Multiplexing Wrapper Tool for Unit Tests
+:: .NET Core 2.0 Multiplexing Wrapper Tool for Unit Tests
 ::
 :: Written by Joe Mistachkin.
 :: Released to the public domain, use at your own risk!

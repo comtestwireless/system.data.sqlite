@@ -398,8 +398,8 @@ set sds_manifests(source) {
   Setup/test_ce_200x.bat
   Setup/test_net_5.bat
   Setup/test_net_6.bat
-  Setup/test_net_standard_20.bat
-  Setup/test_net_standard_21.bat
+  Setup/test_net_core_20.bat
+  Setup/test_net_core_30.bat
   Setup/updateFileInfo.tcl
   Setup/verify.eagle
   Setup/vsSp.bat

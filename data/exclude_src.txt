@@ -13,8 +13,10 @@
 _FOSSIL_
 bin/*
 Doc/Output/*
+Externals/Eagle/bin/net5/*
+Externals/Eagle/bin/net6/*
 Externals/Eagle/bin/netCore20/*
-Externals/Eagle/bin/netCore21/*
+Externals/Eagle/bin/netCore30/*
 Externals/Eagle/bin/netFramework20/Eagle.dll
 Externals/Eagle/bin/netFramework20/EagleShell.exe
 Externals/Eagle/bin/netFramework20/EagleShell.exe.mda.config

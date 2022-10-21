@@ -224,10 +224,10 @@ set sds_manifests(source) {
   Setup/bake_all.bat
   Setup/build-mono-debug.sh
   Setup/build-mono-release.sh
-  Setup/build-netcore20-debug.sh
-  Setup/build-netcore20-release.sh
-  Setup/build-netcore30-debug.sh
-  Setup/build-netcore30-release.sh
+  Setup/build-netstandard20-debug.sh
+  Setup/build-netstandard20-release.sh
+  Setup/build-netstandard21-debug.sh
+  Setup/build-netstandard21-release.sh
   Setup/build.bat
   Setup/build_all.bat
   Setup/build_ce_200x.bat

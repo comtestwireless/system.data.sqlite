@@ -720,7 +720,7 @@ GOTO no_errors
   )
   CALL :fn_UnquoteVariable EXEFILENAME
   CALL :fn_UnquoteVariable LOGFILENAME
-  SET CHECK_TESTLOGFILE_CMD=EagleShell.exe -evaluate "catch {maybeForceUseLatestTestPackage}; package require Eagle.Test; checkActiveTestLogFile {%EXEFILENAME%} {%LOGFILENAME%}"
+  SET CHECK_TESTLOGFILE_CMD=EagleShell.exe -evaluate "package require Eagle.Test; checkActiveTestLogFile {%EXEFILENAME%} {%LOGFILENAME%}"
   IF NOT DEFINED __ECHO GOTO exec_checkTestLogFileCmd
   %__ECHO% %CHECK_TESTLOGFILE_CMD%
   GOTO :EOF

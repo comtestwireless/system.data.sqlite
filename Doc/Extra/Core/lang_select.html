@@ -94,7 +94,7 @@ function antiRobotGo(){
 if( antiRobot!=3 ) return;
 antiRobot = 7;
 var j = document.getElementById("mtimelink");
-if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+if(j && j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
 }
 function antiRobotDefense(){
 document.body.onmousedown=function(){
@@ -16046,7 +16046,7 @@ This is not the case in SQLite, where all joins have the same precedence.
 then the result of the left join would be cross-joined against t1.  But SQLite
 always handles all joins from left to right.  Thus, SQLite will do a cross
 join on t1 and t2 first, then the result of that cross join will feed into the FULL JOIN
-with t3.  Inner joins are inheriently associative, so the difference is only
+with t3.  Inner joins are inherently associative, so the difference is only
 evident if your FROM clause contains one or more outer joins.
 
 </p><p>You can work around this, and make your SQL statements portable across all
@@ -16066,5 +16066,5 @@ programmers instinctively follow all of these suggestions without having to
 be told, and so the lack of precedence difference between comma-joins and
 the JOIN keyword in SQLite rarely comes up in practice.  But you should be aware
 of the problem, in case it ever does appear.
-</p><p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_select.in?m=4f18bc0c6a2f76093">2022-08-10 18:45:48</a> UTC </small></i></p>
+</p><p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_select.in?m=b6b0b5302da4177eb">2022-10-26 20:02:18</a> UTC </small></i></p>
 

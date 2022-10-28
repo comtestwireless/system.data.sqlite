@@ -94,7 +94,7 @@ function antiRobotGo(){
 if( antiRobot!=3 ) return;
 antiRobot = 7;
 var j = document.getElementById("mtimelink");
-if(j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+if(j && j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
 }
 function antiRobotDefense(){
 document.body.onmousedown=function(){

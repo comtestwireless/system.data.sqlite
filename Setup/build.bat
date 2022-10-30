@@ -16,6 +16,7 @@ REM SET __ECHO2=ECHO
 REM SET __ECHO3=ECHO
 IF NOT DEFINED _AECHO (SET _AECHO=REM)
 IF NOT DEFINED _CECHO (SET _CECHO=REM)
+IF NOT DEFINED _CECHO2 (SET _CECHO2=REM)
 IF NOT DEFINED _CECHO3 (SET _CECHO3=REM)
 IF NOT DEFINED _VECHO (SET _VECHO=REM)
 
@@ -442,6 +443,7 @@ REM ****************************************************************************
 
 CALL :fn_ResetErrorLevel
 
+%_CECHO2% PUSHD "%ROOT%"
 %__ECHO2% PUSHD "%ROOT%"
 
 IF ERRORLEVEL 1 (
@@ -639,6 +641,7 @@ REM ****************************************************************************
 REM **************************** Restore Directory *****************************
 REM ****************************************************************************
 
+%_CECHO2% POPD
 %__ECHO2% POPD
 
 IF ERRORLEVEL 1 (

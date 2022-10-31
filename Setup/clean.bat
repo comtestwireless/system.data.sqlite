@@ -20,6 +20,10 @@ IF NOT DEFINED _CECHO2 (SET _CECHO2=REM)
 IF NOT DEFINED _CECHO3 (SET _CECHO3=REM)
 IF NOT DEFINED _VECHO (SET _VECHO=REM)
 
+SET NULERR=2^>NUL
+SET _CNULERR=2^^^>NUL
+IF DEFINED __ECHO SET NULERR=2^^^>NUL
+
 CALL :fn_UnsetVariable BREAK
 
 %_AECHO% Running %0 %*
@@ -498,7 +502,7 @@ FOR %%E IN (%TESTEXEFILES%) DO (
         %_AECHO%.
       )
 
-      %__ECHO% RMDIR "%%~dpF" 2>NUL
+      %__ECHO% RMDIR "%%~dpF" %NULERR%
 
       IF ERRORLEVEL 1 (
         ECHO WARNING: Could not remove "%%~dpF".
@@ -516,7 +520,7 @@ FOR %%E IN (%TESTEXEFILES%) DO (
 ENDLOCAL
 
 IF EXIST "%TEMP%\logs" (
-  %__ECHO% RMDIR "%TEMP%\logs" 2>NUL
+  %__ECHO% RMDIR "%TEMP%\logs" %NULERR%
 
   IF ERRORLEVEL 1 (
     ECHO WARNING: Could not remove "%TEMP%\logs".

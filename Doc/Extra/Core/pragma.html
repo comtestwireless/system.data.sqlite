@@ -1872,7 +1872,9 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     the column in the primary key for columns that are part of the primary
     key.</p>
     <p>The table named in the table_info pragma can also be a view.</p>
-    <p>See also: <a href="pragma.html#pragma_table_xinfo">PRAGMA table_xinfo</a>
+    <p>This pragma does not show information about <a href="gencol.html">generated columns</a> nor
+    <a href="vtab.html#hiddencol">hidden columns</a>.  Use <a href="pragma.html#pragma_table_xinfo">PRAGMA table_xinfo</a> to get a more complete list
+    of columns that includes generated and hidden columns.
 <a name="pragma_table_list"></a>
 <h _id=pragma_table_list style="display:none"> PRAGMA table_list</h><hr>
     <p> <b>PRAGMA table_list;
@@ -1907,9 +1909,9 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
 <h _id=pragma_table_xinfo style="display:none"> PRAGMA table_xinfo</h><hr>
     <p><b>PRAGMA </b><i>schema.</i><b>table_xinfo(</b><i>table-name</i><b>);</b></p>
     <p>This pragma returns one row for each column in the named table,
-    including <a href="vtab.html#hiddencol">hidden columns</a> in virtual tables.
+    including <a href="gencol.html">generated columns</a> and <a href="vtab.html#hiddencol">hidden columns</a>.
     The output is the same as for <a href="pragma.html#pragma_table_info">PRAGMA table_info</a> except that
-    hidden columns are shown rather than being omitted.
+    generated and hidden columns are shown rather than being omitted.
 <a name="pragma_temp_store"></a>
 <h _id=pragma_temp_store style="display:none"> PRAGMA temp_store</h><hr>
     <p><b>PRAGMA temp_store;
@@ -2237,5 +2239,5 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     a <a href="howtocorrupt.html#cfgerr">corrupt database file</a>.</span>
 
 <hr>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=ab11de4fabd2728cb">2022-06-09 21:48:32</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=23d315f83762486cb">2022-11-09 20:09:19</a> UTC </small></i></p>
 

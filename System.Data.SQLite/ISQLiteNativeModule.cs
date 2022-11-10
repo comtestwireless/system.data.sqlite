@@ -85,7 +85,7 @@ namespace System.Data.SQLite
         /// int sqlite3_vtab_config(sqlite3 *db, int op, ...);
         /// </code></para>
         /// <para>
-        /// Call calls to sqlite3_vtab_config() are optional.  But for maximum
+        /// Calls to sqlite3_vtab_config() are optional.  But for maximum
         /// security, it is recommended that virtual table implementations
         /// invoke "sqlite3_vtab_config(db, SQLITE_VTAB_DIRECTONLY)" if the
         /// virtual table will not be used from inside of triggers or views.

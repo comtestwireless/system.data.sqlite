@@ -875,7 +875,7 @@ static void sqlite3Fts5BufferAppendPrintf(int *, Fts5Buffer*, char *zFmt, ...);
 static char *sqlite3Fts5Mprintf(int *pRc, const char *zFmt, ...);
 
 #define fts5BufferZero(x)             sqlite3Fts5BufferZero(x)
-#define fts5BufferAppendVarint(a,b,c) sqlite3Fts5BufferAppendVarint(a,b,c)
+#define fts5BufferAppendVarint(a,b,c) sqlite3Fts5BufferAppendVarint(a,b,(i64)c)
 #define fts5BufferFree(a)             sqlite3Fts5BufferFree(a)
 #define fts5BufferAppendBlob(a,b,c,d) sqlite3Fts5BufferAppendBlob(a,b,c,d)
 #define fts5BufferSet(a,b,c,d)        sqlite3Fts5BufferSet(a,b,c,d)
@@ -12830,7 +12830,9 @@ static void fts5WriteAppendRowid(
       fts5BufferAppendVarint(&p->rc, &pPage->buf, iRowid);
     }else{
       assert_nc( p->rc || iRowid>pWriter->iPrevRowid );
-      fts5BufferAppendVarint(&p->rc, &pPage->buf, iRowid - pWriter->iPrevRowid);
+      fts5BufferAppendVarint(&p->rc, &pPage->buf, 
+          (u64)iRowid - (u64)pWriter->iPrevRowid
+      );
     }
     pWriter->iPrevRowid = iRowid;
     pWriter->bFirstRowidInDoclist = 0;
@@ -13594,7 +13596,7 @@ static int sqlite3Fts5IndexMerge(Fts5Index *p, int nMerge){
 
 static void fts5AppendRowid(
   Fts5Index *p,
-  i64 iDelta,
+  u64 iDelta,
   Fts5Iter *pUnused,
   Fts5Buffer *pBuf
 ){
@@ -13604,7 +13606,7 @@ static void fts5AppendRowid(
 
 static void fts5AppendPoslist(
   Fts5Index *p,
-  i64 iDelta,
+  u64 iDelta,
   Fts5Iter *pMulti,
   Fts5Buffer *pBuf
 ){
@@ -13679,10 +13681,10 @@ static void fts5MergeAppendDocid(
 }
 #endif
 
-#define fts5MergeAppendDocid(pBuf, iLastRowid, iRowid) {       \
-  assert( (pBuf)->n!=0 || (iLastRowid)==0 );                   \
-  fts5BufferSafeAppendVarint((pBuf), (iRowid) - (iLastRowid)); \
-  (iLastRowid) = (iRowid);                                     \
+#define fts5MergeAppendDocid(pBuf, iLastRowid, iRowid) {                 \
+  assert( (pBuf)->n!=0 || (iLastRowid)==0 );                             \
+  fts5BufferSafeAppendVarint((pBuf), (u64)(iRowid) - (u64)(iLastRowid)); \
+  (iLastRowid) = (iRowid);                                               \
 }
 
 /*
@@ -13953,7 +13955,7 @@ static void fts5SetupPrefixIter(
   int nMerge = 1;
 
   void (*xMerge)(Fts5Index*, Fts5Buffer*, int, Fts5Buffer*);
-  void (*xAppend)(Fts5Index*, i64, Fts5Iter*, Fts5Buffer*);
+  void (*xAppend)(Fts5Index*, u64, Fts5Iter*, Fts5Buffer*);
   if( p->pConfig->eDetail==FTS5_DETAIL_NONE ){
     xMerge = fts5MergeRowidLists;
     xAppend = fts5AppendRowid;
@@ -13992,7 +13994,7 @@ static void fts5SetupPrefixIter(
         Fts5SegIter *pSeg = &p1->aSeg[ p1->aFirst[1].iFirst ];
         p1->xSetOutputs(p1, pSeg);
         if( p1->base.nData ){
-          xAppend(p, p1->base.iRowid-iLastRowid, p1, &doclist);
+          xAppend(p, (u64)p1->base.iRowid-(u64)iLastRowid, p1, &doclist);
           iLastRowid = p1->base.iRowid;
         }
       }
@@ -14040,7 +14042,7 @@ static void fts5SetupPrefixIter(
         iLastRowid = 0;
       }
 
-      xAppend(p, p1->base.iRowid-iLastRowid, p1, &doclist);
+      xAppend(p, (u64)p1->base.iRowid-(u64)iLastRowid, p1, &doclist);
       iLastRowid = p1->base.iRowid;
     }
 
@@ -15019,6 +15021,7 @@ static int sqlite3Fts5IndexIntegrityCheck(Fts5Index *p, u64 cksum, int bUseCksum
 
     /* If this is a new term, query for it. Update cksum3 with the results. */
     fts5TestTerm(p, &term, z, n, cksum2, &cksum3);
+    if( p->rc ) break;
 
     if( eDetail==FTS5_DETAIL_NONE ){
       if( 0==fts5MultiIterIsEmpty(p, pIter) ){
@@ -18357,7 +18360,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2022-10-31 18:11:12 852f2c95833e3e853016aaaa15dd2a8c7b2cd886f6e6bee2f38e34536b093819", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2022-11-16 12:10:08 89c459e766ea7e9165d0beeb124708b955a4950d0f4792f457465d71b158d318", -1, SQLITE_TRANSIENT);
 }
 
 /*

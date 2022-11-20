@@ -1680,10 +1680,16 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
        schema changes. As each SQL statement runs, the schema version is
        checked to ensure that the schema has not changed since the SQL
        statement was <a href="c3ref/prepare.html">prepared</a>.
-       Subverting this mechanism by using "PRAGMA schema_version"
+       Subverting this mechanism by using "PRAGMA schema_version=N"
+       to change the value of the schema_version
        may cause SQL statement to run using an obsolete schema,
        which can lead to incorrect answers and/or
        <a href="howtocorrupt.html#cfgerr">database corruption</a>.
+       It is always safe to read the schema_version, but changing the
+       schema_version can cause problems.  For this reason, attempts
+       to change the value of schema_version are a silent no-op when
+       <a href="c3ref/c_dbconfig_defensive.html#sqlitedbconfigdefensive">defensive mode</a> is enabled for a
+       database connection.
 
        
     <p><span style='background-color: #ffff60;'>
@@ -2239,5 +2245,5 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     a <a href="howtocorrupt.html#cfgerr">corrupt database file</a>.</span>
 
 <hr>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=23d315f83762486cb">2022-11-09 20:09:19</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=0f695165ea16e591a">2022-11-15 22:37:02</a> UTC </small></i></p>
 

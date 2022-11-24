@@ -1881,7 +1881,7 @@ namespace eval ::Eagle {
       }]
     }
 
-    proc matchPlatform { platform } {
+    proc matchBuildPlatform { platform } {
       #
       # NOTE: An empty string for the platform means that the build is not
       #       [primarily] a native build; therefore, it always matches.
@@ -2030,7 +2030,7 @@ namespace eval ::Eagle {
                   #       first available build of System.Data.SQLite and
                   #       then return immediately.
                   #
-                  if {$select && [matchPlatform $platform]} then {
+                  if {$select && [matchBuildPlatform $platform]} then {
                     #
                     # NOTE: Manually override all the build directory
                     #       selection related test settings in order to
@@ -2111,7 +2111,7 @@ namespace eval ::Eagle {
             set platform unknown
           }
 
-          if {$select && [matchPlatform $platform]} then {
+          if {$select && [matchBuildPlatform $platform]} then {
             set ::build_directory $directory
 
             tputs $channel [appendArgs "yes, selected (" $platform ")\n"]
@@ -2143,7 +2143,7 @@ namespace eval ::Eagle {
                   set platform unknown
                 }
 
-                if {$select && [matchPlatform $platform]} then {
+                if {$select && [matchBuildPlatform $platform]} then {
                   set ::build_directory $path
 
                   tputs $channel [appendArgs "yes, selected (" $platform ")\n"]

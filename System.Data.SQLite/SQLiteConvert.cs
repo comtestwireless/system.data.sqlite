@@ -2395,7 +2395,17 @@ namespace System.Data.SQLite
       /// The closing of the object had no effect, e.g. because the
       /// underlying resource was not actually allocated or opened.
       /// </summary>
-      NothingToDo = 21
+      NothingToDo = 21,
+
+      /// <summary>
+      /// The connection string may be changed.
+      /// </summary>
+      ConnectionStringPreview = 22,
+
+      /// <summary>
+      /// The <see cref="SQLiteConnection.Cancel" /> method was invoked.
+      /// </summary>
+      Canceled = 23
   }
 
   /// <summary>

@@ -859,6 +859,8 @@ namespace System.Data.SQLite
       /// </summary>
       public readonly object Data;
 
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
       /// <summary>
       /// Constructs the object.
       /// </summary>
@@ -885,6 +887,41 @@ namespace System.Data.SQLite
           string text,
           object data
           )
+          : this(eventType, eventArgs, transaction, command, dataReader, criticalHandle, text, data, null)
+      {
+          // do nothing.
+      }
+
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// Constructs the object.
+      /// </summary>
+      /// <param name="eventType">The type of event being raised.</param>
+      /// <param name="eventArgs">The base <see cref="EventArgs" /> associated
+      /// with this event, if any.</param>
+      /// <param name="transaction">The transaction associated with this event, if any.</param>
+      /// <param name="command">The command associated with this event, if any.</param>
+      /// <param name="dataReader">The data reader associated with this event, if any.</param>
+      /// <param name="criticalHandle">The critical handle associated with this event, if any.</param>
+      /// <param name="text">The command or message text, if any.</param>
+      /// <param name="data">The extra data, if any.</param>
+      /// <param name="result">The optional event result, if any.</param>
+      internal ConnectionEventArgs(
+          SQLiteConnectionEventType eventType,
+          StateChangeEventArgs eventArgs,
+          IDbTransaction transaction,
+          IDbCommand command,
+          IDataReader dataReader,
+#if !PLATFORM_COMPACTFRAMEWORK
+          CriticalHandle criticalHandle,
+#else
+          object criticalHandle,
+#endif
+          string text,
+          object data,
+          string result
+          )
       {
           EventType = eventType;
           EventArgs = eventArgs;
@@ -894,6 +931,16 @@ namespace System.Data.SQLite
           CriticalHandle = criticalHandle;
           Text = text;
           Data = data;
+          Result = result;
+      }
+
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
+      private string result;
+      public string Result
+      {
+          get { return result; }
+          set { result = value; }
       }
   }
 
@@ -4476,6 +4523,14 @@ namespace System.Data.SQLite
 
       Close();
 
+      ConnectionEventArgs previewEventArgs = new ConnectionEventArgs(
+          SQLiteConnectionEventType.ConnectionStringPreview,
+          null, null, null, null, null, null, null, null);
+
+      previewEventArgs.Result = _connectionString;
+      OnChanged(this, previewEventArgs);
+      _connectionString = previewEventArgs.Result;
+
       SortedList<string, string> opts = ParseConnectionString(
           this, _connectionString, _parseViaFramework, false);
 
@@ -5260,6 +5315,10 @@ namespace System.Data.SQLite
             throw new InvalidOperationException("Database connection not valid for query cancellation.");
 
         _sql.Cancel(); /* throw */
+
+        OnChanged(this, new ConnectionEventArgs(
+            SQLiteConnectionEventType.Canceled,
+            null, null, null, null, null, null, null));
     }
 
     /// <summary>

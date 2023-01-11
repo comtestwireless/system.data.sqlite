@@ -5322,6 +5322,24 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// This method checks if the database operation for this connection has been
+    /// interrupted.
+    /// </summary>
+    /// <returns>
+    /// Non-zero if the database operation for this connection has been interrupted;
+    /// otherwise, zero.
+    /// </returns>
+    public bool IsCanceled()
+    {
+        CheckDisposed();
+
+        if (_sql == null)
+            throw new InvalidOperationException("Database connection not valid for checking cancellation.");
+
+        return _sql.IsCanceled(); /* throw */
+    }
+
+    /// <summary>
     /// Returns the number of rows changed by the last INSERT, UPDATE, or DELETE statement executed on
     /// this connection.
     /// </summary>

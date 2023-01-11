@@ -211,6 +211,12 @@ namespace System.Data.SQLite
     internal abstract void Cancel();
 
     /// <summary>
+    /// Returns non-zero if the operation for the current connection has been
+    /// interrupted.
+    /// </summary>
+    internal abstract bool IsCanceled();
+
+    /// <summary>
     /// This function binds a user-defined function to the connection.
     /// </summary>
     /// <param name="functionAttribute">

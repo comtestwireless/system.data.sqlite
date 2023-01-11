@@ -4053,6 +4053,13 @@ namespace System.Data.SQLite
 
 #if !PLATFORM_COMPACTFRAMEWORK
     [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl)]
+#else
+    [DllImport(SQLITE_DLL)]
+#endif
+    internal static extern int sqlite3_is_interrupted(IntPtr db);
+
+#if !PLATFORM_COMPACTFRAMEWORK
+    [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl)]
     internal static extern long sqlite3_last_insert_rowid(IntPtr db);
 #endif
 

@@ -511,6 +511,17 @@ namespace System.Data.SQLite
       }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Returns non-zero if the operation for the current connection has been
+    /// interrupted.
+    /// </summary>
+    internal override bool IsCanceled()
+    {
+        return UnsafeNativeMethods.sqlite3_is_interrupted(_sql) != 0;
+    }
+
     /// <summary>
     /// This function binds a user-defined function to the connection.
     /// </summary>

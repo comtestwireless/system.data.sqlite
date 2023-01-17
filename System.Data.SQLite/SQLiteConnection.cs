@@ -7850,8 +7850,23 @@ namespace System.Data.SQLite
         try
         {
             if (_traceHandler2 != null)
-                _traceHandler2(this, new TraceEventArgs(flags,
-                  SQLiteBase.UTF8ToString(statement, -1)));
+            {
+                TraceEventArgs eventArgs = null;
+
+                switch (flags)
+                {
+                    case SQLiteTraceFlags.SQLITE_TRACE_NONE:
+                    case SQLiteTraceFlags.SQLITE_TRACE_PROFILE:
+                    case SQLiteTraceFlags.SQLITE_TRACE_ROW:
+                    case SQLiteTraceFlags.SQLITE_TRACE_STMT:
+                    case SQLiteTraceFlags.SQLITE_TRACE_CLOSE:
+                        {
+                            break;
+                        }
+                }
+
+                _traceHandler2(this, eventArgs);
+            }
         }
         catch (Exception e) /* NOTE: Must catch ALL. */
         {

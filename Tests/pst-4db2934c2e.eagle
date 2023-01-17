@@ -21,13 +21,59 @@ runSQLiteTestPrologue
 ###############################################################################
 
 runTest {test pst-4db2934c2e-1.1 {Trace2 event} -setup {
+  setupDb [set fileName pst-4db2934c2e-1.1.db]
 
+  proc traceCallback { sender e } {
+    set result [list [$e Flags]]
+    set databaseConnection [$e DatabaseConnection]
+    set preparedStatement [$e PreparedStatement]
+
+    if {[isNonNullObjectHandle $databaseConnection]} then {
+      lappend result [format %lx $databaseConnection]
+    }
+
+    if {[isNonNullObjectHandle $preparedStatement]} then {
+      lappend result [format %lx $preparedStatement]
+    }
+
+    lappend result [$e Statement] [$e Elapsed]
+    lappend ::results $result
+  }
+
+  sql execute $db {
+    CREATE TABLE t1(x);
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+  }
 } -body {
+  set connection [getDbConnection]
+  $connection TraceFlags SQLITE_TRACE_ALL
+  $connection add_Trace2 traceCallback
 
+  lappend results [sql execute -execute reader -format list $db {
+    SELECT * FROM t1 ORDER BY x;
+  }]; # SQLITE_TRACE_STMT, SQLITE_TRACE_ROW, SQLITE_TRACE_PROFILE
+
+  $connection remove_Trace2 traceCallback
+
+  set results
 } -cleanup {
+  catch {object removecallback traceCallback}
 
+  freeDbConnection connection false
+  unset -nocomplain connection
+
+  cleanupDb $fileName
+
+  unset -nocomplain results fileName
+
+  rename traceCallback ""
 } -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
-System.Data.SQLite} -result {}}
+System.Data.SQLite} -match regexp -result {^\{SQLITE_TRACE_STMT \{SELECT \*\
+FROM t1 ORDER BY x;\} \{\}\} \{SQLITE_TRACE_ROW \{\} \{\}\} \{SQLITE_TRACE_ROW\
+\{\} \{\}\} \{SQLITE_TRACE_ROW \{\} \{\}\} \{SQLITE_TRACE_PROFILE \{\} \d+\}\
+\{1 2 3\}$}}
 
 ###############################################################################
 

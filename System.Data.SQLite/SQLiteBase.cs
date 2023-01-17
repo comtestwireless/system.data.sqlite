@@ -1955,7 +1955,10 @@ namespace System.Data.SQLite
       SQLITE_TRACE_STMT = 0x1, // pStmt, zSql
       SQLITE_TRACE_PROFILE = 0x2, // pStmt, piNsec64
       SQLITE_TRACE_ROW = 0x4, // pStmt
-      SQLITE_TRACE_CLOSE = 0x8 // pDb
+      SQLITE_TRACE_CLOSE = 0x8, // pDb
+
+      SQLITE_TRACE_ALL = SQLITE_TRACE_STMT | SQLITE_TRACE_PROFILE |
+                         SQLITE_TRACE_ROW | SQLITE_TRACE_CLOSE,
   }
 
   /// <summary>

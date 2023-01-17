@@ -7811,7 +7811,7 @@ namespace System.Data.SQLite
     }
 
     private void TraceCallback(
-        IntPtr puser, /* NOT USED */
+        IntPtr pUser, /* NOT USED */
         IntPtr statement
         )
     {
@@ -7842,9 +7842,9 @@ namespace System.Data.SQLite
 
     private void TraceCallback2(
         SQLiteTraceFlags flags,
-        IntPtr pctx, /* NOT USED */
-        IntPtr puser, /* NOT USED */
-        IntPtr statement
+        IntPtr pUser,
+        IntPtr pCtx1,
+        IntPtr pCtx2
         )
     {
         try
@@ -7856,11 +7856,38 @@ namespace System.Data.SQLite
                 switch (flags)
                 {
                     case SQLiteTraceFlags.SQLITE_TRACE_NONE:
-                    case SQLiteTraceFlags.SQLITE_TRACE_PROFILE:
-                    case SQLiteTraceFlags.SQLITE_TRACE_ROW:
+                        {
+                            // nothing, no data
+                            break;
+                        }
                     case SQLiteTraceFlags.SQLITE_TRACE_STMT:
+                        {
+                            eventArgs = new TraceEventArgs(
+                                flags, null, pCtx1, SQLiteBase.UTF8ToString(
+                                pCtx2, -1), null);
+
+                            break;
+                        }
+                    case SQLiteTraceFlags.SQLITE_TRACE_PROFILE:
+                        {
+                            eventArgs = new TraceEventArgs(
+                                flags, null, pCtx1, null, Marshal.ReadInt64(
+                                pCtx2));
+
+                            break;
+                        }
+                    case SQLiteTraceFlags.SQLITE_TRACE_ROW:
+                        {
+                            eventArgs = new TraceEventArgs(
+                                flags, null, pCtx1, null, null);
+
+                            break;
+                        }
                     case SQLiteTraceFlags.SQLITE_TRACE_CLOSE:
                         {
+                            eventArgs = new TraceEventArgs(
+                                flags, pCtx1, null, null, null);
+
                             break;
                         }
                 }
@@ -8480,18 +8507,42 @@ namespace System.Data.SQLite
     public readonly SQLiteTraceFlags? Flags;
 
     /// <summary>
+    /// Database connection associated with this event.
+    /// </summary>
+    public readonly IntPtr? DatabaseConnection;
+
+    /// <summary>
+    /// Prepared statement associated with this event.
+    /// </summary>
+    public readonly IntPtr? PreparedStatement;
+
+    /// <summary>
     /// SQL statement text as the statement first begins executing
     /// </summary>
     public readonly string Statement;
+
+    /// <summary>
+    /// Elapsed time in nanoseconds associated with the prepared statement.
+    /// </summary>
+    public readonly long? Elapsed;
 
     internal TraceEventArgs(string statement)
     {
       Statement = statement;
     }
 
-    internal TraceEventArgs(SQLiteTraceFlags flags, string statement)
+    internal TraceEventArgs(
+        SQLiteTraceFlags? flags,
+        IntPtr? databaseConnection,
+        IntPtr? preparedStatement,
+        string statement,
+        long? elapsed
+        )
     {
       Flags = flags;
+      DatabaseConnection = databaseConnection;
+      PreparedStatement = preparedStatement;
+      Elapsed = elapsed;
       Statement = statement;
     }
   }

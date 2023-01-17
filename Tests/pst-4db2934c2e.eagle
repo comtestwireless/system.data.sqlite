@@ -1,0 +1,35 @@
+###############################################################################
+#
+# pst-4db2934c2e.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test pst-4db2934c2e-1.1 {Trace2 event} -setup {
+
+} -body {
+
+} -cleanup {
+
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite} -result {}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

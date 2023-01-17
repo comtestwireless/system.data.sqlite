@@ -26,13 +26,14 @@ runTest {test pst-4db2934c2e-1.1 {Trace2 event} -setup {
   proc traceCallback { sender e } {
     set result [list [$e Flags]]
     set databaseConnection [$e DatabaseConnection]
-    set preparedStatement [$e PreparedStatement]
 
-    if {[isNonNullObjectHandle $databaseConnection]} then {
+    if {[string length $databaseConnection] > 0} then {
       lappend result [format %lx $databaseConnection]
     }
 
-    if {[isNonNullObjectHandle $preparedStatement]} then {
+    set preparedStatement [$e PreparedStatement]
+
+    if {[string length $preparedStatement] > 0} then {
       lappend result [format %lx $preparedStatement]
     }
 
@@ -51,10 +52,12 @@ runTest {test pst-4db2934c2e-1.1 {Trace2 event} -setup {
   $connection TraceFlags SQLITE_TRACE_ALL
   $connection add_Trace2 traceCallback
 
+  # SQLITE_TRACE_STMT, SQLITE_TRACE_ROW, SQLITE_TRACE_PROFILE
   lappend results [sql execute -execute reader -format list $db {
-    SELECT * FROM t1 ORDER BY x;
-  }]; # SQLITE_TRACE_STMT, SQLITE_TRACE_ROW, SQLITE_TRACE_PROFILE
+    SELECT * FROM t1 WHERE x < ? ORDER BY x;
+  } [list param1 Int32 4]]
 
+  $connection Close; $connection Open; # SQLITE_TRACE_CLOSE
   $connection remove_Trace2 traceCallback
 
   set results
@@ -70,10 +73,11 @@ runTest {test pst-4db2934c2e-1.1 {Trace2 event} -setup {
 
   rename traceCallback ""
 } -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
-System.Data.SQLite} -match regexp -result {^\{SQLITE_TRACE_STMT \{SELECT \*\
-FROM t1 ORDER BY x;\} \{\}\} \{SQLITE_TRACE_ROW \{\} \{\}\} \{SQLITE_TRACE_ROW\
-\{\} \{\}\} \{SQLITE_TRACE_ROW \{\} \{\}\} \{SQLITE_TRACE_PROFILE \{\} \d+\}\
-\{1 2 3\}$}}
+System.Data.SQLite} -match regexp -result {^\{SQLITE_TRACE_STMT [0-9a-f]+\
+\{SELECT \* FROM t1 WHERE x < \? ORDER BY x;\} \{\}\} \{SQLITE_TRACE_ROW\
+[0-9a-f]+ \{\} \{\}\} \{SQLITE_TRACE_ROW [0-9a-f]+ \{\} \{\}\}\
+\{SQLITE_TRACE_ROW [0-9a-f]+ \{\} \{\}\} \{SQLITE_TRACE_PROFILE [0-9a-f]+ \{\}\
+\d+\} \{1 2 3\} \{SQLITE_TRACE_CLOSE [0-9a-f]+ \{\} \{\}\}$}}
 
 ###############################################################################
 

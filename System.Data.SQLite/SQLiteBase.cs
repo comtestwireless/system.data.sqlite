@@ -1949,7 +1949,7 @@ namespace System.Data.SQLite
   /// callbacks registered by it.
   /// </summary>
   [Flags()]
-  internal enum SQLiteTraceFlags
+  public enum SQLiteTraceFlags
   {
       SQLITE_TRACE_NONE = 0x0, // nil
       SQLITE_TRACE_STMT = 0x1, // pStmt, zSql

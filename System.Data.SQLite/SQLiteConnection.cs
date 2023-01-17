@@ -1626,6 +1626,13 @@ namespace System.Data.SQLite
     private SQLiteConnectionFlags _flags;
 
     /// <summary>
+    /// The mask of zero or more <see cref="SQLiteTraceFlags" /> values that
+    /// determine which events may be raised from the <see cref="Trace2" />
+    /// event.
+    /// </summary>
+    private SQLiteTraceFlags _traceFlags;
+
+    /// <summary>
     /// The cached values for all settings that have been fetched on behalf
     /// of this connection.  This cache may be cleared by calling the
     /// <see cref="ClearCachedSettings" /> method.
@@ -1708,6 +1715,7 @@ namespace System.Data.SQLite
     private event SQLiteUpdateEventHandler _updateHandler;
     private event SQLiteCommitHandler _commitHandler;
     private event SQLiteTraceEventHandler _traceHandler;
+    private event SQLiteTraceEventHandler _traceHandler2;
     private event EventHandler _rollbackHandler;
 
     private SQLiteBusyCallback _busyCallback;
@@ -1716,6 +1724,7 @@ namespace System.Data.SQLite
     private SQLiteUpdateCallback _updateCallback;
     private SQLiteCommitCallback _commitCallback;
     private SQLiteTraceCallback _traceCallback;
+    private SQLiteTraceCallback2 _traceCallback2;
     private SQLiteRollbackCallback _rollbackCallback;
     #endregion
 
@@ -1816,6 +1825,7 @@ namespace System.Data.SQLite
             db, fileName, ownHandle);
 
         _flags = SQLiteConnectionFlags.None;
+        _traceFlags = SQLiteTraceFlags.SQLITE_TRACE_NONE;
 
         _connectionState = (db != IntPtr.Zero) ?
             ConnectionState.Open : ConnectionState.Closed;
@@ -7758,6 +7768,48 @@ namespace System.Data.SQLite
       }
     }
 
+    /// <summary>
+    /// This event is raised when events matching the configured mask are
+    /// raised for this connection.
+    /// </summary>
+    public event SQLiteTraceEventHandler Trace2
+    {
+        add
+        {
+            CheckDisposed();
+
+            if (_traceHandler2 == null)
+            {
+                if (_traceFlags == SQLiteTraceFlags.SQLITE_TRACE_NONE)
+                {
+                    throw new InvalidOperationException(
+                        "cannot add trace2 event handler with no flags set");
+                }
+
+                _traceCallback2 = new SQLiteTraceCallback2(TraceCallback2);
+                if (_sql != null) _sql.SetTraceCallback2(_traceFlags, _traceCallback2);
+            }
+            _traceHandler2 += value;
+        }
+        remove
+        {
+            CheckDisposed();
+
+            _traceHandler2 -= value;
+            if (_traceHandler2 == null)
+            {
+                if (_traceFlags == SQLiteTraceFlags.SQLITE_TRACE_NONE)
+                {
+                    throw new InvalidOperationException(
+                        "cannot remove trace2 event handler with no flags set");
+                }
+
+                if (_sql != null) _sql.SetTraceCallback2(_traceFlags, null);
+                _traceCallback2 = null;
+            }
+        }
+    }
+
     private void TraceCallback(
         IntPtr puser, /* NOT USED */
         IntPtr statement
@@ -7785,6 +7837,60 @@ namespace System.Data.SQLite
             {
                 // do nothing.
             }
+        }
+    }
+
+    private void TraceCallback2(
+        SQLiteTraceFlags flags,
+        IntPtr pctx, /* NOT USED */
+        IntPtr puser, /* NOT USED */
+        IntPtr statement
+        )
+    {
+        try
+        {
+            if (_traceHandler2 != null)
+                _traceHandler2(this, new TraceEventArgs(flags,
+                  SQLiteBase.UTF8ToString(statement, -1)));
+        }
+        catch (Exception e) /* NOTE: Must catch ALL. */
+        {
+            try
+            {
+                if (HelperMethods.LogCallbackExceptions(_flags))
+                {
+                    SQLiteLog.LogMessage(SQLiteBase.COR_E_EXCEPTION,
+                        HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                        UnsafeNativeMethods.ExceptionMessageFormat,
+                        "Trace2", e)); /* throw */
+                }
+            }
+            catch
+            {
+                // do nothing.
+            }
+        }
+    }
+
+    /// <summary>
+    /// This property is used to configure the set of events that may be raised
+    /// from the <see cref="Trace2" /> event.  The value of this property cannot
+    /// be changed while an event handler is registered.
+    /// </summary>
+    public SQLiteTraceFlags TraceFlags
+    {
+        get { CheckDisposed(); return _traceFlags; }
+        set
+        {
+            CheckDisposed();
+
+            if (_traceCallback2 != null)
+            {
+                throw new InvalidOperationException(
+                    "cannot change trace flags while an event handler is registered");
+            }
+
+            _traceFlags = value;
         }
     }
 
@@ -8354,6 +8460,11 @@ namespace System.Data.SQLite
   public class TraceEventArgs : EventArgs
   {
     /// <summary>
+    /// The flags associated with this trace event.
+    /// </summary>
+    public readonly SQLiteTraceFlags? Flags;
+
+    /// <summary>
     /// SQL statement text as the statement first begins executing
     /// </summary>
     public readonly string Statement;
@@ -8362,6 +8473,11 @@ namespace System.Data.SQLite
     {
       Statement = statement;
     }
-  }
 
+    internal TraceEventArgs(SQLiteTraceFlags flags, string statement)
+    {
+      Flags = flags;
+      Statement = statement;
+    }
+  }
 }

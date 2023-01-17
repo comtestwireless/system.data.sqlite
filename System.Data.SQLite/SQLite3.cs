@@ -337,7 +337,7 @@ namespace System.Data.SQLite
           if (_returnToPool || _usePool)
           {
               if (SQLiteBase.ResetConnection(_sql, _sql, !disposing) &&
-                  UnhookNativeCallbacks(true, !disposing))
+                  UnhookNativeCallbacks(true, true, !disposing))
               {
                   if (unbindFunctions)
                   {
@@ -403,7 +403,7 @@ namespace System.Data.SQLite
           else
           {
               /* IGNORED */
-              UnhookNativeCallbacks(disposing, !disposing);
+              UnhookNativeCallbacks(false, disposing, !disposing);
 
               if (unbindFunctions)
               {
@@ -429,6 +429,9 @@ namespace System.Data.SQLite
 
               _sql.Dispose();
               wasDisposed = true;
+
+              /* IGNORED */
+              UnhookTraceCallback(null);
 
               FreeDbName(!disposing);
           }
@@ -3594,6 +3597,67 @@ namespace System.Data.SQLite
 
     /// <summary>
     /// This method attempts to cause the SQLite native library to invalidate
+    /// its trace callback function pointers that refer to this instance.
+    /// This is necessary to prevent calls from native code into delegates
+    /// that may have been garbage collected.  Normally, these types of issues
+    /// can only arise for connections that are added to the pool; howver, it
+    /// is good practice to unconditionally invalidate function pointers that
+    /// may refer to objects being disposed.
+    /// </summary>
+    /// <param name="builder">
+    /// Appropriate error messages, if any, will be appended here.
+    /// </param>
+    /// <returns>
+    /// Non-zero if this method succeeds; otherwise, zero.
+    /// </returns>
+    private bool UnhookTraceCallback(
+        StringBuilder builder
+        )
+    {
+        try
+        {
+            //
+            // NOTE: When using version 3.14 (or later) of the SQLite core
+            //       library, use the newer sqlite3_trace_v2() API in order
+            //       to unhook the trace callback, just in case the older
+            //       API is not available (e.g. SQLITE_OMIT_DEPRECATED).
+            //
+            if (UnsafeNativeMethods.sqlite3_libversion_number() >= 3014000)
+                SetTraceCallback2(SQLiteTraceFlags.SQLITE_TRACE_NONE, null); /* throw */
+            else
+                SetTraceCallback(null); /* throw */
+
+            return true;
+        }
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+        catch (Exception e)
+#else
+        catch (Exception)
+#endif
+        {
+#if !NET_COMPACT_20 && TRACE_CONNECTION
+            try
+            {
+                Trace.WriteLine(HelperMethods.StringFormat(
+                    CultureInfo.CurrentCulture,
+                    "Failed to unset trace callback: {0}",
+                    e)); /* throw */
+            }
+            catch
+            {
+                // do nothing.
+            }
+#endif
+
+            AppendError(builder, "failed to unset trace callback");
+            return false;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// This method attempts to cause the SQLite native library to invalidate
     /// its function pointers that refer to this instance.  This is necessary
     /// to prevent calls from native code into delegates that may have been
     /// garbage collected.  Normally, these types of issues can only arise for
@@ -3601,6 +3665,9 @@ namespace System.Data.SQLite
     /// unconditionally invalidate function pointers that may refer to objects
     /// being disposed.
     /// </summary>
+    /// <param name="includeTrace">
+    /// Non-zero to also invalidate trace callback function pointers.
+    /// </param>
     /// <param name="includeGlobal">
     /// Non-zero to also invalidate global function pointers (i.e. those that
     /// are not directly associated with this connection on the native side).
@@ -3613,6 +3680,7 @@ namespace System.Data.SQLite
     /// Non-zero if this method was successful; otherwise, zero.
     /// </returns>
     private bool UnhookNativeCallbacks(
+        bool includeTrace,
         bool includeGlobal,
         bool canThrow
         )
@@ -3626,6 +3694,16 @@ namespace System.Data.SQLite
         bool result = true;
         SQLiteErrorCode rc = SQLiteErrorCode.Ok;
         StringBuilder builder = new StringBuilder();
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+        #region Trace Callback (Per-Connection)
+        if (includeTrace && !UnhookTraceCallback(builder))
+        {
+            rc = SQLiteErrorCode.Error;
+            result = false;
+        }
+        #endregion
 
         ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3655,49 +3733,6 @@ namespace System.Data.SQLite
 #endif
 
             AppendError(builder, "failed to unset rollback hook");
-            rc = SQLiteErrorCode.Error;
-
-            result = false;
-        }
-        #endregion
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-
-        #region Trace Callback (Per-Connection)
-        try
-        {
-            //
-            // NOTE: When using version 3.14 (or later) of the SQLite core
-            //       library, use the newer sqlite3_trace_v2() API in order
-            //       to unhook the trace callback, just in case the older
-            //       API is not available (e.g. SQLITE_OMIT_DEPRECATED).
-            //
-            if (UnsafeNativeMethods.sqlite3_libversion_number() >= 3014000)
-                SetTraceCallback2(SQLiteTraceFlags.SQLITE_TRACE_NONE, null); /* throw */
-            else
-                SetTraceCallback(null); /* throw */
-        }
-#if !NET_COMPACT_20 && TRACE_CONNECTION
-        catch (Exception e)
-#else
-        catch (Exception)
-#endif
-        {
-#if !NET_COMPACT_20 && TRACE_CONNECTION
-            try
-            {
-                Trace.WriteLine(HelperMethods.StringFormat(
-                    CultureInfo.CurrentCulture,
-                    "Failed to unset trace callback: {0}",
-                    e)); /* throw */
-            }
-            catch
-            {
-                // do nothing.
-            }
-#endif
-
-            AppendError(builder, "failed to unset trace callback");
             rc = SQLiteErrorCode.Error;
 
             result = false;

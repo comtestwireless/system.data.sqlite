@@ -7842,7 +7842,7 @@ namespace System.Data.SQLite
 
     private void TraceCallback2(
         SQLiteTraceFlags flags,
-        IntPtr pUser,
+        IntPtr pUser, /* NOT USED */
         IntPtr pCtx1,
         IntPtr pCtx2
         )

@@ -1951,12 +1951,44 @@ namespace System.Data.SQLite
   [Flags()]
   public enum SQLiteTraceFlags
   {
+      /// <summary>
+      /// This value represents a mask where no trace events should be
+      /// generated.
+      /// </summary>
       SQLITE_TRACE_NONE = 0x0, // nil
+
+      /// <summary>
+      /// The trace event invoked when a prepared statement first begins
+      /// running and possibly at other times during the execution of
+      /// the prepared statement, such as at the start of each trigger
+      /// subprogram.
+      /// </summary>
       SQLITE_TRACE_STMT = 0x1, // pStmt, zSql
+
+      /// <summary>
+      /// The trace event invoked when a prepared statement finishes.
+      /// It provides a 64-bit integer which is the estimated of the
+      /// number of nanosecond that the prepared statement took to run.
+      /// </summary>
       SQLITE_TRACE_PROFILE = 0x2, // pStmt, piNsec64
+
+      /// <summary>
+      /// The trace event invoked when a prepared statement generates
+      /// a single row of result.
+      /// </summary>
       SQLITE_TRACE_ROW = 0x4, // pStmt
+
+      /// <summary>
+      /// The trace event invoked when a database connection closes.
+      /// </summary>
       SQLITE_TRACE_CLOSE = 0x8, // pDb
 
+      /// <summary>
+      /// This value represents a mask where all supported trace events
+      /// should be generated.  This value is subject to change, e.g.
+      /// when additional trace events are added by the SQLite core
+      /// library.
+      /// </summary>
       SQLITE_TRACE_ALL = SQLITE_TRACE_STMT | SQLITE_TRACE_PROFILE |
                          SQLITE_TRACE_ROW | SQLITE_TRACE_CLOSE,
   }

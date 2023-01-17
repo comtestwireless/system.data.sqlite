@@ -43,10 +43,10 @@
     <div id="mainSection">
     <div id="mainBody">
       <h1 class="heading">DbProviderFactories and You</h1>
-      <p>One of the great new features of ADO.NET 2.0 is the use of reflection as a 
-        means of instantiating database providers programmatically. The information 
-        .NET uses to enumerate the available data providers in the system is relatively 
-        simple. It merely looks in the machine.config and in your own app.config file for some XML data to tell it what providers are 
+      <p>One of the great new features of ADO.NET 2.0 is the use of reflection as a
+        means of instantiating database providers programmatically. The information
+        .NET uses to enumerate the available data providers in the system is relatively
+        simple. It merely looks in the machine.config and in your own app.config file for some XML data to tell it what providers are
         installed and what assemblies those providers are in.
       </p>
       <h4>
@@ -82,10 +82,10 @@
   &lt;system.data&gt;
     &lt;DbProviderFactories&gt;
       &lt;remove invariant="System.Data.SQLite"/&gt;
-      &lt;add name="SQLite Data Provider" invariant="System.Data.SQLite" 
+      &lt;add name="SQLite Data Provider" invariant="System.Data.SQLite"
            description=".NET Framework Data Provider for SQLite"
            type="System.Data.SQLite.SQLiteFactory, System.Data.SQLite,
-                 Version=1.0.117.0, Culture=neutral,
+                 Version=1.0.118.0, Culture=neutral,
                  PublicKeyToken=db937bc2d44ff139"/&gt;
     &lt;/DbProviderFactories&gt;
   &lt;/system.data&gt;
@@ -93,7 +93,7 @@
 </pre>
       </div>
       <p>
-        The following C# code demonstrates 
+        The following C# code demonstrates
         instantiating SQLite through DbProviderFactories:</p>
       <div class="syntax"><pre>      DbProviderFactory fact = DbProviderFactories.GetFactory("System.Data.SQLite");
       using (DbConnection cnn = fact.CreateConnection())

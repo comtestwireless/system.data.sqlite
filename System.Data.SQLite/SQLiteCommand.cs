@@ -446,7 +446,17 @@ namespace System.Data.SQLite
       {
         CheckDisposed();
 
-        if (_commandText == value) return;
+        string newCommandText = value;
+
+        ConnectionEventArgs previewEventArgs = new ConnectionEventArgs(
+            SQLiteConnectionEventType.SqlStringPreview,
+            null, null, null, null, null, null, null, null);
+
+        previewEventArgs.Result = newCommandText;
+        SQLiteConnection.OnChanged(_cnn, previewEventArgs);
+        newCommandText = previewEventArgs.Result;
+
+        if (_commandText == newCommandText) return;
 
         if (_activeReader != null && _activeReader.IsAlive)
         {
@@ -454,7 +464,7 @@ namespace System.Data.SQLite
         }
 
         ClearCommands();
-        _commandText = value;
+        _commandText = newCommandText;
 
         if (_cnn == null) return;
       }

@@ -2403,9 +2403,14 @@ namespace System.Data.SQLite
       ConnectionStringPreview = 22,
 
       /// <summary>
+      /// The SQL string may be changed.
+      /// </summary>
+      SqlStringPreview = 23,
+
+      /// <summary>
       /// The <see cref="SQLiteConnection.Cancel" /> method was invoked.
       /// </summary>
-      Canceled = 23
+      Canceled = 24
   }
 
   /// <summary>

@@ -1387,8 +1387,8 @@ runTest {test session-1.9 {apply change set (remote stream)} -setup {
   }
 
   unset -nocomplain callbackResult callbackResults db fileName
-} -constraints {eagle command.object monoBug28 command.sql compile.DATA\
-compile.EMIT SQLite System.Data.SQLite SQLiteInterop\
+} -constraints {eagle sdsTlsOk command.object monoBug28 command.sql\
+compile.DATA compile.EMIT SQLite System.Data.SQLite SQLiteInterop\
 defineConstant.System.Data.SQLite.INTEROP_SESSION_EXTENSION} -result \
 {7f0f0571ab843fe81543780c92a009b4abc90837}}
 

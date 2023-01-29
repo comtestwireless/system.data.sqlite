@@ -325,8 +325,8 @@ runTest {test tkt-0e48e80333-1.2 {delegate MDA on pooled close} -setup {
 
   moveEagleShellMdaConfig true
 } -constraints {eagle dotNet command.object monoBug28 command.sql compile.DATA\
-SQLite System.Data.SQLite compileCSharp} -match regexp -result {^0 \{Ok\
-System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} 0 \d+\}$}}
+SQLite System.Data.SQLite compileCSharp sdsTiming} -match regexp -result {^0\
+\{Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} 0 \d+\}$}}
 
 ###############################################################################
 

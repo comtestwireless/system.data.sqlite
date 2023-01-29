@@ -1838,28 +1838,32 @@ namespace eval ::Eagle {
       }
     }
 
-    proc tryLoadAssembly { fileName {platform ""} } {
+    proc tryLoadAssembly { fileName {platform ""} {initialize ""} } {
       set fileName [getBinaryFileName $fileName $platform]
 
       if {[catch {
         set assembly [object load -loadtype File -alias $fileName]
       }] == 0} then {
-        #
-        # NOTE: Now, add the necessary test constraint.
-        #
-        addConstraint [file rootname [file tail $fileName]]
+        if {[string length $initialize] == 0 || \
+            [catch $initialize] == 0} then {
+          #
+          # NOTE: Now, add the necessary test constraint.
+          #
+          addConstraint [file rootname [file tail $fileName]]
 
-        #
-        # NOTE: Grab the image runtime version from the assembly because
-        #       several tests rely on it having a certain value.
-        #
-        addConstraint [appendArgs [file tail $fileName] _ \
-            [$assembly ImageRuntimeVersion]]
+          #
+          # NOTE: Grab the image runtime version from the assembly
+          #       because several tests rely on it having a certain
+          #       value.
+          #
+          addConstraint [appendArgs [file tail $fileName] _ \
+              [$assembly ImageRuntimeVersion]]
 
-        #
-        # NOTE: Return the full path of the loaded file.
-        #
-        return $fileName
+          #
+          # NOTE: Return the full path of the loaded file.
+          #
+          return $fileName
+        }
       }
 
       return ""
@@ -5188,6 +5192,21 @@ namespace eval ::Eagle {
         uplevel 1 [list loadSQLiteTestSettings $::test_channel .before]
 
         #
+        # NOTE: Check for TLS protocol support, e.g. TLS 1.2, etc.
+        #
+        checkForTlsOk \
+            $::test_channel [list system.data.sqlite.org] $::test_timeout
+
+        if {[haveConstraint tlsOk]} then {
+          addConstraint sdsTlsOk
+        }
+
+        #
+        # NOTE: Check for "reasonably" fast timing precision.
+        #
+        checkForTiming $::test_channel 25 sdsTiming; # 1/40th second.
+
+        #
         # NOTE: Show (and log) the global parameters that control where the
         #       build directory should be.
         #
@@ -5681,7 +5700,14 @@ namespace eval ::Eagle {
           #
           if {![info exists ::no(loadSqliteFiles)]} then {
             if {![info exists ::no(loadSqliteImplicitFiles)]} then {
-              tryLoadAssembly System.Data.SQLite.dll
+              tryLoadAssembly System.Data.SQLite.dll "" {
+                if {![info exists \
+                    ::no(initializeSqliteImplicitFiles)]} then {
+                  object invoke -flags +NonPublic \
+                      System.Data.SQLite.UnsafeNativeMethods \
+                      Initialize
+                }
+              }
             }
 
             if {![info exists ::no(loadSqliteLinqFiles)]} then {
@@ -5695,12 +5721,26 @@ namespace eval ::Eagle {
             if {![info exists ::no(loadSqliteNonImplicitFiles)]} then {
               if {![info exists ::no(loadSqlitePlatformFiles)] && \
                   [string length $platform] > 0} then {
-                tryLoadAssembly System.Data.SQLite.dll $platform
+                tryLoadAssembly System.Data.SQLite.dll $platform {
+                  if {![info exists \
+                      ::no(initializeSqlitePlatformFiles)]} then {
+                    object invoke -flags +NonPublic \
+                        System.Data.SQLite.UnsafeNativeMethods \
+                        Initialize
+                  }
+                }
               }
 
               if {![info exists ::no(loadSqliteArchitectureFiles)] && \
                   [string length $architecture] > 0} then {
-                tryLoadAssembly System.Data.SQLite.dll $architecture
+                tryLoadAssembly System.Data.SQLite.dll $architecture {
+                  if {![info exists \
+                      ::no(initializeSqliteArchitectureFiles)]} then {
+                    object invoke -flags +NonPublic \
+                        System.Data.SQLite.UnsafeNativeMethods \
+                        Initialize
+                  }
+                }
               }
             }
           }

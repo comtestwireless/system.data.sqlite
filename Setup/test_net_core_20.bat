@@ -136,6 +136,18 @@ IF ERRORLEVEL 1 (
   GOTO errors
 )
 
+REM ****************************************************************************
+REM *********************** Disable Microsoft Telemetry ************************
+REM ****************************************************************************
+
+SET VSCMD_SKIP_SENDTELEMETRY=1
+SET VCPKG_KEEP_ENV_VARS=VSCMD_SKIP_SENDTELEMETRY
+SET DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+REM ****************************************************************************
+REM **************************** Run the Test Suite ****************************
+REM ****************************************************************************
+
 SET TEST_ALL=1
 
 FOR %%C IN (%TEST_NATIVE_CONFIGURATIONS%) DO (

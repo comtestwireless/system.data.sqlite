@@ -1201,6 +1201,19 @@ namespace System.Data.SQLite
   /// <description></description>
   /// </item>
   /// <item>
+  /// <description>TextHexPassword</description>
+  /// <description>
+  /// {hexPassword} - Must contain a sequence of zero or more hexadecimal encoded
+  /// byte values without a leading "0x" prefix.  Using this parameter requires
+  /// that the legacy CryptoAPI based codec (or the SQLite Encryption Extension)
+  /// be enabled at compile-time for both the native interop assembly and the
+  /// core managed assemblies; otherwise, using this parameter may result in an
+  /// exception being thrown when attempting to open the connection.
+  /// </description>
+  /// <description>N</description>
+  /// <description></description>
+  /// </item>
+  /// <item>
   /// <description>Enlist</description>
   /// <description>
   /// <b>Y</b> - Automatically enlist in distributed transactions
@@ -1422,6 +1435,7 @@ namespace System.Data.SQLite
     private const string DefaultUri = null;
     private const string DefaultFullUri = null;
     private const string DefaultTextPassword = null;
+    private const string DefaultTextHexPassword = null;
     private const string DefaultHexPassword = null;
     private const string DefaultPassword = null;
     private const int DefaultVersion = 3;
@@ -1605,9 +1619,10 @@ namespace System.Data.SQLite
     private byte[] _password;
 
     /// <summary>
-    /// This will be non-zero if the "TextPassword" connection string property
-    /// was used.  When this value is non-zero, <see cref="ChangePassword(Byte[])" />
-    /// will retain treatment of the password as a NUL-terminated text string.
+    /// This will be non-zero if the "TextPassword" or "TextHexPassword"
+    /// connection string properties were used.  When this value is non-zero,
+    /// <see cref="ChangePassword(Byte[])" /> will retain treatment of the
+    /// password as a NUL-terminated text string.
     /// </summary>
     private bool _passwordWasText;
 #endif
@@ -4353,7 +4368,7 @@ namespace System.Data.SQLite
     {
         string error = null;
 
-        return FromHexString(text, ref error);
+        return FromHexString(text, true, ref error);
     }
 
     /// <summary>
@@ -4398,6 +4413,10 @@ namespace System.Data.SQLite
     /// The input string containing zero or more hexadecimal encoded byte
     /// values.
     /// </param>
+    /// <param name="allowNul">
+    /// When zero, byte values of zero are not allowed and will be changed
+    /// to <see cref="Byte.MaxValue" /> instead.
+    /// </param>
     /// <param name="error">
     /// Upon failure, this will contain an appropriate error message.
     /// </param>
@@ -4407,6 +4426,7 @@ namespace System.Data.SQLite
     /// </returns>
     private static byte[] FromHexString(
         string text,
+        bool allowNul,
         ref string error
         )
     {
@@ -4427,9 +4447,10 @@ namespace System.Data.SQLite
         for (int index = 0; index < text.Length; index += 2)
         {
             string value = text.Substring(index, 2);
+            int outIndex = index / 2;
 
             if (!TryParseByte(value,
-                    NumberStyles.HexNumber, out result[index / 2]))
+                    NumberStyles.HexNumber, out result[outIndex]))
             {
                 error = HelperMethods.StringFormat(
                     CultureInfo.CurrentCulture,
@@ -4438,6 +4459,9 @@ namespace System.Data.SQLite
 
                 return null;
             }
+
+            if (!allowNul && (result[outIndex] == 0))
+                result[outIndex] = byte.MaxValue;
         }
 
         return result;
@@ -4607,6 +4631,13 @@ namespace System.Data.SQLite
 
               if (String.Equals(
                     pair.Key, "TextPassword",
+                    StringComparison.OrdinalIgnoreCase))
+              {
+                  continue;
+              }
+
+              if (String.Equals(
+                    pair.Key, "TextHexPassword",
                     StringComparison.OrdinalIgnoreCase))
               {
                   continue;
@@ -4833,59 +4864,87 @@ namespace System.Data.SQLite
             _binaryGuid = SQLiteConvert.ToBoolean(stringValue);
 
 #if INTEROP_CODEC || INTEROP_INCLUDE_SEE
-        string textPassword = FindKey(opts, "TextPassword", DefaultTextPassword);
+        string error; /* REUSED */
+        string textHexPassword = FindKey(opts, "TextHexPassword", DefaultTextHexPassword);
 
-        if (textPassword != null)
+        if (textHexPassword != null)
         {
-            byte[] textPasswordBytes = UTF8Encoding.UTF8.GetBytes(
-                textPassword); /* throw */
+            byte[] textHexPasswordBytes;
 
-            Array.Resize(ref textPasswordBytes, textPasswordBytes.Length + 1);
+            error = null;
+            textHexPasswordBytes = FromHexString(textHexPassword, false, ref error);
 
-            _sql.SetPassword(textPasswordBytes, true);
+            if (textHexPasswordBytes == null)
+            {
+                throw new FormatException(HelperMethods.StringFormat(
+                    CultureInfo.CurrentCulture,
+                    "Cannot parse 'TextHexPassword' property value into byte values: {0}",
+                    error));
+            }
+
+            Array.Resize(ref textHexPasswordBytes, textHexPasswordBytes.Length + 1);
+
+            _sql.SetPassword(textHexPasswordBytes, true);
             _passwordWasText = true;
         }
         else
         {
-            string hexPassword = FindKey(opts, "HexPassword", DefaultHexPassword);
+            string textPassword = FindKey(opts, "TextPassword", DefaultTextPassword);
 
-            if (hexPassword != null)
+            if (textPassword != null)
             {
-                string error = null;
-                byte[] hexPasswordBytes = FromHexString(hexPassword, ref error);
+                byte[] textPasswordBytes = UTF8Encoding.UTF8.GetBytes(
+                    textPassword); /* throw */
 
-                if (hexPasswordBytes == null)
-                {
-                    throw new FormatException(HelperMethods.StringFormat(
-                        CultureInfo.CurrentCulture,
-                        "Cannot parse 'HexPassword' property value into byte values: {0}",
-                        error));
-                }
+                Array.Resize(ref textPasswordBytes, textPasswordBytes.Length + 1);
 
-                _sql.SetPassword(hexPasswordBytes, false);
-                _passwordWasText = false;
+                _sql.SetPassword(textPasswordBytes, true);
+                _passwordWasText = true;
             }
             else
             {
-                string password = FindKey(opts, "Password", DefaultPassword);
+                string hexPassword = FindKey(opts, "HexPassword", DefaultHexPassword);
 
-                if (password != null)
+                if (hexPassword != null)
                 {
-                    byte[] passwordBytes = UTF8Encoding.UTF8.GetBytes(
-                        password); /* throw */
+                    byte[] hexPasswordBytes;
 
-                    _sql.SetPassword(passwordBytes, false);
+                    error = null;
+                    hexPasswordBytes = FromHexString(hexPassword, true, ref error);
+
+                    if (hexPasswordBytes == null)
+                    {
+                        throw new FormatException(HelperMethods.StringFormat(
+                            CultureInfo.CurrentCulture,
+                            "Cannot parse 'HexPassword' property value into byte values: {0}",
+                            error));
+                    }
+
+                    _sql.SetPassword(hexPasswordBytes, false);
                     _passwordWasText = false;
                 }
-                else if (_password != null)
+                else
                 {
-                    _sql.SetPassword(_password, _passwordWasText);
+                    string password = FindKey(opts, "Password", DefaultPassword);
+
+                    if (password != null)
+                    {
+                        byte[] passwordBytes = UTF8Encoding.UTF8.GetBytes(
+                            password); /* throw */
+
+                        _sql.SetPassword(passwordBytes, false);
+                        _passwordWasText = false;
+                    }
+                    else if (_password != null)
+                    {
+                        _sql.SetPassword(_password, _passwordWasText);
+                    }
+
+                    password = null; /* IMMUTABLE */
                 }
 
-                password = null; /* IMMUTABLE */
+                hexPassword = null; /* IMMUTABLE */
             }
-
-            hexPassword = null; /* IMMUTABLE */
         }
 
         textPassword = null; /* IMMUTABLE */
@@ -4893,6 +4952,9 @@ namespace System.Data.SQLite
 
         if (hidePassword)
         {
+            if (opts.ContainsKey("TextHexPassword"))
+                opts["TextHexPassword"] = String.Empty;
+
             if (opts.ContainsKey("TextPassword"))
                 opts["TextPassword"] = String.Empty;
 
@@ -4905,6 +4967,14 @@ namespace System.Data.SQLite
             _connectionString = BuildConnectionString(opts);
         }
 #else
+        if (FindKey(opts, "TextHexPassword", null) != null)
+        {
+            throw new SQLiteException(SQLiteErrorCode.Error,
+                "Cannot use \"TextHexPassword\" connection string property: " +
+                "library was not built with encryption support, please " +
+                "see \"https://www.sqlite.org/see\" for more information");
+        }
+
         if (FindKey(opts, "TextPassword", null) != null)
         {
             throw new SQLiteException(SQLiteErrorCode.Error,

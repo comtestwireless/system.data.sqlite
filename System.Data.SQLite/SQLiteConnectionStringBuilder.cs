@@ -518,6 +518,35 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Gets/sets the database encryption textual password in hexadecimal
+    /// </summary>
+    [DisplayName("Textual Hexadecimal Password")]
+    [Browsable(true)]
+    [PasswordPropertyText(true)]
+    [DefaultValue(null)]
+    public byte[] TextHexPassword
+    {
+        get
+        {
+            object value;
+
+            if (TryGetValue("texthexpassword", out value))
+            {
+                if (value is string)
+                    return SQLiteConnection.FromHexString((string)value);
+                else if (value != null)
+                    return (byte[])value;
+            }
+
+            return null;
+        }
+        set
+        {
+            this["texthexpassword"] = SQLiteConnection.ToHexString(value);
+        }
+    }
+
+    /// <summary>
     /// Gets/Sets the page size for the connection.
     /// </summary>
     [DisplayName("Page Size")]

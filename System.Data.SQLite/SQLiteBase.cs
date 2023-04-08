@@ -1906,7 +1906,28 @@ namespace System.Data.SQLite
       /// setting can also be controlled using the PRAGMA trusted_schema
       /// statement.
       /// </summary>
-      SQLITE_DBCONFIG_TRUSTED_SCHEMA = 1017 // int int*
+      SQLITE_DBCONFIG_TRUSTED_SCHEMA = 1017, // int int*
+
+      /// <summary>
+      /// This option is only useful in SQLITE_ENABLE_STMT_SCANSTATUS builds.
+      /// In this case, it sets or clears a flag that enables collection of
+      /// the sqlite3_stmt_scanstatus_v2() statistics. For statistics to be
+      /// collected, the flag must be set on the database handle both when
+      /// the SQL statement is prepared and when it is stepped. The flag is
+      /// set (collection of statistics is enabled) by default.
+      /// </summary>
+      SQLITE_DBCONFIG_STMT_SCANSTATUS = 1018, // int int*
+
+      /// <summary>
+      /// The SQLITE_DBCONFIG_REVERSE_SCANORDER option change the default
+      /// order in which tables and indexes are scanned so that the scans
+      /// start at the end and work toward the beginning rather than
+      /// starting at the beginning and working toward the end.  Setting
+      /// SQLITE_DBCONFIG_REVERSE_SCANORDER is the same as setting [PRAGMA
+      /// reverse_unordered_selects].  This configuration option is useful
+      /// for application testing.
+      /// </summary>
+      SQLITE_DBCONFIG_REVERSE_SCANORDER = 1019 // int int*
   }
 
   // These are the options to the internal sqlite3_config call.
@@ -1941,7 +1962,7 @@ namespace System.Data.SQLite
     SQLITE_CONFIG_STMTJRNL_SPILL = 26, // int nByte
     SQLITE_CONFIG_SMALL_MALLOC = 27, // boolean
     SQLITE_CONFIG_SORTERREF_SIZE = 28, // int nByte
-    SQLITE_CONFIG_MEMDB_MAXSIZE = 29  // sqlite3_int64
+    SQLITE_CONFIG_MEMDB_MAXSIZE = 29 // sqlite3_int64
   }
 
   /// <summary>

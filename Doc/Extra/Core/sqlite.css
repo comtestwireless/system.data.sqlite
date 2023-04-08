@@ -240,6 +240,9 @@ a:visited { color: #734559 }
   max-width: 100%;
 }
 
+/* Default fill and stroke for SVG paths */
+polygon { fill: black; stroke:#111111; stroke-width:1 }
+path { fill: none; stroke:#111111; stroke-width:1 }
 
 .doccat a {
   color: #044a64 ;

@@ -127,8 +127,8 @@ VACUUM
 
 <h1 id="syntax"><span>1. </span>Syntax</h1>
 <p><b><a href="syntax/vacuum-stmt.html">vacuum-stmt:</a></b>
-<button id='x2255' onclick='hideorshow("x2255","x2256")'>hide</button></p>
- <div id='x2256' class='imgcontainer'>
+<button id='xa4cc6f91' onclick='hideorshow("xa4cc6f91","x06794493")'>hide</button></p>
+ <div id='x06794493' class='imgcontainer'>
  <div style="max-width:599px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 599.669 64.8">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="32,17 20,21 20,12" style="fill:rgb(0,0,0)"/>
@@ -161,18 +161,18 @@ VACUUM
 <h1 id="description"><span>2. </span>Description</h1>
 <p>
   The VACUUM command rebuilds the database file, repacking it into a minimal
-  amount of disk space. There are several 
+  amount of disk space. There are several
   reasons an application might do this:
 
 </p><ul>
   <li> <p> Unless SQLite is running in "auto_vacuum=FULL" mode, when a large
      amount of data is deleted from the database file it leaves behind empty
      space, or "free" database pages. This means the database file might
-     be larger than strictly necessary. Running VACUUM to rebuild the 
+     be larger than strictly necessary. Running VACUUM to rebuild the
      database reclaims this space and reduces the size of the database file.
 
   </p></li><li> <p> Frequent inserts, updates, and deletes can cause the database file
-     to become fragmented - where data for a single table or index is scattered 
+     to become fragmented - where data for a single table or index is scattered
      around the database file. Running VACUUM ensures that each table and
      index is largely stored contiguously within the database file. In some
      cases, VACUUM may also reduce the number of partially filled pages in
@@ -184,13 +184,13 @@ VACUUM
      by a hacker or by forensic analysis.  Running VACUUM will clean the database
      of all traces of deleted content, thus preventing an adversary from recovering
      deleted content.  Using VACUUM in this way is an alternative to setting
-     <a href="pragma.html#pragma_secure_delete">PRAGMA secure_delete=ON</a>. 
+     <a href="pragma.html#pragma_secure_delete">PRAGMA secure_delete=ON</a>.
 
   </p></li><li> <p> Normally, the database <a href="pragma.html#pragma_page_size">page_size</a> and whether or not the database
      supports <a href="pragma.html#pragma_auto_vacuum">auto_vacuum</a> must be configured before the database file is
-     actually created. However, when not in <a href="wal.html">write-ahead log</a> mode, the 
+     actually created. However, when not in <a href="wal.html">write-ahead log</a> mode, the
      <a href="pragma.html#pragma_page_size">page_size</a> and/or <a href="pragma.html#pragma_auto_vacuum">auto_vacuum</a> properties of an existing database may be
-     changed by using the <a href="pragma.html#pragma_page_size">page_size</a>  and/or 
+     changed by using the <a href="pragma.html#pragma_page_size">page_size</a>  and/or
      <a href="pragma.html#pragma_auto_vacuum">pragma auto_vacuum</a> pragmas and then immediately VACUUMing
      the database. When in <a href="wal.html">write-ahead log</a> mode, only the <a href="pragma.html#pragma_auto_vacuum">auto_vacuum</a>
      support property can be changed using VACUUM.
@@ -201,7 +201,7 @@ VACUUM
 <span class='yyterm'>schema-name</span> to the VACUUM statement.
 
 </p><p><b>Compatibility Warning:</b> The ability to vacuum attached databases was
-added in <a href="releaselog/3_15_0.html">version 3.15.0</a> (2016-10-14).  Prior to that, a 
+added in <a href="releaselog/3_15_0.html">version 3.15.0</a> (2016-10-14).  Prior to that, a
 <span class='yyterm'>schema-name</span> added to the
 VACUUM statement would be silently ignored and the "main" schema would be
 vacuumed.</p>
@@ -212,7 +212,9 @@ vacuumed.</p>
 
 <p>If the INTO clause is included, then the original database file is
 unchanged and a new database is created in a file named by the
-argument to the INTO clause.  The new database will contain the same
+argument to the INTO clause.
+The argument is a scalar <a href="lang_expr.html">expression</a>, such as a text literal.
+The new database will contain the same
 logical content as the original database, fully vacuumed.
 
 </p><p>
@@ -261,10 +263,10 @@ non-volatile storage before completing.
 </p><h1 id="how_vacuum_works"><span>3. </span>How VACUUM works</h1>
 
 <p>The VACUUM command works by copying the contents of the database into
-a temporary database file and then overwriting the original with the 
+a temporary database file and then overwriting the original with the
 contents of the temporary file. When overwriting the original, a rollback
 journal or <a href="wal.html">write-ahead log</a> WAL file is used just as it would be for any
-other database transaction. This means that when VACUUMing a database, 
+other database transaction. This means that when VACUUMing a database,
 as much as twice the size of the original database file is required in free
 disk space.
 
@@ -293,5 +295,5 @@ without rebuilding the entire database using VACUUM.  However, using
 does not compact partially filled pages of the database as VACUUM does.
 
 </p>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_vacuum.in?m=6efbaecf3fe739850">2022-06-15 00:04:17</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_vacuum.in?m=58d64b28a2">2023-03-17 22:28:45</a> UTC </small></i></p>
 

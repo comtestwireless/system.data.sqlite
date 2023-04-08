@@ -246,16 +246,16 @@ in terms of strftime():
 </td></tr><tr><td>   date(...)      </td><td></td><td>  strftime('%Y-%m-%d', ...)
 </td></tr><tr><td>   time(...)      </td><td></td><td>  strftime('%H:%M:%S', ...)
 </td></tr><tr><td>   datetime(...)  </td><td></td><td>  strftime('%Y-%m-%d %H:%M:%S', ...)
-</td></tr><tr><td>   julianday(...) </td><td></td><td>  <nobr>strftime('%J', ...) -- note-1</nobr>
-</td></tr><tr><td>   unixepoch(...) </td><td></td><td>  <nobr>strftime('%s', ...) -- note-1</nobr>
+</td></tr><tr><td>   julianday(...) </td><td></td><td>  <nobr>strftime('%J', ...) -- (numeric return)</nobr>
+</td></tr><tr><td>   unixepoch(...) </td><td></td><td>  <nobr>strftime('%s', ...) -- (numeric return)</nobr>
 </td></tr></table>
 </blockquote>
 
 <p>
 The date(), time(), and datetime() functions all return text, and so their
-strftime() equivalents are exact.  However (<b>note-1</b>) the julianday()
+strftime() equivalents are exact.  However, the julianday()
 and unixepoch() functions return numeric values.  Their strftime() equivalents
-return strings that is the text representation of the corresponding number.
+return a string that is the text representation of the corresponding number.
 </p>
 
 <p>
@@ -537,5 +537,5 @@ getting results correct back to 1986, when the rules were also changed.</p>
 <a href="http://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian calendar</a>
 system.  They also assume that every
 day is exactly 86400 seconds in duration; no leap seconds are incorporated.</p>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_datefunc.in?m=5e55e49a95b10d0d9">2022-01-27 15:08:03</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_datefunc.in?m=d9ffff24d8">2023-02-22 21:47:50</a> UTC </small></i></p>
 

@@ -189,6 +189,8 @@ the <a href="c3ref/create_function.html">sqlite3_create_function()</a> API.</p>
 <li><a href='lang_corefunc.html#trim'>trim(X)</a></li>
 <li><a href='lang_corefunc.html#trim'>trim(X,Y)</a></li>
 <li><a href='lang_corefunc.html#typeof'>typeof(X)</a></li>
+<li><a href='lang_corefunc.html#unhex'>unhex(X)</a></li>
+<li><a href='lang_corefunc.html#unhex'>unhex(X,Y)</a></li>
 <li><a href='lang_corefunc.html#unicode'>unicode(X)</a></li>
 <li><a href='lang_corefunc.html#unlikely'>unlikely(X)</a></li>
 <li><a href='lang_corefunc.html#upper'>upper(X)</a></li>
@@ -268,6 +270,8 @@ the <a href="c3ref/create_function.html">sqlite3_create_function()</a> API.</p>
   that text is interpreted as a BLOB.  Hence, "hex(12345678)" renders
   as "3132333435363738" not the binary representation of the integer value
   "0000000000BC614E".
+  <p>
+  See also:  <a href="lang_corefunc.html#unhex">unhex()</a>
 </dd>
 <a name="ifnull"></a>
 <dt><p><b>ifnull(<i>X</i>,<i>Y</i>)</b></dt><dd><p>
@@ -595,6 +599,24 @@ the <a href="c3ref/create_function.html">sqlite3_create_function()</a> API.</p>
   The typeof(X) function returns a string that indicates the <a href="datatype3.html">datatype</a> of
   the expression X: "null", "integer", "real", "text", or "blob".
 </dd>
+<a name="unhex"></a>
+<dt><p><b>unhex(<i>X</i>)<br />unhex(<i>X</i>,<i>Y</i>)</b></dt><dd><p>
+  The unhex(X,Y) function returns a BLOB value which is the decoding of the
+  hexadecimal string X.  If X contains any
+  characters that are not hexadecimal digits and which are not in Y, 
+  then unhex(X,Y) returns NULL. If Y is omitted, it is
+  understood to be an empty string and hence X must be a pure hexadecimal string.
+  All hexadecimal digits in X must occur in pairs, with both digits of each
+  pair beginning immediately adjacent to one another, or else unhex(X,Y)
+  returns NULL.
+  If either parameter X or Y is NULL, then unhex(X,Y) returns NULL.
+  The X input may contain an arbitrary mix of upper and lower case hexadecimal
+  digits.
+  Hexadecimal digits in Y have no affect on the translation of X.  Only
+  characters in Y that are not hexadecimal digits are ignored in X.
+  <p>
+  See also:  <a href="lang_corefunc.html#hex">hex()</a>
+</dd>
 <a name="unicode"></a>
 <dt><p><b>unicode(<i>X</i>)</b></dt><dd><p>
   The unicode(X) function returns the numeric unicode code point corresponding to
@@ -628,5 +650,5 @@ the <a href="c3ref/create_function.html">sqlite3_create_function()</a> API.</p>
 </dd>
 
 </dl>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_corefunc.in?m=bc476ffe9a17c53dd">2022-07-16 18:39:09</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/lang_corefunc.in?m=1a94b5b49f">2023-01-27 13:42:47</a> UTC </small></i></p>
 

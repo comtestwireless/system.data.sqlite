@@ -511,7 +511,7 @@ be used to force strings to be recognized as JSON.
 in the JSON array X, or 0 if X is some kind of JSON value other
 than an array.  The json_array_length(X,P) locates the array at path P
 within X and returns the length of that array, or 0 if path P locates
-an element or X other than a JSON array, and NULL if path P does not
+an element in X that is not a JSON array, and NULL if path P does not
 locate any element of X.  Errors are thrown if either X is not 
 well-formed JSON or if P is not a well-formed path.
 
@@ -618,7 +618,7 @@ that are strings or NULLs.  The following table demonstrates the difference:
 
 <p>Beginning with SQLite version 3.38.0 (2022-02-22), the ->
 and ->> operators are available for extracting subcomponents of JSON.
-The SQLite implementation of the -> and ->> operators strive to be
+The SQLite implementation of -> and ->> strives to be
 compatible with both MySQL and PostgreSQL.
 The -> and ->> operators take a JSON string
 as their left operand and a PATH expression or object field
@@ -730,7 +730,7 @@ prior edits can affect the path search for subsequent edits.
 </p><p>If the value of a path/value pair is an SQLite TEXT value, then it
 is normally inserted as a quoted JSON string, even if the string looks
 like valid JSON.  However, if the value is the result of another
-json1 function (such as <a href="json1.html#jmini">json()</a> or <a href="json1.html#jarray">json_array()</a> or <a href="json1.html#jobj">json_object()</a>)
+json function (such as <a href="json1.html#jmini">json()</a> or <a href="json1.html#jarray">json_array()</a> or <a href="json1.html#jobj">json_object()</a>)
 or if it is the result of <a href="json1.html#jptr">the -> operator</a>,
 then it is interpreted as JSON and is inserted as JSON retaining all
 of its substructure.  Values that are the result of <a href="json1.html#jptr">the ->> operator</a>
@@ -1008,7 +1008,7 @@ returned by another JSON function, then this function is a no-op.
 <span class='jans'>&rarr; '[1]'</span></li>
 
 <li><span class='jex'>json_quote('[1,')</span>
-<span class='jans'>&rarr; '"[1"'</span></li>
+<span class='jans'>&rarr; '"[1,"'</span></li>
 
 </ul>
 
@@ -1019,7 +1019,7 @@ returned by another JSON function, then this function is a no-op.
 </p><h2 id="the_json_group_array_and_json_group_object_aggregate_sql_functions"><span>4.13. </span>The json_group_array() and json_group_object()
 aggregate SQL functions</h2>
 
-<p>The json_group_array(X) function is an 
+<p>The json_group_array(X) function is an
 <a href="lang_aggfunc.html">aggregate SQL function</a> that returns a JSON array
 comprised of all X values in the aggregation.
 Similarly, the json_group_object(NAME,VALUE) function returns a JSON object
@@ -1165,5 +1165,5 @@ SELECT DISTINCT json_extract(big.json,'$.id')
  WHERE json_tree.key='uuid'
    AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';
 </pre></blockquote>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/json1.in?m=a3a94372544eb4e69">2022-06-24 16:56:23</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/json1.in?m=d03a37020b">2023-02-15 20:50:55</a> UTC </small></i></p>
 

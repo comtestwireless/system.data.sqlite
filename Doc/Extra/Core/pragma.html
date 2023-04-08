@@ -159,8 +159,8 @@ built-in PRAGMA statements.</p>
 <hr /><a name="syntax"></a>
 <h2>PRAGMA command syntax</h2>
 <p><b><a href="syntax/pragma-stmt.html">pragma-stmt:</a></b>
-<button id='x2347' onclick='hideorshow("x2347","x2348")'>hide</button></p>
- <div id='x2348' class='imgcontainer'>
+<button id='x2cdb322f' onclick='hideorshow("x2cdb322f","x877848b3")'>hide</button></p>
+ <div id='x877848b3' class='imgcontainer'>
  <div style="max-width:824px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 824.352 99.576">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="32,17 20,21 20,12" style="fill:rgb(0,0,0)"/>
@@ -214,8 +214,8 @@ built-in PRAGMA statements.</p>
 </svg>
 </div>
 <p><b><a href="syntax/pragma-value.html">pragma-value:</a></b>
-<button id='x2349' onclick='hideorshow("x2349","x2350")'>hide</button></p>
- <div id='x2350' class='imgcontainer'>
+<button id='xdf32955c' onclick='hideorshow("xdf32955c","x7296037a")'>hide</button></p>
+ <div id='x7296037a' class='imgcontainer'>
  <div style="max-width:264px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 264.499 110.16">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="63,17 51,21 51,12" style="fill:rgb(0,0,0)"/>
@@ -242,8 +242,8 @@ built-in PRAGMA statements.</p>
 </svg>
 </div>
 <p><b><a href="syntax/signed-number.html">signed-number:</a></b>
-<button id='x2351' onclick='hideorshow("x2351","x2352")'>show</button></p>
- <div id='x2352' style='display:none;' class='imgcontainer'>
+<button id='xc1b40d6a' onclick='hideorshow("xc1b40d6a","x2fe22c8d")'>show</button></p>
+ <div id='x2fe22c8d' style='display:none;' class='imgcontainer'>
  <div style="max-width:292px"><svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 292.013 99.576">
 <circle cx="5" cy="17" r="3.6"  style="fill:none;stroke-width:2.16;stroke:rgb(0,0,0);" />
 <polygon points="50,44 39,48 39,40" style="fill:rgb(0,0,0)"/>
@@ -361,10 +361,6 @@ by first creating a separate schema using
 Then creating
 <a href="lang_createview.html">VIEWs</a> in that schema that implement the official information schema
 tables using table-valued PRAGMA functions.
-<li><p>
-This feature is experimental and is subject to change.  Further documentation
-will become available if and when the table-valued functions for PRAGMAs
-feature becomes officially supported.
 <li><p>
 The table-valued functions for PRAGMA feature was added
 in SQLite version 3.16.0 (2017-01-02).  Prior versions of SQLite
@@ -1739,6 +1735,16 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     the secure-delete flag on one database connection changes it for them
     all.
     </p>
+
+    <p><b>Limitation:</b>
+    The secure_delete pragma only causes deleted content to be scrubbed
+    from ordinary tables.  If <a href="vtab.html">virtual tables</a> store content in
+    <a href="vtab.html#xshadowname">shadow tables</a>, then deleting content from the virtual table does
+    not necessarily remove forensic traces from the shadow tables.
+    In particular, the <a href="fts3.html">FTS3</a> and <a href="fts5.html">FTS5</a> virtual tables that come
+    bundled with SQLite might leave forensic traces in their shadow tables
+    even if the secure_delete pragma is enabled.
+    </p>
 <a name="pragma_short_column_names"></a>
 <h _id=pragma_short_column_names style="display:none"> PRAGMA short_column_names</h><hr>
     <p><b>PRAGMA short_column_names;
@@ -1870,15 +1876,17 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
 <a name="pragma_table_info"></a>
 <h _id=pragma_table_info style="display:none"> PRAGMA table_info</h><hr>
     <p><b>PRAGMA </b><i>schema.</i><b>table_info(</b><i>table-name</i><b>);</b></p>
-    <p>This pragma returns one row for each column in the named table.
-    Columns in the result set include the column name,
-    data type, whether or not the column can be NULL, and the default
-    value for the column.  The "pk" column in the result set is zero
-    for columns that are not part of the primary key, and is the index of
-    the column in the primary key for columns that are part of the primary
-    key.</p>
+    <p>This pragma returns one row for each normal column
+    in the named table.
+    Columns in the result set include: "name" (its name); "type"
+    (data type if given, else ''); "notnull" (whether or not the column
+    can be NULL); "dflt_value" (the default value for the column);
+    and "pk" (either zero for columns that are not part of the primary key,
+    or the 1-based index of the column within the primary key).</p>
+    <p>The "cid" column should not be taken to mean more than
+    "rank within the current result set".</p>
     <p>The table named in the table_info pragma can also be a view.</p>
-    <p>This pragma does not show information about <a href="gencol.html">generated columns</a> nor
+    <p>This pragma does not show information about <a href="gencol.html">generated columns</a> or
     <a href="vtab.html#hiddencol">hidden columns</a>.  Use <a href="pragma.html#pragma_table_xinfo">PRAGMA table_xinfo</a> to get a more complete list
     of columns that includes generated and hidden columns.
 <a name="pragma_table_list"></a>
@@ -1916,8 +1924,11 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     <p><b>PRAGMA </b><i>schema.</i><b>table_xinfo(</b><i>table-name</i><b>);</b></p>
     <p>This pragma returns one row for each column in the named table,
     including <a href="gencol.html">generated columns</a> and <a href="vtab.html#hiddencol">hidden columns</a>.
-    The output is the same as for <a href="pragma.html#pragma_table_info">PRAGMA table_info</a> except that
-    generated and hidden columns are shown rather than being omitted.
+    The output has the same columns as for <a href="pragma.html#pragma_table_info">PRAGMA table_info</a> plus
+    a column, "hidden", whose value signifies a normal column (0),
+    a dynamic or stored generated column (2 or 3),
+    or a hidden column in a virtual table (1). The rows for which
+    this field is non-zero are those omitted for <a href="pragma.html#pragma_table_info">PRAGMA table_info</a>.
 <a name="pragma_temp_store"></a>
 <h _id=pragma_temp_store style="display:none"> PRAGMA temp_store</h><hr>
     <p><b>PRAGMA temp_store;
@@ -2245,5 +2256,5 @@ PRAGMA <b>main.</b>locking_mode=EXCLUSIVE;
     a <a href="howtocorrupt.html#cfgerr">corrupt database file</a>.</span>
 
 <hr>
-<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=0f695165ea16e591a">2022-11-15 22:37:02</a> UTC </small></i></p>
+<p align="center"><small><i>This page last modified on  <a href="https://sqlite.org/docsrc/honeypot" id="mtimelink"  data-href="https://sqlite.org/docsrc/finfo/pages/pragma.in?m=87e8125487">2023-02-16 21:36:11</a> UTC </small></i></p>
 

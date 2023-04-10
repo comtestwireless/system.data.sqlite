@@ -873,6 +873,11 @@ namespace System.Data.SQLite
       /// </summary>
       Notice_Recover_Rollback = (Notice | (2 << 8)),
       /// <summary>
+      /// May be returned for spurious errors that can occur when applying
+      /// an RBU update.
+      /// </summary>
+      Notice_Rbu = (Notice | (3 << 8)),
+      /// <summary>
       /// An automatic index was created to process a query.
       /// </summary>
       Warning_AutoIndex = (Warning | (1 << 8)),

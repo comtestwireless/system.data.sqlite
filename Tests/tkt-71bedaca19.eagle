@@ -126,6 +126,7 @@ NoMem 7
 NotADb 26
 NotFound 12
 Notice 27
+Notice_Rbu 795
 Notice_Recover_Rollback 539
 Notice_Recover_Wal 283
 Ok 0

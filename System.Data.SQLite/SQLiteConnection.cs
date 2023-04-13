@@ -2804,6 +2804,11 @@ namespace System.Data.SQLite
     /// <param name="allowNameOnly">
     /// Non-zero if names are allowed without values.
     /// </param>
+    /// <param name="strict">
+    /// Non-zero to throw an exception if any connection string values are not of
+    /// the <see cref="String" /> type.  This is not applicable when running on
+    /// the .NET Compact Framework.
+    /// </param>
     /// <returns>
     /// The list of key/value pairs corresponding to the parameters specified
     /// within the connection string.
@@ -2811,11 +2816,12 @@ namespace System.Data.SQLite
     internal static SortedList<string, string> ParseConnectionString(
         string connectionString,
         bool parseViaFramework,
-        bool allowNameOnly
+        bool allowNameOnly,
+        bool strict
         )
     {
         return ParseConnectionString(
-            null, connectionString, parseViaFramework, allowNameOnly);
+            null, connectionString, parseViaFramework, allowNameOnly, strict);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -2839,19 +2845,25 @@ namespace System.Data.SQLite
     /// <param name="allowNameOnly">
     /// Non-zero if names are allowed without values.
     /// </param>
+    /// <param name="strict">
+    /// Non-zero to throw an exception if any connection string values are not of
+    /// the <see cref="String" /> type.  This is not applicable when running on
+    /// the .NET Compact Framework.
+    /// </param>
     /// <returns>
     /// The list of key/value pairs corresponding to the parameters specified
     /// within the connection string.
     /// </returns>
-    private static SortedList<string, string> ParseConnectionString(
+    public static SortedList<string, string> ParseConnectionString(
         SQLiteConnection connection,
         string connectionString,
         bool parseViaFramework,
-        bool allowNameOnly
+        bool allowNameOnly,
+        bool strict
         )
     {
         return parseViaFramework ?
-            ParseConnectionStringViaFramework(connection, connectionString, false) :
+            ParseConnectionStringViaFramework(connection, connectionString, strict) :
             ParseConnectionString(connection, connectionString, allowNameOnly);
     }
 
@@ -4566,7 +4578,7 @@ namespace System.Data.SQLite
       _connectionString = previewEventArgs.Result;
 
       SortedList<string, string> opts = ParseConnectionString(
-          this, _connectionString, _parseViaFramework, false);
+          this, _connectionString, _parseViaFramework, false, false);
 
       string stringValue;
       object enumValue;

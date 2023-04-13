@@ -126,7 +126,7 @@ namespace System.Data.SQLite.Linq
         string manifestToken
         )
     {
-        return SQLiteConnection.ParseConnectionString(manifestToken, false, true);
+        return SQLiteConnection.ParseConnectionString(manifestToken, false, true, false);
     }
 
     /// <summary>

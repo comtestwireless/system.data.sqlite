@@ -4959,7 +4959,6 @@ namespace System.Data.SQLite
             }
         }
 
-        textPassword = null; /* IMMUTABLE */
         _password = null; /* IMMUTABLE */
 
         if (hidePassword)

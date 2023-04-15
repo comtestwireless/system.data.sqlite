@@ -148,7 +148,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.41.3"
 #define SQLITE_VERSION_NUMBER 3041003
-#define SQLITE_SOURCE_ID      "2023-04-06 17:41:57 9511d17e2a113dac8933663fabb0294fdc1068fd4f8224818af21266439eb7ea"
+#define SQLITE_SOURCE_ID      "2023-04-14 15:42:00 e915bff7adf1475ab4fa982ed12240b3b834899ca82e64af1173054fddf6963b"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers

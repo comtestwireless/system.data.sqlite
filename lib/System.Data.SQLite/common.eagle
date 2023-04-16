@@ -4343,8 +4343,8 @@ namespace eval ::Eagle {
         }
 
         #
-        # BUGFIX: Before calling the native shutdown function, make sure both
-        #         of the PRAGMA related directory names are freed.
+        # BUGFIX: Before calling the native shutdown function, make sure
+        #         both of the PRAGMA related directory names are freed.
         #
         checkForSQLiteDirectories $channel true
 
@@ -4972,6 +4972,54 @@ namespace eval ::Eagle {
       }
     }
 
+    proc resetSQLiteLogSubsystem {
+            channel {shutdown false} {initialize true} } {
+      if {[catch {
+        object invoke -flags +NonPublic System.Data.SQLite.SQLiteLog \
+            Uninitialize [getTestSuite] $shutdown
+
+        if {$shutdown} then {
+          #
+          # HACK: Just in case the internal SQLite database handle in
+          #       the SQLiteLog class was unavailable, perform a clean
+          #       shutdown of the SQLite core library now.
+          #
+          shutdownSQLite $channel
+        }
+
+        object invoke -flags +NonPublic System.Data.SQLite.SQLiteLog \
+            _initializeDoneCount 0
+
+        object invoke -flags +NonPublic System.Data.SQLite.SQLiteLog \
+            _attemptedInitialize 0
+
+        if {$initialize} then {
+          object invoke -flags +NonPublic System.Data.SQLite.SQLiteLog \
+              Initialize [getTestSuite]
+        }
+      } error] == 0} then {
+        tputs $channel [appendArgs \
+            "---- success resetting internal SQLiteLog state to " \
+            [expr {$initialize ? "initialized" : "uninitialized"}] \n]
+      } else {
+        tputs $channel [appendArgs \
+            "---- failure resetting internal SQLiteLog state to " \
+            [expr {$initialize ? "initialized" : "uninitialized"}] \
+            ", error: " \n\t $error \n]
+      }
+    }
+
+    proc addTraceListenerForTestLogFile { channel } {
+      if {[info exists ::test_log] && [file exists $::test_log]} then {
+        debug trace -log true -logname [getTestSuite] -logfilename \
+            $::test_log; # throw
+
+        tputs $channel [appendArgs \
+            "---- copying trace listener output to test log file \"" \
+            $::test_log \"...\n]
+      }
+    }
+
     proc moveTestLogFile { path } {
       if {[info exists ::test_log] && [file exists $::test_log]} then {
         set old_test_log $::test_log
@@ -5524,6 +5572,14 @@ namespace eval ::Eagle {
           #       containing the managed assemblies being tested.
           #
           moveTestLogFile $logDirectory
+
+          #
+          # NOTE: If requested, redirect captured trace listener output
+          #       to the test log file.
+          #
+          if {[hasRuntimeOption traceToTestLogFile]} then {
+            addTraceListenerForTestLogFile $::test_channel
+          }
 
           #
           # NOTE: Skip trying to copy any files if instructed.

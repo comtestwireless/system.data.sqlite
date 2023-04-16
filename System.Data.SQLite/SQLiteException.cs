@@ -213,7 +213,7 @@ namespace System.Data.SQLite
         bool success
         )
     {
-        return (errorCode & 0xFFFF) | FACILITY_SQLITE |
+        return (errorCode & 0xFFFF) | (FACILITY_SQLITE << 16) |
             (success ? 0 : unchecked((int)0x80000000));
     }
 

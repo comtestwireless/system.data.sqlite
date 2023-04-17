@@ -430,9 +430,6 @@ namespace System.Data.SQLite
               _sql.Dispose();
               wasDisposed = true;
 
-              /* IGNORED */
-              UnhookTraceCallback(null);
-
               FreeDbName(!disposing);
           }
           _sql = null;

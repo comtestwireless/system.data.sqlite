@@ -2716,7 +2716,7 @@ namespace System.Data.SQLite
       /// The directory for the assembly currently being executed -OR- null if
       /// it cannot be determined.
       /// </returns>
-      private static string GetCachedAssemblyDirectory()
+      public static string GetCachedAssemblyDirectory()
       {
           #region Debug Build Only
 #if DEBUG

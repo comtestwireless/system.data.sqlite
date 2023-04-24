@@ -24,6 +24,10 @@
 #define SQLITE_MAX_ATTACHED 30
 #endif
 
+#if defined(_MSC_VER) && _MSC_VER<1600
+#define log2(n) (log((n))/log(2))
+#endif
+
 #if defined(INTEROP_INCLUDE_SEE)
 #include "../core/sqlite3-see.c"
 #else

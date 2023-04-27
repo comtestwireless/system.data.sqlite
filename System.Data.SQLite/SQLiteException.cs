@@ -191,12 +191,16 @@ namespace System.Data.SQLite
     {
         if (HResult == unchecked((int)0x80004005)) /* E_FAIL */
         {
-            int? localHResult = GetHResultForErrorCode(ResultCode);
+            int? localHResult;
 
-            if ((localHResult == null) && (ErrorCode < 0)) /* FAILED() */
+            if (ErrorCode < 0) /* FAILED() */
             {
                 localHResult = MakeHResult(
                     GetErrorCodeForHResult(ErrorCode), false);
+            }
+            else
+            {
+                localHResult = GetHResultForErrorCode(ResultCode);
             }
 
             if (localHResult != null)

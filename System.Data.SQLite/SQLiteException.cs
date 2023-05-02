@@ -193,15 +193,10 @@ namespace System.Data.SQLite
         {
             int? localHResult;
 
-            if (ErrorCode < 0) /* FAILED() */
-            {
-                localHResult = MakeHResult(
-                    GetErrorCodeForHResult(ErrorCode), false);
-            }
+            if (ErrorCode < 0) /* FAILED(hResult) */
+                localHResult = ErrorCode; /* hResult */
             else
-            {
                 localHResult = GetHResultForErrorCode(ResultCode);
-            }
 
             if (localHResult != null)
                 HResult = (int)localHResult;

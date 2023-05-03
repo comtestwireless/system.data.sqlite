@@ -4448,18 +4448,38 @@ namespace System.Data.SQLite
             return null;
         }
 
-        if (text.Length % 2 != 0)
+        int length = text.Length;
+
+        if (length == 0)
+            return new byte[0];
+
+        int startIndex = text.IndexOf(':');
+
+        if (startIndex != -1)
+            startIndex++;
+        else
+            startIndex = 0;
+
+        if ((length - startIndex) % 2 != 0)
         {
             error = "string contains an odd number of characters";
             return null;
         }
 
-        byte[] result = new byte[text.Length / 2];
+        byte[] result = new byte[((length - startIndex) / 2) + startIndex];
+        int outIndex = 0;
 
-        for (int index = 0; index < text.Length; index += 2)
+        if (startIndex > 0)
+        {
+            for (int index = 0; index < startIndex; index++)
+            {
+                result[outIndex++] = (byte)(text[index] & byte.MaxValue);
+            }
+        }
+
+        for (int index = startIndex; index < length; index += 2)
         {
             string value = text.Substring(index, 2);
-            int outIndex = index / 2;
 
             if (!TryParseByte(value,
                     NumberStyles.HexNumber, out result[outIndex]))
@@ -4474,6 +4494,8 @@ namespace System.Data.SQLite
 
             if (!allowNul && (result[outIndex] == 0))
                 result[outIndex] = byte.MaxValue;
+
+            outIndex++;
         }
 
         return result;

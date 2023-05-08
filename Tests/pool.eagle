@@ -21,58 +21,6 @@ runSQLiteTestPrologue
 ###############################################################################
 
 runTest {test pool-1.1 {dispose connection with weak pool} -setup {
-  proc getCreateCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _createCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _createCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain create count"
-  }
-
-  proc getDisposeCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _disposeCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _disposeCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain dispose count"
-  }
-
   object invoke -flags +NonPublic \
       System.Data.SQLite.SQLiteConnectionPool CreateAndInitialize \
       null false true
@@ -196,67 +144,12 @@ runTest {test pool-1.1 {dispose connection with weak pool} -setup {
 
   unset -nocomplain results errors code sql dataSource id
   unset -nocomplain args time i m counts db fileName
-
-  rename getDisposeCount ""
-  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 
 ###############################################################################
 
 runTest {test pool-1.2 {dispose connection with strong pool} -setup {
-  proc getCreateCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _createCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _createCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain create count"
-  }
-
-  proc getDisposeCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _disposeCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _disposeCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain dispose count"
-  }
-
   object invoke -flags +NonPublic \
       System.Data.SQLite.SQLiteConnectionPool CreateAndInitialize \
       null true true
@@ -380,67 +273,12 @@ runTest {test pool-1.2 {dispose connection with strong pool} -setup {
 
   unset -nocomplain results errors code sql dataSource id
   unset -nocomplain args time i m counts db fileName
-
-  rename getDisposeCount ""
-  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 
 ###############################################################################
 
 runTest {test pool-1.3 {dispose connection with legacy pool} -setup {
-  proc getCreateCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _createCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _createCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain create count"
-  }
-
-  proc getDisposeCount {} {
-    if {[isDotNetCore]} then {
-      if {[catch {
-        #
-        # TODO: For reasons that are unclear, this next command will
-        #       sometimes fail when running on .NET Core 2.x.
-        #
-        object invoke -flags +NonPublic \
-            "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
-            _disposeCount
-      } result] == 0} then {
-        return $result
-      }
-    }
-
-    if {[catch {
-      object invoke -flags +NonPublic [appendArgs \
-          "System.Data.SQLite.SQLiteBase, " [lindex [object \
-          load System.Data.SQLite] 0]] _disposeCount
-    } result] == 0} then {
-      return $result
-    }
-
-    error "could not figure out how to obtain dispose count"
-  }
-
   catch {
     object invoke -flags +NonPublic \
         System.Data.SQLite.SQLiteConnectionPool ClearAllPools
@@ -571,9 +409,6 @@ runTest {test pool-1.3 {dispose connection with legacy pool} -setup {
 
   unset -nocomplain results errors code sql dataSource id
   unset -nocomplain args time i m counts db fileName
-
-  rename getDisposeCount ""
-  rename getCreateCount ""
 } -constraints {eagle monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -result {5150 True}}
 

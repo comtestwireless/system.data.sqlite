@@ -4408,6 +4408,58 @@ namespace eval ::Eagle {
       return -1
     }
 
+    proc getCreateCount {} {
+      if {[isDotNetCore]} then {
+        if {[catch {
+          #
+          # TODO: For reasons that are unclear, this next command will
+          #       sometimes fail when running on .NET Core 2.x.
+          #
+          object invoke -flags +NonPublic \
+              "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
+              _createCount
+        } result] == 0} then {
+          return $result
+        }
+      }
+
+      if {[catch {
+        object invoke -flags +NonPublic [appendArgs \
+            "System.Data.SQLite.SQLiteBase, " [lindex [object \
+            load System.Data.SQLite] 0]] _createCount
+      } result] == 0} then {
+        return $result
+      }
+
+      error "could not figure out how to obtain create count"
+    }
+
+    proc getDisposeCount {} {
+      if {[isDotNetCore]} then {
+        if {[catch {
+          #
+          # TODO: For reasons that are unclear, this next command will
+          #       sometimes fail when running on .NET Core 2.x.
+          #
+          object invoke -flags +NonPublic \
+              "System.Data.SQLite.SQLiteBase, System.Data.SQLite" \
+              _disposeCount
+        } result] == 0} then {
+          return $result
+        }
+      }
+
+      if {[catch {
+        object invoke -flags +NonPublic [appendArgs \
+            "System.Data.SQLite.SQLiteBase, " [lindex [object \
+            load System.Data.SQLite] 0]] _disposeCount
+      } result] == 0} then {
+        return $result
+      }
+
+      error "could not figure out how to obtain dispose count"
+    }
+
     proc getOtherCount { name } {
       if {[haveConstraint buildConfiguration.Debug] && [catch {
         object invoke -flags +NonPublic -alias \

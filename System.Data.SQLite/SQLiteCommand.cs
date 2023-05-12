@@ -265,7 +265,7 @@ namespace System.Data.SQLite
     /// flags will be returned.
     /// </summary>
     /// <param name="command">
-    /// The command containing the databse connection to query the flags from.
+    /// The command containing the database connection to query the flags from.
     /// </param>
     /// <returns>
     /// The connection flags value.
@@ -797,7 +797,7 @@ namespace System.Data.SQLite
     /// </param>
     /// <param name="connectionString">
     /// The connection string to the database to be opened, used, and closed.  If
-    /// this parameter is null, a temporary in-memory databse will be used.
+    /// this parameter is null, a temporary in-memory database will be used.
     /// </param>
     /// <param name="args">
     /// The SQL parameter values to be used when building the command object to be
@@ -838,7 +838,7 @@ namespace System.Data.SQLite
     /// </param>
     /// <param name="connectionString">
     /// The connection string to the database to be opened, used, and closed.  If
-    /// this parameter is null, a temporary in-memory databse will be used.
+    /// this parameter is null, a temporary in-memory database will be used.
     /// </param>
     /// <param name="args">
     /// The SQL parameter values to be used when building the command object to be

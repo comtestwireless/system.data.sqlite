@@ -121,13 +121,20 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    #region Query Preparation Diagnostics Support
+    #region Query Diagnostics Support
     /// <summary>
     /// This field is used to keep track of whether or not the
     /// "SQLite_ForceLogPrepare" environment variable has been queried.  If so,
     /// it will only be non-zero if the environment variable was present.
     /// </summary>
     private bool _forceLogPrepare;
+
+    /// <summary>
+    /// This field is used to keep track of whether or not the
+    /// "SQLite_ForceLogRetry" environment variable has been queried.  If so,
+    /// it will only be non-zero if the environment variable was present.
+    /// </summary>
+    private bool _forceLogRetry;
     #endregion
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +176,7 @@ namespace System.Data.SQLite
       : base(fmt, kind, fmtString)
     {
         InitializeForceLogPrepare();
+        InitializeForceLogRetry();
 
         SQLiteConnectionPool.CreateAndInitialize(
             null, UnsafeNativeMethods.GetSettingValue(
@@ -190,7 +198,7 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    #region Query Preparation Diagnostics Support
+    #region Query Diagnostics Support
     /// <summary>
     /// Determines if all calls to prepare a SQL query will be logged,
     /// regardless of the flags for the associated connection.
@@ -213,6 +221,32 @@ namespace System.Data.SQLite
     internal override bool ForceLogPrepare
     {
         get { return _forceLogPrepare; }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Determines if all calls to retry a SQL query will be logged,
+    /// regardless of the flags for the associated connection.
+    /// </summary>
+    private void InitializeForceLogRetry()
+    {
+        if (UnsafeNativeMethods.GetSettingValue(
+                "SQLite_ForceLogRetry", null) != null)
+        {
+            _forceLogRetry = true;
+        }
+        else
+        {
+            _forceLogRetry = false;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    internal override bool ForceLogRetry
+    {
+        get { return _forceLogRetry; }
     }
     #endregion
 
@@ -1214,9 +1248,11 @@ namespace System.Data.SQLite
     {
       SQLiteErrorCode n;
       Random rnd = null;
+      int sleeps = 0;
       uint starttick = (uint)Environment.TickCount;
       uint timeout = (uint)(stmt._command._commandTimeout * 1000);
       int maximumSleepTime = stmt._command._maximumSleepTime;
+      SQLiteConnectionFlags flags = SQLiteCommand.GetFlags(stmt._command);
 
       ResetCancelCount();
 
@@ -1257,8 +1293,9 @@ namespace System.Data.SQLite
           r = Reset(stmt);
 
           if (r == SQLiteErrorCode.Ok)
+          {
             throw new SQLiteException(n, GetLastError());
-
+          }
           else if ((r == SQLiteErrorCode.Locked || r == SQLiteErrorCode.Busy) && stmt._command != null)
           {
             // Keep trying
@@ -1272,9 +1309,32 @@ namespace System.Data.SQLite
             }
             else
             {
+              int sleepMs = rnd.Next(1, maximumSleepTime);
+
+              if (_forceLogRetry ||
+                  HelperMethods.LogRetry(flags))
+              {
+                  string logSql = stmt._sqlStatement;
+
+                  if ((logSql == null) || (logSql.Length == 0) || (logSql.Trim().Length == 0))
+                      logSql = "<nothing>";
+
+                  SQLiteLog.LogMessage(HelperMethods.StringFormat(
+                      CultureInfo.CurrentCulture, "Will retry {0} ==> {1} step after {2}ms ({3}): {{{4}}}",
+                      n, r, sleepMs, sleeps, logSql));
+              }
+
               // Otherwise sleep for a random amount of time up to Xms
-              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
+              System.Threading.Thread.Sleep(sleepMs);
+              sleeps++;
             }
+          }
+          else
+          {
+            //
+            // TODO: Can this actually be hit?
+            //
+            throw new SQLiteException(r, GetLastError());
           }
         }
       }
@@ -1486,8 +1546,7 @@ namespace System.Data.SQLite
         }
       }
 
-      SQLiteConnectionFlags flags =
-          (cnn != null) ? cnn.Flags : SQLiteConnectionFlags.Default;
+      SQLiteConnectionFlags flags = SQLiteConnection.GetFlags(cnn);
 
       if (_forceLogPrepare ||
           HelperMethods.LogPrepare(flags))
@@ -1504,6 +1563,7 @@ namespace System.Data.SQLite
       int len = 0;
       SQLiteErrorCode n = SQLiteErrorCode.Schema;
       int retries = 0;
+      int sleeps = 0;
       int maximumRetries = (cnn != null) ? cnn._prepareRetries : SQLiteConnection.DefaultPrepareRetries;
       int maximumSleepTime = (cnn != null) ? cnn._defaultMaximumSleepTime : SQLiteConnection.DefaultConnectionMaximumSleepTime;
       byte[] b = ToUTF8(strSql);
@@ -1642,8 +1702,24 @@ namespace System.Data.SQLite
             }
             else
             {
+              int sleepMs = rnd.Next(1, maximumSleepTime);
+
+              if (_forceLogRetry ||
+                  HelperMethods.LogRetry(flags))
+              {
+                  string logSql = strSql;
+
+                  if ((logSql == null) || (logSql.Length == 0) || (logSql.Trim().Length == 0))
+                      logSql = "<nothing>";
+
+                  SQLiteLog.LogMessage(HelperMethods.StringFormat(
+                      CultureInfo.CurrentCulture, "Will retry {0} prepare after {1}ms ({2}): {{{3}}}",
+                      n, sleepMs, sleeps, logSql));
+              }
+
               // Otherwise sleep for a random amount of time up to Xms
-              System.Threading.Thread.Sleep(rnd.Next(1, maximumSleepTime));
+              System.Threading.Thread.Sleep(sleepMs);
+              sleeps++;
             }
           }
         }

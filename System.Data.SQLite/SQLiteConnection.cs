@@ -1655,14 +1655,14 @@ namespace System.Data.SQLite
     private Dictionary<string, object> _cachedSettings;
 
     /// <summary>
-    /// The default databse type for this connection.  This value will only
+    /// The default database type for this connection.  This value will only
     /// be used if the <see cref="SQLiteConnectionFlags.UseConnectionTypes" />
     /// flag is set.
     /// </summary>
     private DbType? _defaultDbType;
 
     /// <summary>
-    /// The default databse type name for this connection.  This value will only
+    /// The default database type name for this connection.  This value will only
     /// be used if the <see cref="SQLiteConnectionFlags.UseConnectionTypes" />
     /// flag is set.
     /// </summary>
@@ -1742,6 +1742,36 @@ namespace System.Data.SQLite
     private SQLiteTraceCallback2 _traceCallback2;
     private SQLiteRollbackCallback _rollbackCallback;
     #endregion
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// This method attempts to query the flags associated with the database
+    /// connection.  If the database connection is disposed, the default flags
+    /// will be returned.
+    /// </summary>
+    /// <param name="connection">
+    /// The database connection to query the flags from.
+    /// </param>
+    /// <returns>
+    /// The connection flags value.
+    /// </returns>
+    internal static SQLiteConnectionFlags GetFlags(
+        SQLiteConnection connection
+        )
+    {
+        try
+        {
+            if (connection != null)
+                return connection.Flags;
+        }
+        catch (ObjectDisposedException)
+        {
+            // do nothing.
+        }
+
+        return SQLiteConnectionFlags.Default;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

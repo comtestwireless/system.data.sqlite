@@ -776,6 +776,24 @@ namespace System.Data.SQLite
 #endif
 
       /////////////////////////////////////////////////////////////////////////
+
+      /// <summary>
+      /// Determines if retrying a query should be logged.
+      /// </summary>
+      /// <param name="flags">
+      /// The flags associated with the parent connection object.
+      /// </param>
+      /// <returns>
+      /// Non-zero if the query preparation should be logged; otherwise, zero.
+      /// </returns>
+      internal static bool LogRetry(
+          SQLiteConnectionFlags flags
+          )
+      {
+          return HasFlags(flags, SQLiteConnectionFlags.LogRetry);
+      }
+
+      /////////////////////////////////////////////////////////////////////////
       /// <summary>
       /// Determines if the current process is running on one of the Windows
       /// [sub-]platforms.

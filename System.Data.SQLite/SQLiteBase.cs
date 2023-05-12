@@ -74,6 +74,10 @@ namespace System.Data.SQLite
     /// </summary>
     internal abstract bool ForceLogPrepare { get; }
     /// <summary>
+    /// Non-zero to log all calls to retry a SQL query.
+    /// </summary>
+    internal abstract bool ForceLogRetry { get; }
+    /// <summary>
     /// Returns the logical list of functions associated with this connection.
     /// </summary>
     internal abstract IDictionary<SQLiteFunctionAttribute, SQLiteFunction> Functions { get; }
@@ -1543,6 +1547,12 @@ namespace System.Data.SQLite
       /// will be retried.
       /// </summary>
       StopOnException = 0x4000000000000,
+
+      /// <summary>
+      /// Enable logging of internal retries during statment preparation
+      /// and stepping.
+      /// </summary>
+      LogRetry = 0x8000000000000,
 
       /// <summary>
       /// When binding parameter values or returning column values, always

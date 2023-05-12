@@ -5343,8 +5343,8 @@ namespace System.Data.SQLite
     /// </summary>
     public int StepRetries
     {
-        get { CheckDisposed(); return _prepareRetries; }
-        set { CheckDisposed(); _prepareRetries = value; }
+        get { CheckDisposed(); return _stepRetries; }
+        set { CheckDisposed(); _stepRetries = value; }
     }
 
     /// <summary>

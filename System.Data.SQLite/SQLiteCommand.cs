@@ -13,6 +13,7 @@ namespace System.Data.SQLite
   using System.Diagnostics;
   using System.Collections.Generic;
   using System.ComponentModel;
+  using System.Text;
 
   /// <summary>
   /// SQLite implementation of DbCommand.
@@ -1289,6 +1290,43 @@ namespace System.Data.SQLite
     {
       CheckDisposed();
       return new SQLiteCommand(this);
+    }
+
+    /// <summary>
+    /// This method attempts to build and return a string containing diagnostic
+    /// information for use by the test suite.  This method should not be used
+    /// by application code.  It is designed for use by the test suite only and
+    /// may be modified or removed at any time.
+    /// </summary>
+    /// <returns>
+    /// A string containing information for use by the test suite -OR- null if
+    /// that information is not available.
+    /// </returns>
+    public string GetDiagnostics()
+    {
+        CheckDisposed();
+
+        StringBuilder builder = new StringBuilder();
+
+        if (_statementList != null)
+        {
+            for (int index = 0; index < _statementList.Count; index++)
+            {
+                SQLiteStatement statement = _statementList[index];
+
+                if (statement != null)
+                {
+                    builder.AppendFormat(
+                        "#{0}, sql = {{{1}}}, prepareSchemaRetries = {2}, prepareLockRetries = {3}, stepLockRetries = {4}",
+                        index, statement._sqlStatement, statement._prepareSchemaRetries, statement._prepareLockRetries,
+                        statement._stepLockRetries);
+
+                    builder.AppendLine();
+                }
+            }
+        }
+
+        return builder.ToString();
     }
   }
 }

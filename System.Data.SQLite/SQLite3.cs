@@ -1292,6 +1292,8 @@ namespace System.Data.SQLite
           if ((maximumRetries >= 0) && (retries > maximumRetries))
             throw new SQLiteException(n, GetLastError());
 
+          stmt._stepLockRetries++;
+
           SQLiteErrorCode r;
 
           // An error occurred, attempt to reset the statement.  If the reset worked because the
@@ -1569,7 +1571,8 @@ namespace System.Data.SQLite
       IntPtr ptr = IntPtr.Zero;
       int len = 0;
       SQLiteErrorCode n = SQLiteErrorCode.Schema;
-      int retries = 0;
+      int schemaRetries = 0;
+      int lockRetries = 0;
       int sleeps = 0;
       int maximumRetries = (cnn != null) ? cnn._prepareRetries : SQLiteConnection.DefaultPrepareRetries;
       int maximumSleepTime = (cnn != null) ? cnn._defaultMaximumSleepTime : SQLiteConnection.DefaultConnectionMaximumSleepTime;
@@ -1643,12 +1646,14 @@ namespace System.Data.SQLite
           }
 
           if (n == SQLiteErrorCode.Interrupt)
+          {
             break;
+          }
           else if (n == SQLiteErrorCode.Schema)
           {
-            retries++;
+            schemaRetries++;
 
-            if ((maximumRetries >= 0) && (retries > maximumRetries))
+            if ((maximumRetries >= 0) && (schemaRetries > maximumRetries))
               throw new SQLiteException(n, GetLastError());
           }
           else if (n == SQLiteErrorCode.Error)
@@ -1670,7 +1675,11 @@ namespace System.Data.SQLite
               }
 
               if (cmd != null)
+              {
+                cmd._prepareSchemaRetries = schemaRetries;
+                cmd._prepareLockRetries = lockRetries;
                 cmd.SetTypes(typedefs);
+              }
 
               return cmd;
             }
@@ -1692,6 +1701,12 @@ namespace System.Data.SQLite
                   strSql = strRemain;
                 }
 
+                if (cmd != null)
+                {
+                  cmd._prepareSchemaRetries = schemaRetries;
+                  cmd._prepareLockRetries = lockRetries;
+                }
+
                 return cmd;
               }
               finally
@@ -1703,6 +1718,11 @@ namespace System.Data.SQLite
           }
           else if (n == SQLiteErrorCode.Locked || n == SQLiteErrorCode.Busy) // Locked -- delay a small amount before retrying
           {
+            lockRetries++;
+
+            if ((maximumRetries >= 0) && (lockRetries > maximumRetries))
+              throw new SQLiteException(n, GetLastError());
+
             // Keep trying
             if (rnd == null) // First time we've encountered the lock
               rnd = new Random();
@@ -1726,7 +1746,7 @@ namespace System.Data.SQLite
 
                   SQLiteLog.LogMessage(HelperMethods.StringFormat(
                       CultureInfo.CurrentCulture, "Will retry {0} prepare #{1} after {2}ms ({3}): {{{4}}}",
-                      n, retries, sleepMs, sleeps, logSql));
+                      n, lockRetries, sleepMs, sleeps, logSql));
               }
 
               // Otherwise sleep for a random amount of time up to Xms
@@ -1754,6 +1774,12 @@ namespace System.Data.SQLite
         strRemain = UTF8ToString(ptr, len);
 
         if (statementHandle != null) cmd = new SQLiteStatement(this, flags, statementHandle, strSql.Substring(0, strSql.Length - strRemain.Length), previous);
+
+        if (cmd != null)
+        {
+          cmd._prepareSchemaRetries = schemaRetries;
+          cmd._prepareLockRetries = lockRetries;
+        }
 
         return cmd;
       }

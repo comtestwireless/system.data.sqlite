@@ -340,6 +340,28 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Gets/sets the maximum number of retries when stepping SQL to be executed.
+    /// This normally only applies to stepping errors resulting from the database
+    /// being locked.
+    /// </summary>
+    [DisplayName("Step Retries")]
+    [Browsable(true)]
+    [DefaultValue(3)]
+    public int StepRetries
+    {
+        get
+        {
+            object value;
+            TryGetValue("stepretries", out value);
+            return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        }
+        set
+        {
+            this["stepretries"] = value;
+        }
+    }
+
+    /// <summary>
     /// Gets/sets the approximate number of virtual machine instructions between
     /// progress events.  In order for progress events to actually fire, the event
     /// handler must be added to the <see cref="SQLiteConnection.Progress" /> event

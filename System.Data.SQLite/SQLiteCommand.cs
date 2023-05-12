@@ -259,17 +259,6 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    /// <summary>
-    /// This method attempts to query the flags associated with the database
-    /// connection in use.  If the database connection is disposed, the default
-    /// flags will be returned.
-    /// </summary>
-    /// <param name="command">
-    /// The command containing the database connection to query the flags from.
-    /// </param>
-    /// <returns>
-    /// The connection flags value.
-    /// </returns>
     internal static SQLiteConnectionFlags GetFlags(
         SQLiteCommand command
         )
@@ -290,6 +279,30 @@ namespace System.Data.SQLite
         }
 
         return SQLiteConnectionFlags.Default;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    internal static int GetStepRetries(
+        SQLiteCommand command
+        )
+    {
+        try
+        {
+            if (command != null)
+            {
+                SQLiteConnection cnn = command._cnn;
+
+                if (cnn != null)
+                    return cnn.StepRetries;
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            // do nothing.
+        }
+
+        return SQLiteConnection.DefaultStepRetries;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

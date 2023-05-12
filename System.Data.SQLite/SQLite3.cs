@@ -1248,7 +1248,9 @@ namespace System.Data.SQLite
     {
       SQLiteErrorCode n;
       Random rnd = null;
+      int retries = 0;
       int sleeps = 0;
+      int maximumRetries = SQLiteCommand.GetStepRetries(stmt._command);
       uint starttick = (uint)Environment.TickCount;
       uint timeout = (uint)(stmt._command._commandTimeout * 1000);
       int maximumSleepTime = stmt._command._maximumSleepTime;
@@ -1285,6 +1287,11 @@ namespace System.Data.SQLite
 
         if (n != SQLiteErrorCode.Ok)
         {
+          retries++;
+
+          if ((maximumRetries >= 0) && (retries > maximumRetries))
+            throw new SQLiteException(n, GetLastError());
+
           SQLiteErrorCode r;
 
           // An error occurred, attempt to reset the statement.  If the reset worked because the
@@ -1320,8 +1327,8 @@ namespace System.Data.SQLite
                       logSql = "<nothing>";
 
                   SQLiteLog.LogMessage(HelperMethods.StringFormat(
-                      CultureInfo.CurrentCulture, "Will retry {0} ==> {1} step after {2}ms ({3}): {{{4}}}",
-                      n, r, sleepMs, sleeps, logSql));
+                      CultureInfo.CurrentCulture, "Will retry {0} ==> {1} step #{2} after {3}ms ({4}): {{{5}}}",
+                      n, r, retries, sleepMs, sleeps, logSql));
               }
 
               // Otherwise sleep for a random amount of time up to Xms
@@ -1579,7 +1586,7 @@ namespace System.Data.SQLite
       SQLiteStatementHandle statementHandle = null;
       try
       {
-        while ((n == SQLiteErrorCode.Schema || n == SQLiteErrorCode.Locked || n == SQLiteErrorCode.Busy) && retries < maximumRetries)
+        while (n == SQLiteErrorCode.Schema || n == SQLiteErrorCode.Locked || n == SQLiteErrorCode.Busy)
         {
           try
           {
@@ -1638,7 +1645,12 @@ namespace System.Data.SQLite
           if (n == SQLiteErrorCode.Interrupt)
             break;
           else if (n == SQLiteErrorCode.Schema)
+          {
             retries++;
+
+            if ((maximumRetries >= 0) && (retries > maximumRetries))
+              throw new SQLiteException(n, GetLastError());
+          }
           else if (n == SQLiteErrorCode.Error)
           {
             if (String.Compare(GetLastError(), "near \"TYPES\": syntax error", StringComparison.OrdinalIgnoreCase) == 0)
@@ -1713,8 +1725,8 @@ namespace System.Data.SQLite
                       logSql = "<nothing>";
 
                   SQLiteLog.LogMessage(HelperMethods.StringFormat(
-                      CultureInfo.CurrentCulture, "Will retry {0} prepare after {1}ms ({2}): {{{3}}}",
-                      n, sleepMs, sleeps, logSql));
+                      CultureInfo.CurrentCulture, "Will retry {0} prepare #{1} after {2}ms ({3}): {{{4}}}",
+                      n, retries, sleepMs, sleeps, logSql));
               }
 
               // Otherwise sleep for a random amount of time up to Xms

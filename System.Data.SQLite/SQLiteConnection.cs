@@ -1461,6 +1461,7 @@ namespace System.Data.SQLite
     private const bool DefaultEnlist = true;
     private const bool DefaultSetDefaults = true;
     internal const int DefaultPrepareRetries = 3;
+    internal const int DefaultStepRetries = 3;
     private static readonly DbType? _DefaultDbType = null;
     private const string _DefaultTypeName = null;
     private const string DefaultVfsName = null;
@@ -1707,6 +1708,13 @@ namespace System.Data.SQLite
     internal int _prepareRetries;
 
     /// <summary>
+    /// The maximum number of retries when stepping SQL to be executed.  This
+    /// normally only applies to stepping errors resulting from the database
+    /// being locked.
+    /// </summary>
+    internal int _stepRetries;
+
+    /// <summary>
     /// The approximate number of virtual machine instructions between progress
     /// events.  In order for progress events to actually fire, the event handler
     /// must be added to the <see cref="SQLiteConnection.Progress" /> event as
@@ -1904,6 +1912,7 @@ namespace System.Data.SQLite
 #endif
 
         _prepareRetries = DefaultPrepareRetries;
+        _stepRetries = DefaultStepRetries;
         _progressOps = DefaultProgressOps;
         _defaultIsolation = DefaultIsolationLevel;
         _baseSchemaName = DefaultBaseSchemaName;
@@ -4873,6 +4882,11 @@ namespace System.Data.SQLite
         if (stringValue != null)
             _prepareRetries = Convert.ToInt32(stringValue, CultureInfo.InvariantCulture);
 
+        stringValue = FindKey(opts, "StepRetries", null);
+
+        if (stringValue != null)
+            _stepRetries = Convert.ToInt32(stringValue, CultureInfo.InvariantCulture);
+
         stringValue = FindKey(opts, "ProgressOps", null);
 
         if (stringValue != null)
@@ -5317,6 +5331,17 @@ namespace System.Data.SQLite
     /// schema being changed.
     /// </summary>
     public int PrepareRetries
+    {
+        get { CheckDisposed(); return _prepareRetries; }
+        set { CheckDisposed(); _prepareRetries = value; }
+    }
+
+    /// <summary>
+    /// The maximum number of retries when stepping SQL to be executed.  This
+    /// normally only applies to stepping errors resulting from the database
+    /// being locked.
+    /// </summary>
+    public int StepRetries
     {
         get { CheckDisposed(); return _prepareRetries; }
         set { CheckDisposed(); _prepareRetries = value; }

@@ -847,6 +847,7 @@ set sds_manifests(source) {
   Tests/progress.eagle
   Tests/pst-4db2934c2e.eagle
   Tests/pst-eeaefb84ec.eagle
+  Tests/pst-f4e718891d.eagle
   Tests/session.eagle
   Tests/speed.eagle
   Tests/stress.eagle

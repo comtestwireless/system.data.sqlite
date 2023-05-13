@@ -4803,6 +4803,13 @@ namespace System.Data.SQLite
     [DllImport(SQLITE_DLL)]
 #endif
     internal static extern IntPtr sqlite3_mprintf(IntPtr format, __arglist);
+
+#if !PLATFORM_COMPACTFRAMEWORK
+    [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl)]
+#else
+    [DllImport(SQLITE_DLL)]
+#endif
+    internal static extern SQLiteTransactionState sqlite3_txn_state(IntPtr db, IntPtr zSchema);
     #endregion
 
     ///////////////////////////////////////////////////////////////////////////

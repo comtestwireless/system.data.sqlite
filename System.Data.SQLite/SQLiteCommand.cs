@@ -1173,6 +1173,40 @@ namespace System.Data.SQLite
       }
     }
 
+    ///////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Checks transaction state of the associated database connection.
+    /// </summary>
+    /// <param name="transactionState">
+    /// The desired transaction state.
+    /// </param>
+    /// <returns>
+    /// Non-zero if current transaction state of the associated database
+    /// connection matches the desired transaction state.
+    /// </returns>
+    private bool MatchTransactionState(
+        SQLiteTransactionState transactionState
+        )
+    {
+        if (UnsafeNativeMethods.sqlite3_libversion_number() < 3034001)
+            return false;
+
+        SQLiteConnection cnn = _cnn;
+
+        if (cnn == null)
+            return false;
+
+        SQLiteBase sql = _cnn._sql;
+
+        if (sql == null)
+            return false;
+
+        return sql.GetTransactionState(null) == transactionState;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
     /// <summary>
     /// Execute the command and return the first column of the first row of the resultset
     /// (if present), or null if no resultset was returned.
@@ -1204,7 +1238,16 @@ namespace System.Data.SQLite
         if (reader.Read() && (reader.FieldCount > 0))
         {
           object result = reader[0];
-          while (reader.PrivateRead(true)) ;
+
+          if (MatchTransactionState(
+              SQLiteTransactionState.SQLITE_TXN_WRITE))
+          {
+            while (reader.PrivateRead(true))
+            {
+              // do nothing.
+            }
+          }
+
           return result;
         }
       }

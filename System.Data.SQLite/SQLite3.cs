@@ -1248,7 +1248,8 @@ namespace System.Data.SQLite
     {
       SQLiteErrorCode n;
       Random rnd = null;
-      int retries = 0;
+      int schemaRetries = 0;
+      int lockRetries = 0;
       int sleeps = 0;
       int maximumRetries = SQLiteCommand.GetStepRetries(stmt._command);
       uint starttick = (uint)Environment.TickCount;
@@ -1287,12 +1288,28 @@ namespace System.Data.SQLite
 
         if (n != SQLiteErrorCode.Ok)
         {
-          retries++;
+          if (n == SQLiteErrorCode.Schema)
+          {
+            schemaRetries++;
 
-          if ((maximumRetries >= 0) && (retries > maximumRetries))
+            if ((maximumRetries >= 0) && (schemaRetries > maximumRetries))
+              throw new SQLiteException(n, GetLastError());
+
+            stmt._stepSchemaRetries++;
+          }
+          else if (n == SQLiteErrorCode.Locked || n == SQLiteErrorCode.Busy)
+          {
+            lockRetries++;
+
+            if ((maximumRetries >= 0) && (lockRetries > maximumRetries))
+              throw new SQLiteException(n, GetLastError());
+
+            stmt._stepLockRetries++;
+          }
+          else
+          {
             throw new SQLiteException(n, GetLastError());
-
-          stmt._stepLockRetries++;
+          }
 
           SQLiteErrorCode r;
 
@@ -1328,8 +1345,8 @@ namespace System.Data.SQLite
                       logSql = "<nothing>";
 
                   SQLiteLog.LogMessage(HelperMethods.StringFormat(
-                      CultureInfo.CurrentCulture, "Will retry {0} ==> {1} step #{2} after {3}ms ({4}): {{{5}}}",
-                      n, r, retries, sleepMs, sleeps, logSql));
+                      CultureInfo.CurrentCulture, "Will retry {0} ==> {1} step #{2}, #{3} after {4}ms ({5}): {{{6}}}",
+                      n, r, schemaRetries, lockRetries, sleepMs, sleeps, logSql));
               }
 
               // Otherwise sleep for a random amount of time up to Xms
@@ -3415,6 +3432,8 @@ namespace System.Data.SQLite
             case SQLiteConfigDbOpsEnum.SQLITE_DBCONFIG_ENABLE_VIEW: // int int*
             case SQLiteConfigDbOpsEnum.SQLITE_DBCONFIG_LEGACY_FILE_FORMAT: // int int*
             case SQLiteConfigDbOpsEnum.SQLITE_DBCONFIG_TRUSTED_SCHEMA: // int int*
+            case SQLiteConfigDbOpsEnum.SQLITE_DBCONFIG_STMT_SCANSTATUS: // int int*
+            case SQLiteConfigDbOpsEnum.SQLITE_DBCONFIG_REVERSE_SCANORDER: // int int*
                 {
                     if (!(value is bool))
                     {
@@ -3672,6 +3691,34 @@ namespace System.Data.SQLite
 #endif
 
         return rc;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    internal override SQLiteTransactionState GetTransactionState(
+        string schema
+        )
+    {
+        if (_sql == null)
+            return SQLiteTransactionState.SQLITE_TXN_UNKNOWN;
+
+        IntPtr pSchema = IntPtr.Zero;
+
+        try
+        {
+            if (schema != null)
+                pSchema = SQLiteString.Utf8IntPtrFromString(schema);
+
+            return UnsafeNativeMethods.sqlite3_txn_state(_sql, pSchema);
+        }
+        finally
+        {
+            if (pSchema != IntPtr.Zero)
+            {
+                SQLiteMemory.Free(pSchema);
+                pSchema = IntPtr.Zero;
+            }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

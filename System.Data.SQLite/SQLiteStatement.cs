@@ -45,13 +45,17 @@ namespace System.Data.SQLite
     internal SQLiteCommand     _command;
 
     /// <summary>
+    /// The total number of schema retries during preparation.
+    /// </summary>
+    internal int _prepareSchemaRetries;
+    /// <summary>
     /// The total number of locking retries during preparation.
     /// </summary>
     internal int _prepareLockRetries;
     /// <summary>
-    /// The total number of schema retries during preparation.
+    /// The total number of schema retries during stepping.
     /// </summary>
-    internal int _prepareSchemaRetries;
+    internal int _stepSchemaRetries;
     /// <summary>
     /// The total number of retries during stepping.
     /// </summary>
@@ -79,6 +83,7 @@ namespace System.Data.SQLite
       _sqlStatement  = strCommand;
       _prepareSchemaRetries = 0;
       _prepareLockRetries = 0;
+      _stepSchemaRetries = 0;
       _stepLockRetries = 0;
       _flags = flags;
 

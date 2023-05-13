@@ -504,6 +504,7 @@ namespace System.Data.SQLite
     internal abstract void SetTraceCallback2(SQLiteTraceFlags mask, SQLiteTraceCallback2 func);
     internal abstract void SetRollbackHook(SQLiteRollbackCallback func);
     internal abstract SQLiteErrorCode SetLogCallback(SQLiteLogCallback func);
+    internal abstract SQLiteTransactionState GetTransactionState(string schema);
 
     /// <summary>
     /// Checks if the SQLite core library has been initialized in the current process.
@@ -1974,6 +1975,17 @@ namespace System.Data.SQLite
     SQLITE_CONFIG_SMALL_MALLOC = 27, // boolean
     SQLITE_CONFIG_SORTERREF_SIZE = 28, // int nByte
     SQLITE_CONFIG_MEMDB_MAXSIZE = 29 // sqlite3_int64
+  }
+
+  /// <summary>
+  /// These constants are returned by the sqlite3_txn_state() API.
+  /// </summary>
+  internal enum SQLiteTransactionState
+  {
+      SQLITE_TXN_UNKNOWN = -1,
+      SQLITE_TXN_NONE = 0,
+      SQLITE_TXN_READ = 1,
+      SQLITE_TXN_WRITE = 2
   }
 
   /// <summary>

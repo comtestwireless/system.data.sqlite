@@ -66,8 +66,8 @@ System\.Data\.SQLite\.SQLiteException System\.Data\.SQLite\.SQLite3\.Prepare\}\
 System\.Data\.SQLite\.SQLite3\.Prepare\} \{SQL logic error( or missing\
 database)? -- no such function: interopTest\}\} \{0 \{\}\} \{0 \{\}\} \{0\
 test2\} \{1 \{EXCEPTION System\.Data\.SQLite\.SQLiteException\
-System\.Data\.SQLite\.SQLite3\.Reset\} \{SQL logic error( or missing database)?\
--- need exactly one argument\}\}$}}
+System\.Data\.SQLite\.SQLite3\.(?:Reset|Step)\} \{SQL logic error( or missing\
+database)? -- need exactly one argument\}\}$}}
 
 ###############################################################################
 

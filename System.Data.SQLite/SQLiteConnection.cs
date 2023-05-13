@@ -1461,7 +1461,7 @@ namespace System.Data.SQLite
     private const bool DefaultEnlist = true;
     private const bool DefaultSetDefaults = true;
     internal const int DefaultPrepareRetries = 3;
-    internal const int DefaultStepRetries = 3;
+    internal const int DefaultStepRetries = 40;
     private static readonly DbType? _DefaultDbType = null;
     private const string _DefaultTypeName = null;
     private const string DefaultVfsName = null;

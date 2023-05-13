@@ -284,6 +284,30 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    internal static int GetPrepareRetries(
+        SQLiteCommand command
+        )
+    {
+        try
+        {
+            if (command != null)
+            {
+                SQLiteConnection cnn = command._cnn;
+
+                if (cnn != null)
+                    return cnn.PrepareRetries;
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            // do nothing.
+        }
+
+        return SQLiteConnection.DefaultPrepareRetries;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     internal static int GetStepRetries(
         SQLiteCommand command
         )
@@ -304,6 +328,25 @@ namespace System.Data.SQLite
         }
 
         return SQLiteConnection.DefaultStepRetries;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    internal static int GetMaximumSleepTime(
+        SQLiteCommand command
+        )
+    {
+        try
+        {
+            if (command != null)
+                return command._maximumSleepTime;
+        }
+        catch (ObjectDisposedException)
+        {
+            // do nothing.
+        }
+
+        return SQLiteConnection.DefaultConnectionMaximumSleepTime;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +418,7 @@ namespace System.Data.SQLite
           if (_statementList == null)
             _remainingText = _commandText;
 
-          stmt = _cnn._sql.Prepare(_cnn, _remainingText, (_statementList == null) ? null : _statementList[_statementList.Count - 1], (uint)(_commandTimeout * 1000), ref _remainingText);
+          stmt = _cnn._sql.Prepare(_cnn, this, _remainingText, (_statementList == null) ? null : _statementList[_statementList.Count - 1], (uint)(_commandTimeout * 1000), ref _remainingText);
 
           if (stmt != null)
           {
@@ -713,7 +756,7 @@ namespace System.Data.SQLite
             while ((text != null) && (text.Length > 0))
             {
                 currentStatement = sqlBase.Prepare(
-                    connection, text, previousStatement, timeout,
+                    connection, this, text, previousStatement, timeout,
                     ref text); /* throw */
 
                 previousStatement = currentStatement;

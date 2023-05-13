@@ -1447,7 +1447,7 @@ namespace System.Data.SQLite
       {
         // Recreate a dummy statement
         string str = null;
-        using (SQLiteStatement tmp = Prepare(null, stmt._sqlStatement, null, (uint)(stmt._command._commandTimeout * 1000), ref str))
+        using (SQLiteStatement tmp = Prepare(null, stmt._command, stmt._sqlStatement, null, (uint)(stmt._command._commandTimeout * 1000), ref str))
         {
           // Finalize the existing statement
           stmt._sqlite_stmt.Dispose();
@@ -1529,7 +1529,7 @@ namespace System.Data.SQLite
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    internal override SQLiteStatement Prepare(SQLiteConnection cnn, string strSql, SQLiteStatement previous, uint timeoutMS, ref string strRemain)
+    internal override SQLiteStatement Prepare(SQLiteConnection cnn, SQLiteCommand command, string strSql, SQLiteStatement previous, uint timeoutMS, ref string strRemain)
     {
       if (!String.IsNullOrEmpty(strSql)) strSql = strSql.Trim();
       if (!String.IsNullOrEmpty(strSql))
@@ -1574,8 +1574,8 @@ namespace System.Data.SQLite
       int schemaRetries = 0;
       int lockRetries = 0;
       int sleeps = 0;
-      int maximumRetries = (cnn != null) ? cnn._prepareRetries : SQLiteConnection.DefaultPrepareRetries;
-      int maximumSleepTime = (cnn != null) ? cnn._defaultMaximumSleepTime : SQLiteConnection.DefaultConnectionMaximumSleepTime;
+      int maximumRetries = SQLiteCommand.GetPrepareRetries(command);
+      int maximumSleepTime = SQLiteCommand.GetMaximumSleepTime(command);
       byte[] b = ToUTF8(strSql);
       string typedefs = null;
       SQLiteStatement cmd = null;
@@ -1670,7 +1670,7 @@ namespace System.Data.SQLite
 
               while (cmd == null && strSql.Length > 0)
               {
-                cmd = Prepare(cnn, strSql, previous, timeoutMS, ref strRemain);
+                cmd = Prepare(cnn, command, strSql, previous, timeoutMS, ref strRemain);
                 strSql = strRemain;
               }
 
@@ -1697,7 +1697,7 @@ namespace System.Data.SQLite
 
                 while (cmd == null && strSql.Length > 0)
                 {
-                  cmd = Prepare(cnn, strSql, previous, timeoutMS, ref strRemain);
+                  cmd = Prepare(cnn, command, strSql, previous, timeoutMS, ref strRemain);
                   strSql = strRemain;
                 }
 

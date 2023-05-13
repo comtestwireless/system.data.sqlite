@@ -3357,7 +3357,8 @@ namespace eval ::Eagle {
       # NOTE: Add the name of the current test file, if available.  This is
       #       only used for debugging.
       #
-      if {[info exists ::test_file]} then {
+      if {[info exists ::test_file] && \
+          [string length $::test_file] > 0} then {
         append connection {;TestFile=${::test_file}}
       }
 
@@ -3365,7 +3366,8 @@ namespace eval ::Eagle {
       # NOTE: Add the name of the current test, if available.  This is only
       #       used for debugging.
       #
-      if {[info exists ::eagle_tests(CurrentName)]} then {
+      if {[info exists ::eagle_tests(CurrentName)] && \
+          [string length $::eagle_tests(CurrentName)] > 0} then {
         append connection {;TestName=${::eagle_tests(CurrentName)}}
       }
 

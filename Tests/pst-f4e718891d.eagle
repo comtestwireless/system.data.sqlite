@@ -120,7 +120,7 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
         }
       }
     }
-  }] true false true results errors [list System.Data.SQLite.dll Eagle.dll]]
+  }] true false true results errors [list System.Data.SQLite.dll]]
 
   list $code $results \
       [expr {[info exists errors] ? $errors : ""}] \

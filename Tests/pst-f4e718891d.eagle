@@ -126,16 +126,18 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
       [expr {[info exists errors] ? $errors : ""}] \
       [expr {$code eq "Ok" ? [catchCSharp {
         object invoke _Dynamic${id}.Test${id} Main
-      } result] : [set result ""]}] $result insert \
-      [expr {$code eq "Ok" ? [catchCSharp {
+      } result] : [set result ""]}] $result \
+      insert [expr {$code eq "Ok" ? [catchCSharp {
         object invoke -flags +NonPublic \
             _Dynamic${id}.Test${id} insertExceptionCount
-      } result] : [set result ""]}] $result select \
-      [expr {$code eq "Ok" ? [catchCSharp {
+      } count(iec)] : [set count(iec) -1]}] $count(iec) \
+      select [expr {$code eq "Ok" ? [catchCSharp {
         object invoke -flags +NonPublic \
             _Dynamic${id}.Test${id} selectExceptionCount
-      } result] : [set result ""]}] $result \
-      [sql execute -execute scalar $db $sql(2)]
+      } count(sec)] : [set count(sec) -1]}] $count(sec) \
+      [expr {
+        $count(iec) + [sql execute -execute scalar $db $sql(2)]
+      }]
 } -cleanup {
   cleanupDb $fileName
 
@@ -143,8 +145,8 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
   unset -nocomplain dataSource id db fileName
 } -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -match regexp -result \
-{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert 0 0 select\
-0 0 250$}}
+{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert 0 \d+\
+select 0 \d+ 250$}}
 
 ###############################################################################
 

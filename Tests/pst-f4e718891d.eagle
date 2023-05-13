@@ -136,7 +136,11 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
             _Dynamic${id}.Test${id} selectExceptionCount
       } count(sec)] : [set count(sec) -1]}] $count(sec) \
       [expr {
-        $count(iec) + [sql execute -execute scalar $db $sql(2)]
+        $count(iec) + [set count(rows) \
+            [sql execute -execute scalar $db $sql(2)]]
+      }] [expr {
+        [tputs $test_channel [appendArgs \
+            "---- test counts: " [testArrayGet count] \n]]
       }]
 } -cleanup {
   cleanupDb $fileName
@@ -146,7 +150,7 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
 } -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -match regexp -result \
 {^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert 0 \d+\
-select 0 \d+ 250$}}
+select 0 \d+ 250 \{\}$}}
 
 ###############################################################################
 

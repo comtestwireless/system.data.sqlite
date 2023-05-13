@@ -1202,7 +1202,11 @@ namespace System.Data.SQLite
           CommandBehavior.SingleRow | CommandBehavior.SingleResult))
       {
         if (reader.Read() && (reader.FieldCount > 0))
-          return reader[0];
+        {
+          object result = reader[0];
+          while (reader.PrivateRead(true)) ;
+          return result;
+        }
       }
       return null;
     }

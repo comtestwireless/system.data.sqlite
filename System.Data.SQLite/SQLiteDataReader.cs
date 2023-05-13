@@ -2079,12 +2079,31 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
-    /// Reads the next row from the resultset
+    /// Attempts to read the next row from the current result set.
     /// </summary>
-    /// <returns>True if a new row was successfully loaded and is ready for processing</returns>
+    /// <returns>
+    /// Non-zero if a new row was successfully loaded and is ready
+    /// for processing; otherwise, zero.
+    /// </returns>
     public override bool Read()
     {
       CheckDisposed();
+      return PrivateRead(false);
+    }
+
+    /// <summary>
+    /// Attempts to read the next row from the current result set.
+    /// </summary>
+    /// <param name="ignoreSingleRow">
+    /// When this parameter is non-zero, the SingleRow command
+    /// behavior flag will be ignored.
+    /// </param>
+    /// <returns>
+    /// Non-zero if a new row was successfully loaded and is ready
+    /// for processing; otherwise, zero.
+    /// </returns>
+    internal bool PrivateRead(bool ignoreSingleRow)
+    {
       CheckClosed();
       if (_throwOnDisposed) SQLiteCommand.Check(_command);
 
@@ -2099,7 +2118,7 @@ namespace System.Data.SQLite
       else if (_readingState == 0) // Actively reading rows
       {
         // Don't read a new row if the command behavior dictates SingleRow.  We've already read the first row.
-        if ((_commandBehavior & CommandBehavior.SingleRow) == 0)
+        if (ignoreSingleRow || (_commandBehavior & CommandBehavior.SingleRow) == 0)
         {
           if (_activeStatement._sql.Step(_activeStatement) == true)
           {

@@ -1232,12 +1232,15 @@ namespace System.Data.SQLite
       CheckDisposed();
       SQLiteConnection.Check(_cnn);
 
+      object result = null;
+
       using (SQLiteDataReader reader = ExecuteReader(behavior |
           CommandBehavior.SingleRow | CommandBehavior.SingleResult))
       {
-        if (reader.Read() && (reader.FieldCount > 0))
+        if (reader.PrivateRead(false))
         {
-          object result = reader[0];
+          if (reader.FieldCount > 0)
+            result = reader[0];
 
           if (MatchTransactionState(
               SQLiteTransactionState.SQLITE_TXN_WRITE))
@@ -1247,11 +1250,9 @@ namespace System.Data.SQLite
               // do nothing.
             }
           }
-
-          return result;
         }
       }
-      return null;
+      return result;
     }
 
     /// <summary>

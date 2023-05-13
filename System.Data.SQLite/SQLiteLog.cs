@@ -238,6 +238,32 @@ namespace System.Data.SQLite
         ///////////////////////////////////////////////////////////////////////
 
         /// <summary>
+        /// This method checks to see if the SQLite core library allows its
+        /// native logging callback to be changed when it has already been
+        /// initialized, either explicitly or implicitly.
+        /// </summary>
+        /// <returns>
+        /// Non-zero if the SQLite core library initialization state can be
+        /// safely ignored when setting up logging; otherwise, zero.
+        /// </returns>
+        private static bool CanIgnoreIsInitialized()
+        {
+            try
+            {
+                if (UnsafeNativeMethods.sqlite3_libversion_number() >= 3042000)
+                    return true;
+            }
+            catch
+            {
+                // do nothing.
+            }
+
+            return false;
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
         /// Initializes the SQLite logging facilities.
         /// </summary>
         public static void Initialize()
@@ -360,7 +386,7 @@ namespace System.Data.SQLite
             //         core library has already been initialized anywhere in
             //         the process (see ticket [2ce0870fad]).
             //
-            if (SQLite3.StaticIsInitialized())
+            if (!CanIgnoreIsInitialized() && SQLite3.StaticIsInitialized())
                 return false;
 
             ///////////////////////////////////////////////////////////////////
@@ -393,7 +419,7 @@ namespace System.Data.SQLite
                 //         already been initialized anywhere in the process,
                 //         this time while holding the lock.
                 //
-                if (SQLite3.StaticIsInitialized())
+                if (!CanIgnoreIsInitialized() && SQLite3.StaticIsInitialized())
                     return false;
 
                 ///////////////////////////////////////////////////////////////

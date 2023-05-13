@@ -1320,8 +1320,7 @@ namespace System.Data.SQLite
             {
               int sleepMs = rnd.Next(1, maximumSleepTime);
 
-              if (_forceLogRetry ||
-                  HelperMethods.LogRetry(flags))
+              if (_forceLogRetry || HelperMethods.LogRetry(flags))
               {
                   string logSql = stmt._sqlStatement;
 
@@ -1557,14 +1556,15 @@ namespace System.Data.SQLite
 
       SQLiteConnectionFlags flags = SQLiteConnection.GetFlags(cnn);
 
-      if (_forceLogPrepare ||
-          HelperMethods.LogPrepare(flags))
+      if (_forceLogPrepare || HelperMethods.LogPrepare(flags))
       {
-          if ((strSql == null) || (strSql.Length == 0) || (strSql.Trim().Length == 0))
-              SQLiteLog.LogMessage("Preparing {<nothing>}...");
-          else
-              SQLiteLog.LogMessage(HelperMethods.StringFormat(
-                  CultureInfo.CurrentCulture, "Preparing {{{0}}}...", strSql));
+          string logSql = strSql;
+
+          if ((logSql == null) || (logSql.Length == 0) || (logSql.Trim().Length == 0))
+              logSql = "<nothing>";
+
+          SQLiteLog.LogMessage(HelperMethods.StringFormat(
+              CultureInfo.CurrentCulture, "Preparing {{{0}}}...", logSql));
       }
 
       IntPtr stmt = IntPtr.Zero;
@@ -1736,8 +1736,7 @@ namespace System.Data.SQLite
             {
               int sleepMs = rnd.Next(1, maximumSleepTime);
 
-              if (_forceLogRetry ||
-                  HelperMethods.LogRetry(flags))
+              if (_forceLogRetry || HelperMethods.LogRetry(flags))
               {
                   string logSql = strSql;
 

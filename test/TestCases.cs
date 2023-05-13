@@ -1296,9 +1296,10 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
                 if (e is ArgumentException) throw new Exception(e.Message);
 
                 cmdEnd = Environment.TickCount;
-                if (cmdEnd - cmdStart < 2000 || cmdEnd - cmdStart > 3000)
-                  throw new Exception("Did not give up the lock at the right time!"); // Didn't wait the right amount of time
+                int cmdElapsed = cmdEnd - cmdStart;
 
+                if (cmdElapsed < 2000 || cmdElapsed > 3000)
+                  throw new Exception(String.Format("Did not give up the lock at the right time ({0}ms)!", cmdElapsed)); // Didn't wait the right amount of time
               }
             }
           }
@@ -1369,12 +1370,13 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
       System.Threading.WaitHandle.WaitAll(events, ThreadTimeout);
 
+      int timeout = ThreadTimeout / arr.Length;
       bool failed = false;
       Exception e = null;
 
       for (int n = 0; n < arr.Length; n++)
       {
-        if (!arr[n].t.Join(ThreadTimeout / arr.Length))
+        if (!arr[n].t.Join(timeout))
         {
           failed = true;
           arr[n].t.Abort();
@@ -1384,7 +1386,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         arr[n].cnn.Dispose();
         arr[n].ev.Close();
       }
-      if (failed) throw new Exception("One or more threads deadlocked");
+      if (failed) throw new Exception(String.Format("One or more threads deadlocked ({0}ms)", timeout));
       if (e != null) 
         throw e;
     }

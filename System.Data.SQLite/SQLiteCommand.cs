@@ -1176,6 +1176,153 @@ namespace System.Data.SQLite
     ///////////////////////////////////////////////////////////////////////
 
     /// <summary>
+    /// This integer value is used with <see cref="CommandBehavior" />
+    /// values.  When set, extra <see cref="SQLiteDataReader.Read" />
+    /// calls are not performed within the <see cref="ExecuteScalar()" />
+    /// methods for write transactions.  This value should be used with
+    /// extreme care because it can cause unusual behavior.  It is
+    /// intended for use only by legacy applications that rely on the
+    /// old, incorrect behavior.
+    /// </summary>
+    public const CommandBehavior SkipExtraReads =
+        (CommandBehavior)0x10000000;
+
+    /// <summary>
+    /// Checks to see if the extra <see cref="SQLiteDataReader.Read" />
+    /// calls within the <see cref="ExecuteScalar()" /> methods should
+    /// be skipped.
+    /// </summary>
+    /// <param name="behavior">
+    /// The behavior flags, exactly as they were passed into the
+    /// <see cref="ExecuteScalar()" /> methods.
+    /// </param>
+    /// <returns>
+    /// Non-zero if the extra reads should be skipped; otherwise, zero.
+    /// </returns>
+    private bool ShouldSkipExtraReads(
+        CommandBehavior behavior /* in */
+        )
+    {
+        return (behavior & SkipExtraReads) == SkipExtraReads;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Attempts to combine an original <see cref="CommandBehavior" />
+    /// value with a list of new <see cref="CommandBehavior" /> values.
+    /// </summary>
+    /// <param name="behavior">
+    /// The original <see cref="CommandBehavior" /> value, if any.  If
+    /// this value is null, a suitable default value will be used.
+    /// </param>
+    /// <param name="flags">
+    /// The list of new <see cref="CommandBehavior" /> values delimited
+    /// by spaces or commas.  Each value may have an optional prefix, a
+    /// '+' or '-' sign.  If the prefix is a '+', the value is added to
+    /// the original <see cref="CommandBehavior" /> value.  If the
+    /// prefix is a '-', the value is removed from the original
+    /// <see cref="CommandBehavior" /> value.  In addition to the values
+    /// formally defined for <see cref="CommandBehavior" />, the extra
+    /// value "SkipExtraReads" is recognized.  Other extra values may be
+    /// added in the future.
+    /// </param>
+    /// <param name="error">
+    /// Upon success, this will be set to null.  Upon failure, this will
+    /// be set to an appropriate error message.
+    /// </param>
+    /// <returns>
+    /// The resulting <see cref="CommandBehavior" /> value -OR- null
+    /// if it cannot be determined due to an error -OR- null if the
+    /// original <see cref="CommandBehavior" /> value and list of new
+    /// <see cref="CommandBehavior" /> value are both null.  The way to
+    /// differentiate between these two null return scenarios is to
+    /// check the error message against null.  If the error message is
+    /// not null, an error was encountered; otherwise, the null was the
+    /// natural return value.
+    /// </returns>
+    public static CommandBehavior? CombineBehaviors(
+        CommandBehavior? behavior, /* in: OPTIONAL */
+        string flags,              /* in: OPTIONAL */
+        out string error           /* out */
+        )
+    {
+        error = null;
+
+        if (String.IsNullOrEmpty(flags))
+            return behavior;
+
+        string[] parts = flags.Split(' ', ',');
+
+        if (parts == null)
+        {
+            error = "could not split flags into parts";
+            return null;
+        }
+
+        CommandBehavior localBehavior = (behavior != null) ?
+            (CommandBehavior)behavior : (CommandBehavior)0;
+
+        int length = parts.Length;
+        bool add = true;
+
+        for (int index = 0; index < length; index++)
+        {
+            string part = parts[index];
+
+            if (part != null)
+                part = part.Trim();
+
+            if (String.IsNullOrEmpty(part))
+                continue;
+
+            char subPart = part[0];
+
+            if ((subPart == '+') || (subPart == '-'))
+            {
+                add = (subPart == '+');
+                part = part.Substring(1).Trim();
+            }
+
+            if (String.IsNullOrEmpty(part))
+                continue;
+
+            object enumValue;
+
+            if (String.Equals(
+                    part, "SkipExtraReads",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                enumValue = SkipExtraReads;
+            }
+            else
+            {
+                try
+                {
+                    enumValue = Enum.Parse(
+                        typeof(CommandBehavior), part, true);
+                }
+                catch (Exception e)
+                {
+                    error = e.ToString();
+                    return null;
+                }
+            }
+
+            CommandBehavior flag = (CommandBehavior)enumValue;
+
+            if (add)
+                localBehavior |= flag;
+            else
+                localBehavior &= ~flag;
+        }
+
+        return localBehavior;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    /// <summary>
     /// Checks transaction state of the associated database connection.
     /// </summary>
     /// <param name="transactionState">
@@ -1186,7 +1333,7 @@ namespace System.Data.SQLite
     /// connection matches the desired transaction state.
     /// </returns>
     private bool MatchTransactionState(
-        SQLiteTransactionState transactionState
+        SQLiteTransactionState transactionState /* in */
         )
     {
         if (UnsafeNativeMethods.sqlite3_libversion_number() < 3034001)
@@ -1242,8 +1389,8 @@ namespace System.Data.SQLite
           if (reader.FieldCount > 0)
             result = reader[0];
 
-          if (MatchTransactionState(
-              SQLiteTransactionState.SQLITE_TXN_WRITE))
+          if (!ShouldSkipExtraReads(behavior) &&
+              MatchTransactionState(SQLiteTransactionState.SQLITE_TXN_WRITE))
           {
             while (reader.PrivateRead(true))
             {

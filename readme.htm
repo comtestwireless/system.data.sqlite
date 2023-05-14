@@ -218,6 +218,7 @@ released versions of System.Data.SQLite.
     <li>Add TextHexPassword connection string property for use with <a href="https://www.sqlite.org/see">SEE</a>.</li>
     <li>Add SQLite_ForceLogRetry environment variable to force logging of all internal retries during statment preparation and stepping.</li>
     <li>Add StepRetries connection string property to allow the maximum number of retries when stepping a query to be overridden.</li>
+    <li>Fix ExecuteScalar handling of write transactions that require more than one call to step. Pursuant to forum post [f4e718891d].&nbsp;<b>** Potentially Incompatible Change **</b></li>
 </ul>
 <p>
     <b>1.0.117.0 - November 28, 2022</b>

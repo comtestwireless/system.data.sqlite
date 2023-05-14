@@ -1188,6 +1188,16 @@ namespace System.Data.SQLite
         (CommandBehavior)0x10000000;
 
     /// <summary>
+    /// This integer value is used with <see cref="CommandBehavior" />
+    /// values.  When set, extra <see cref="SQLiteDataReader.Read" />
+    /// calls are performed within the <see cref="ExecuteScalar()" />
+    /// methods for all transactions.  This value should be used with
+    /// extreme care because it can cause unusual behavior.
+    /// </summary>
+    public const CommandBehavior ForceExtraReads =
+        (CommandBehavior)0x20000000;
+
+    /// <summary>
     /// Checks to see if the extra <see cref="SQLiteDataReader.Read" />
     /// calls within the <see cref="ExecuteScalar()" /> methods should
     /// be skipped.
@@ -1204,6 +1214,25 @@ namespace System.Data.SQLite
         )
     {
         return (behavior & SkipExtraReads) == SkipExtraReads;
+    }
+
+    /// <summary>
+    /// Checks to see if the extra <see cref="SQLiteDataReader.Read" />
+    /// calls within the <see cref="ExecuteScalar()" /> methods should
+    /// be forced.
+    /// </summary>
+    /// <param name="behavior">
+    /// The behavior flags, exactly as they were passed into the
+    /// <see cref="ExecuteScalar()" /> methods.
+    /// </param>
+    /// <returns>
+    /// Non-zero if the extra reads should be forced; otherwise, zero.
+    /// </returns>
+    private bool ShouldForceExtraReads(
+        CommandBehavior behavior /* in */
+        )
+    {
+        return (behavior & ForceExtraReads) == ForceExtraReads;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -1224,8 +1253,8 @@ namespace System.Data.SQLite
     /// prefix is a '-', the value is removed from the original
     /// <see cref="CommandBehavior" /> value.  In addition to the values
     /// formally defined for <see cref="CommandBehavior" />, the extra
-    /// value "SkipExtraReads" is recognized.  Other extra values may be
-    /// added in the future.
+    /// values "SkipExtraReads" and "ForceExtraReads" are recognized.
+    /// Other extra values may be added in the future.
     /// </param>
     /// <param name="error">
     /// Upon success, this will be set to null.  Upon failure, this will
@@ -1295,12 +1324,19 @@ namespace System.Data.SQLite
             {
                 enumValue = SkipExtraReads;
             }
+            else if (String.Equals(
+                    part, "ForceExtraReads",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                enumValue = ForceExtraReads;
+            }
             else
             {
                 try
                 {
-                    enumValue = Enum.Parse(
-                        typeof(CommandBehavior), part, true);
+                    enumValue = Enum.Parse( /* CLRv2+ */
+                        typeof(CommandBehavior), part,
+                        true); /* throw */
                 }
                 catch (Exception e)
                 {
@@ -1336,6 +1372,10 @@ namespace System.Data.SQLite
         SQLiteTransactionState transactionState /* in */
         )
     {
+        //
+        // NOTE: The underlying sqlite3_txn_state() core library API
+        //       is not available until release 3.34.1.
+        //
         if (UnsafeNativeMethods.sqlite3_libversion_number() < 3034001)
             return false;
 
@@ -1389,16 +1429,27 @@ namespace System.Data.SQLite
           if (reader.FieldCount > 0)
             result = reader[0];
 
+          //
+          // BUGFIX: There are SQL statements that cause a write transaction
+          //         to be started and that always require more than one step
+          //         to be successfully completed, e.g. INSERT with RETURNING
+          //         clause.  Therefore, if there is a write transaction in
+          //         progress, keep stepping until done unless forbidden from
+          //         doing so by the caller.
+          //
           if (!ShouldSkipExtraReads(behavior) &&
-              MatchTransactionState(SQLiteTransactionState.SQLITE_TXN_WRITE))
+              (ShouldForceExtraReads(behavior) ||
+              MatchTransactionState(
+                  SQLiteTransactionState.SQLITE_TXN_WRITE)))
           {
-            while (reader.PrivateRead(true))
-            {
-              // do nothing.
-            }
+              while (reader.PrivateRead(true))
+              {
+                  // do nothing.
+              }
           }
         }
       }
+
       return result;
     }
 

@@ -1442,10 +1442,10 @@ namespace System.Data.SQLite
               MatchTransactionState(
                   SQLiteTransactionState.SQLITE_TXN_WRITE)))
           {
-              while (reader.PrivateRead(true))
-              {
-                  // do nothing.
-              }
+            while (reader.PrivateRead(true))
+            {
+              // do nothing.
+            }
           }
         }
       }

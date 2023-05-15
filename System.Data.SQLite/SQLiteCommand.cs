@@ -1398,7 +1398,7 @@ namespace System.Data.SQLite
     /// not, nothing is done.
     /// </summary>
     /// <param name="reader">
-    /// The data reader instance was it was received from one of the
+    /// The data reader instance as it was received from one of the
     /// <see cref="ExecuteReader()" /> methods.
     /// </param>
     /// <param name="behavior">

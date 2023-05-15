@@ -1604,11 +1604,11 @@ namespace System.Data.SQLite
       /// Enable all logging.
       /// </summary>
 #if INTEROP_VIRTUAL_TABLE
-      LogAll = LogPrepare | LogPreBind | LogBind |
+      LogAll = LogRetry | LogPrepare | LogPreBind | LogBind |
                LogCallbackException | LogBackup | LogModuleError |
                LogModuleException,
 #else
-      LogAll = LogPrepare | LogPreBind | LogBind |
+      LogAll = LogRetry | LogPrepare | LogPreBind | LogBind |
                LogCallbackException | LogBackup,
 #endif
 

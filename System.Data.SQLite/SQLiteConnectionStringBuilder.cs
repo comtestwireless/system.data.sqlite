@@ -346,7 +346,7 @@ namespace System.Data.SQLite
     /// </summary>
     [DisplayName("Step Retries")]
     [Browsable(true)]
-    [DefaultValue(3)]
+    [DefaultValue(40)]
     public int StepRetries
     {
         get

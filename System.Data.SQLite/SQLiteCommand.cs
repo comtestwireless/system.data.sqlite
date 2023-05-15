@@ -1382,11 +1382,12 @@ namespace System.Data.SQLite
     /// enabled.
     /// </returns>
     public int MaybeReadRemaining(
-        SQLiteDataReader reader,
-        CommandBehavior behavior
+        SQLiteDataReader reader, /* in */
+        CommandBehavior behavior /* in */
         )
     {
         CheckDisposed();
+
         return PrivateMaybeReadRemaining(reader, behavior);
     }
 

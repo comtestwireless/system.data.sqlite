@@ -1860,6 +1860,57 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Checks if the specified statement appears to have impacted
+    /// one or more rows.  If so, updates the appropriate count(s).
+    /// </summary>
+    /// <param name="statement">
+    /// The statement in progress to be checked.
+    /// </param>
+    private void CheckForRowsAffected(
+        SQLiteStatement statement
+        )
+    {
+        int changes = 0;
+        bool readOnly = false;
+
+        if (statement.TryGetChanges(ref changes, ref readOnly))
+        {
+            if (!readOnly)
+            {
+                if (_rowsAffected == -1)
+                    _rowsAffected = 0;
+
+                _rowsAffected += changes;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Single steps the specified statment and checks the number
+    /// of rows affected, if applicable.
+    /// </summary>
+    /// <param name="statement">
+    /// The statement to be stepped.
+    /// </param>
+    /// <returns>
+    /// Non-zero if the specified statement appears to have more
+    /// rows within it; otherwise, zero.
+    /// </returns>
+    private bool Step(
+        SQLiteStatement statement
+        )
+    {
+        bool result = statement._sql.Step(statement);
+
+        if (result)
+            _stepCount++;
+        else
+            CheckForRowsAffected(statement);
+
+        return result;
+    }
+
+    /// <summary>
     /// Moves to the next resultset in multiple row-returning SQL command.
     /// </summary>
     /// <returns>True if the command was successful and a new resultset is available, False otherwise.</returns>
@@ -1889,25 +1940,7 @@ namespace System.Data.SQLite
               stmt = _command.GetStatement(_activeStatementIndex + 1);
               if (stmt == null) break;
               _activeStatementIndex++;
-
-              if (!schemaOnly && stmt._sql.Step(stmt)) _stepCount++;
-              if (stmt._sql.ColumnCount(stmt) == 0)
-              {
-                int changes = 0;
-                bool readOnly = false;
-                if (stmt.TryGetChanges(ref changes, ref readOnly))
-                {
-                  if (!readOnly)
-                  {
-                    if (_rowsAffected == -1) _rowsAffected = 0;
-                    _rowsAffected += changes;
-                  }
-                }
-                else
-                {
-                  return false;
-                }
-              }
+              if (!schemaOnly && Step(stmt)) { /* do nothing. */ }
               if (!schemaOnly) stmt._sql.Reset(stmt); // Gotta reset after every step to release any locks and such!
             }
             return false;
@@ -1932,27 +1965,12 @@ namespace System.Data.SQLite
         // If the statement is not a select statement or we're not retrieving schema only, then perform the initial step
         if (!schemaOnly || (fieldCount == 0))
         {
-          if (!schemaOnly && stmt._sql.Step(stmt))
+          if (!schemaOnly && Step(stmt))
           {
-            _stepCount++;
             _readingState = -1;
           }
           else if (fieldCount == 0) // No rows returned, if fieldCount is zero, skip to the next statement
           {
-            int changes = 0;
-            bool readOnly = false;
-            if (stmt.TryGetChanges(ref changes, ref readOnly))
-            {
-              if (!readOnly)
-              {
-                if (_rowsAffected == -1) _rowsAffected = 0;
-                _rowsAffected += changes;
-              }
-            }
-            else
-            {
-              return false;
-            }
             if (!schemaOnly) stmt._sql.Reset(stmt);
             continue; // Skip this command and move to the next, it was not a row-returning resultset
           }
@@ -2120,10 +2138,8 @@ namespace System.Data.SQLite
         // Don't read a new row if the command behavior dictates SingleRow.  We've already read the first row.
         if (ignoreSingleRow || (_commandBehavior & CommandBehavior.SingleRow) == 0)
         {
-          if (_activeStatement._sql.Step(_activeStatement) == true)
+          if (Step(_activeStatement) == true)
           {
-            _stepCount++;
-
             if (_keyInfo != null)
               _keyInfo.Reset();
 

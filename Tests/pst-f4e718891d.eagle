@@ -20,7 +20,7 @@ runSQLiteTestPrologue
 
 ###############################################################################
 
-runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
+runTest {test pst-f4e718891d-1.1 {ExecuteScalar multi-step write} -setup {
   setupDb [set fileName pst-f4e718891d-1.1.db]
 } -body {
   set id [object invoke Interpreter.GetActive NextId]
@@ -93,6 +93,140 @@ runTest {test pst-f4e718891d-1.1 {locking with RETURNING clause} -setup {
               try
               {
                 command.ExecuteScalar();
+              }
+              catch (SQLiteException)
+              {
+                Interlocked.Increment(ref selectExceptionCount);
+              }
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        public static void Main()
+        {
+          for (int index = 0; index < ${count(1)}; index++)
+          {
+            Thread one = new Thread(InsertRow);
+            Thread two = new Thread(CountRows);
+
+            one.Start();
+            two.Start();
+
+            one.Join();
+            two.Join();
+          }
+        }
+      }
+    }
+  }] true false true results errors [list System.Data.SQLite.dll]]
+
+  list $code $results \
+      [expr {[info exists errors] ? $errors : ""}] \
+      [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke _Dynamic${id}.Test${id} Main
+      } result] : [set result ""]}] $result \
+      insert [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke -flags +NonPublic \
+            _Dynamic${id}.Test${id} insertExceptionCount
+      } count(iec)] : [set count(iec) -1]}] $count(iec) \
+      select [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke -flags +NonPublic \
+            _Dynamic${id}.Test${id} selectExceptionCount
+      } count(sec)] : [set count(sec) -1]}] $count(sec) \
+      [expr {
+        $count(iec) + [set count(rows) \
+            [sql execute -execute scalar $db $sql(2)]]
+      }] [expr {
+        [tputs $test_channel [appendArgs \
+            "---- test counts: " [testArrayGet count] \n]]
+      }]
+} -cleanup {
+  cleanupDb $fileName
+
+  unset -nocomplain result results errors code count sql
+  unset -nocomplain dataSource id db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite compileCSharp} -match regexp -result \
+{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert 0 \d+\
+select 0 \d+ 250 \{\}$}}
+
+###############################################################################
+
+runTest {test pst-f4e718891d-1.2 {ExecuteNonQuery multi-step write} -setup {
+  setupDb [set fileName pst-f4e718891d-1.2.db]
+} -body {
+  set id [object invoke Interpreter.GetActive NextId]
+  set dataSource [file join [getDatabaseDirectory] $fileName]
+
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER);
+  }
+
+  set sql(1) { \
+    INSERT INTO t1 (x) VALUES (1) RETURNING x; \
+  }
+
+  set sql(2) { \
+    SELECT COUNT(*) FROM t1; \
+  }
+
+  set count(1) 250; # number of rows to insert, one per thread.
+
+  unset -nocomplain results errors
+
+  set code [compileCSharpWith [subst {
+    using System;
+    using System.Data.SQLite;
+    using System.Threading;
+
+    namespace _Dynamic${id}
+    {
+      public static class Test${id}
+      {
+        private static int insertExceptionCount = 0;
+        private static int selectExceptionCount = 0;
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void InsertRow()
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties]"))
+          {
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(1)}",
+                connection))
+            {
+              try
+              {
+                command.ExecuteNonQuery();
+              }
+              catch (SQLiteException)
+              {
+                Interlocked.Increment(ref insertExceptionCount);
+              }
+            }
+          }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        private static void CountRows()
+        {
+          using (SQLiteConnection connection = new SQLiteConnection(
+              "Data Source=${dataSource};[getTestProperties]"))
+          {
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand("${sql(2)}",
+                connection))
+            {
+              try
+              {
+                command.ExecuteNonQuery();
               }
               catch (SQLiteException)
               {

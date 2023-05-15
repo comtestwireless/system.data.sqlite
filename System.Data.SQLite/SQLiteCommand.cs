@@ -1168,6 +1168,11 @@ namespace System.Data.SQLite
       using (SQLiteDataReader reader = ExecuteReader(behavior |
           CommandBehavior.SingleRow | CommandBehavior.SingleResult))
       {
+        //
+        // BUGFIX: See PrivateMaybeReadRemaining comments.
+        //
+        PrivateMaybeReadRemaining(reader, behavior);
+
         while (reader.NextResult()) ;
         return reader.RecordsAffected;
       }
@@ -1359,6 +1364,84 @@ namespace System.Data.SQLite
     ///////////////////////////////////////////////////////////////////////
 
     /// <summary>
+    /// Checks if extra calls to the <see cref="SQLiteDataReader.Read" />
+    /// method are necessary.  If so, it attempts to perform them.  If
+    /// not, nothing is done.
+    /// </summary>
+    /// <param name="reader">
+    /// The data reader instance was it was received from one of the
+    /// <see cref="ExecuteReader()" /> methods.
+    /// </param>
+    /// <param name="behavior">
+    /// The original command behavior flags as passed into one of the
+    /// query execution methods.
+    /// </param>
+    /// <returns>
+    /// The number of extra calls to <see cref="SQLiteDataReader.Read" />
+    /// that were performed -OR- negative one to indicate they were not
+    /// enabled.
+    /// </returns>
+    public int MaybeReadRemaining(
+        SQLiteDataReader reader,
+        CommandBehavior behavior
+        )
+    {
+        CheckDisposed();
+        return PrivateMaybeReadRemaining(reader, behavior);
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Checks if extra calls to the <see cref="SQLiteDataReader.Read" />
+    /// method are necessary.  If so, it attempts to perform them.  If
+    /// not, nothing is done.
+    /// </summary>
+    /// <param name="reader">
+    /// The data reader instance was it was received from one of the
+    /// <see cref="ExecuteReader()" /> methods.
+    /// </param>
+    /// <param name="behavior">
+    /// The original command behavior flags as passed into one of the
+    /// query execution methods.
+    /// </param>
+    /// <returns>
+    /// The number of extra calls to <see cref="SQLiteDataReader.Read" />
+    /// that were performed -OR- negative one to indicate they were not
+    /// enabled.
+    /// </returns>
+    private int PrivateMaybeReadRemaining(
+        SQLiteDataReader reader, /* in */
+        CommandBehavior behavior /* in */
+        )
+    {
+        //
+        // BUGFIX: There are SQL statements that cause a write transaction
+        //         to be started and that always require more than one step
+        //         to be successfully completed, e.g. INSERT with RETURNING
+        //         clause.  Therefore, if there is a write transaction in
+        //         progress, keep stepping until done unless forbidden from
+        //         doing so by the caller.
+        //
+        if (!ShouldSkipExtraReads(behavior) &&
+            (ShouldForceExtraReads(behavior) ||
+            MatchTransactionState(
+                SQLiteTransactionState.SQLITE_TXN_WRITE)))
+        {
+            int count = 0;
+
+            while (reader.PrivateRead(true))
+                count++;
+
+            return count;
+        }
+
+        return -1;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    /// <summary>
     /// Checks transaction state of the associated database connection.
     /// </summary>
     /// <param name="transactionState">
@@ -1430,23 +1513,9 @@ namespace System.Data.SQLite
             result = reader[0];
 
           //
-          // BUGFIX: There are SQL statements that cause a write transaction
-          //         to be started and that always require more than one step
-          //         to be successfully completed, e.g. INSERT with RETURNING
-          //         clause.  Therefore, if there is a write transaction in
-          //         progress, keep stepping until done unless forbidden from
-          //         doing so by the caller.
+          // BUGFIX: See PrivateMaybeReadRemaining comments.
           //
-          if (!ShouldSkipExtraReads(behavior) &&
-              (ShouldForceExtraReads(behavior) ||
-              MatchTransactionState(
-                  SQLiteTransactionState.SQLITE_TXN_WRITE)))
-          {
-            while (reader.PrivateRead(true))
-            {
-              // do nothing.
-            }
-          }
+          PrivateMaybeReadRemaining(reader, behavior);
         }
       }
 

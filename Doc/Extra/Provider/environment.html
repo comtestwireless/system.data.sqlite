@@ -290,6 +290,13 @@
           regardless of the flags for the associated connection.</td>
         </tr>
         <tr valign="top">
+          <td>SQLite_GlobalCommandBehaviors</td>
+          <td>If this environment variable is set [to anything], it will be
+          processed as a list of CommandBehavior flags, if possible.  It will
+          be ignored if it cannot be processed correctly.  For more details
+          please refer to the CombineBehaviors method.</td>
+        </tr>
+        <tr valign="top">
           <td>SQLite_LegacyEncryptPage1</td>
           <td>If this environment variable is set [to anything], page #1 of
           database files encrypted using the (unsupported) legacy CryptoAPI

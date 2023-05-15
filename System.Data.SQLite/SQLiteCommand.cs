@@ -13,6 +13,7 @@ namespace System.Data.SQLite
   using System.Diagnostics;
   using System.Collections.Generic;
   using System.ComponentModel;
+  using System.Globalization;
   using System.Text;
 
   /// <summary>
@@ -23,6 +24,13 @@ namespace System.Data.SQLite
 #endif
   public sealed class SQLiteCommand : DbCommand, ICloneable
   {
+    /// <summary>
+    /// These are the extra command behavior flags that should be used for all calls
+    /// into the <see cref="ExecuteNonQuery()" />, <see cref="ExecuteScalar()" />,
+    /// and <see cref="ExecuteReader()" /> methods.
+    /// </summary>
+    public static CommandBehavior? GlobalCommandBehaviors = null;
+
     /// <summary>
     /// The default connection string to be used when creating a temporary
     /// connection to execute a command via the static
@@ -80,6 +88,11 @@ namespace System.Data.SQLite
     /// Transaction associated with this command
     /// </summary>
     private SQLiteTransaction _transaction;
+
+    static SQLiteCommand()
+    {
+        InitializeGlobalCommandBehaviors();
+    }
 
     ///<overloads>
     /// Constructs a new SQLiteCommand
@@ -347,6 +360,57 @@ namespace System.Data.SQLite
         }
 
         return SQLiteConnection.DefaultConnectionMaximumSleepTime;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Modifies the specified <see cref="CommandBehavior" /> to include
+    /// the global command behavior flags, if any.
+    /// </summary>
+    /// <param name="behavior">
+    /// The <see cref="CommandBehavior" /> as it was originally passed into
+    /// the <see cref="ExecuteNonQuery()" />, <see cref="ExecuteScalar()" />,
+    /// or <see cref="ExecuteReader()" /> methods.
+    /// </param>
+    private void MaybeAddGlobalCommandBehaviors(
+        ref CommandBehavior behavior /* in, out */
+        )
+    {
+        CommandBehavior? globalBehaviors = GlobalCommandBehaviors;
+
+        if (globalBehaviors != null)
+            behavior |= (CommandBehavior)globalBehaviors;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static void InitializeGlobalCommandBehaviors()
+    {
+        string value = UnsafeNativeMethods.GetSettingValue(
+            "SQLite_GlobalCommandBehaviors", null);
+
+        if (value != null)
+        {
+            CommandBehavior? behavior;
+            string error = null;
+
+            behavior = CombineBehaviors(
+                GlobalCommandBehaviors, value, out error);
+
+            if (behavior != null)
+            {
+                GlobalCommandBehaviors = behavior;
+            }
+#if !NET_COMPACT_20 && TRACE_WARNING
+            else
+            {
+                Trace.WriteLine(HelperMethods.StringFormat(CultureInfo.CurrentCulture,
+                    "WARNING: Could not initialize global command behaviors: {0}",
+                    error));
+            }
+#endif
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1117,6 +1181,8 @@ namespace System.Data.SQLite
       SQLiteConnection.Check(_cnn);
       InitializeForReader();
 
+      MaybeAddGlobalCommandBehaviors(ref behavior);
+
       SQLiteDataReader rd = new SQLiteDataReader(this, behavior);
       _activeReader = new WeakReference(rd, false);
 
@@ -1164,6 +1230,8 @@ namespace System.Data.SQLite
     {
       CheckDisposed();
       SQLiteConnection.Check(_cnn);
+
+      MaybeAddGlobalCommandBehaviors(ref behavior);
 
       using (SQLiteDataReader reader = ExecuteReader(behavior |
           CommandBehavior.SingleRow | CommandBehavior.SingleResult))
@@ -1501,6 +1569,8 @@ namespace System.Data.SQLite
     {
       CheckDisposed();
       SQLiteConnection.Check(_cnn);
+
+      MaybeAddGlobalCommandBehaviors(ref behavior);
 
       object result = null;
 

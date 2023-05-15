@@ -185,6 +185,7 @@ runTest {test pst-f4e718891d-1.2 {ExecuteNonQuery multi-step write} -setup {
     {
       public static class Test${id}
       {
+        private static int totalRecordsAffected = 0;
         private static int insertExceptionCount = 0;
         private static int selectExceptionCount = 0;
 
@@ -202,7 +203,8 @@ runTest {test pst-f4e718891d-1.2 {ExecuteNonQuery multi-step write} -setup {
             {
               try
               {
-                command.ExecuteNonQuery();
+                Interlocked.Add(
+                    ref totalRecordsAffected, command.ExecuteNonQuery());
               }
               catch (SQLiteException)
               {
@@ -261,10 +263,14 @@ runTest {test pst-f4e718891d-1.2 {ExecuteNonQuery multi-step write} -setup {
       [expr {$code eq "Ok" ? [catchCSharp {
         object invoke _Dynamic${id}.Test${id} Main
       } result] : [set result ""]}] $result \
-      insert [expr {$code eq "Ok" ? [catchCSharp {
+      insert1 [expr {$code eq "Ok" ? [catchCSharp {
         object invoke -flags +NonPublic \
             _Dynamic${id}.Test${id} insertExceptionCount
       } count(iec)] : [set count(iec) -1]}] $count(iec) \
+      insert2 [expr {$code eq "Ok" ? [catchCSharp {
+        object invoke -flags +NonPublic \
+            _Dynamic${id}.Test${id} totalRecordsAffected
+      } count(tra)] : [set count(tra) -1]}] $count(tra) \
       select [expr {$code eq "Ok" ? [catchCSharp {
         object invoke -flags +NonPublic \
             _Dynamic${id}.Test${id} selectExceptionCount
@@ -283,8 +289,8 @@ runTest {test pst-f4e718891d-1.2 {ExecuteNonQuery multi-step write} -setup {
   unset -nocomplain dataSource id db fileName
 } -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
 System.Data.SQLite compileCSharp} -match regexp -result \
-{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert 0 \d+\
-select 0 \d+ 250 \{\}$}}
+{^Ok System#CodeDom#Compiler#CompilerResults#\d+ \{\} 0 \{\} insert1 0 \d+\
+insert2 0 250 select 0 \d+ 250 \{\}$}}
 
 ###############################################################################
 

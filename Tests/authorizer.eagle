@@ -144,7 +144,7 @@ CreateTrigger tr1 t1 main {}}} 0 0} {CreateView {{0 CreateView v1 {} main {}}}\
 0 0} {CreateTempTable {{0 CreateTempTable t2 {} temp {}}} 0 0} {CreateTempIndex\
 {{0 CreateTempIndex i2 t2 temp {}}} 0 0} {CreateTempTrigger {{0\
 CreateTempTrigger tr2 t2 temp {}}} 0 0} {CreateTempView {{0 CreateTempView v2\
-{} temp {}}} 0 0} {Pragma {{0 Pragma journal_mode WAL {} {}}} 0 -1} {Function\
+{} temp {}}} 0 0} {Pragma {{0 Pragma journal_mode WAL {} {}}} 0 0} {Function\
 {{0 Function {} julianday {} {}}} 0 -1} {Read {{0 Read t1 x main {}}} 0 -1}\
 {Select {{0 Select {} {} {} {}}} 0 -1} {Insert {{0 Insert t1 {} main {}}} 0 0}\
 {Update {{0 Update t1 x main {}}} 0 0} {Delete {{0 Delete t1 {} main {}}} 0 0}\

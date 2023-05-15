@@ -1672,15 +1672,42 @@ namespace System.Data.SQLite
             {
                 SQLiteStatement statement = _statementList[index];
 
-                if (statement != null)
+                if (statement == null)
+                    continue;
+
+                builder.AppendFormat(
+                    "#{0}, sql = {{{1}}}", index,
+                    statement._sqlStatement);
+
+                if (statement._prepareSchemaRetries > 0)
                 {
                     builder.AppendFormat(
-                        "#{0}, sql = {{{1}}}, prepareSchemaRetries = {2}, prepareLockRetries = {3}, stepLockRetries = {4}",
-                        index, statement._sqlStatement, statement._prepareSchemaRetries, statement._prepareLockRetries,
-                        statement._stepLockRetries);
-
-                    builder.AppendLine();
+                        ", prepareSchemaRetries = {0}",
+                        statement._prepareSchemaRetries);
                 }
+
+                if (statement._prepareLockRetries > 0)
+                {
+                    builder.AppendFormat(
+                        ", prepareLockRetries = {0}",
+                        statement._prepareLockRetries);
+                }
+
+                if (statement._stepSchemaRetries > 0)
+                {
+                    builder.AppendFormat(
+                        ", stepSchemaRetries = {0}",
+                        statement._stepSchemaRetries);
+                }
+
+                if (statement._stepLockRetries > 0)
+                {
+                    builder.AppendFormat(
+                        ", stepLockRetries = {0}",
+                        statement._stepLockRetries);
+                }
+
+                builder.AppendLine();
             }
         }
 

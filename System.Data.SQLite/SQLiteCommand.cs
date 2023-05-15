@@ -1369,7 +1369,7 @@ namespace System.Data.SQLite
     /// not, nothing is done.
     /// </summary>
     /// <param name="reader">
-    /// The data reader instance was it was received from one of the
+    /// The data reader instance as it was received from one of the
     /// <see cref="ExecuteReader()" /> methods.
     /// </param>
     /// <param name="behavior">
@@ -1425,8 +1425,7 @@ namespace System.Data.SQLite
         //
         if (!ShouldSkipExtraReads(behavior) &&
             (ShouldForceExtraReads(behavior) ||
-            MatchTransactionState(
-                SQLiteTransactionState.SQLITE_TXN_WRITE)))
+            MatchTransactionState(SQLiteTransactionState.SQLITE_TXN_WRITE)))
         {
             int count = 0;
 

@@ -5151,6 +5151,10 @@ static int sqlite3Fts5ConfigLoad(Fts5Config *pConfig, int iCookie){
 /* #include "fts5Int.h" */
 /* #include "fts5parse.h" */
 
+#ifndef SQLITE_FTS5_MAX_EXPR_DEPTH
+# define SQLITE_FTS5_MAX_EXPR_DEPTH 256
+#endif
+
 /*
 ** All token types in the generated fts5parse.h file are greater than 0.
 */
@@ -5191,11 +5195,17 @@ struct Fts5Expr {
 **       FTS5_NOT                 (nChild, apChild valid)
 **       FTS5_STRING              (pNear valid)
 **       FTS5_TERM                (pNear valid)
+**
+** iHeight:
+**   Distance from this node to furthest leaf. This is always 0 for nodes
+**   of type FTS5_STRING and FTS5_TERM. For all other nodes it is one 
+**   greater than the largest child value.
 */
 struct Fts5ExprNode {
   int eType;                      /* Node type */
   int bEof;                       /* True at EOF */
   int bNomatch;                   /* True if entry is not a match */
+  int iHeight;                    /* Distance to tree leaf nodes */
 
   /* Next method for this node. */
   int (*xNext)(Fts5Expr*, Fts5ExprNode*, int, i64);
@@ -5264,6 +5274,31 @@ struct Fts5Parse {
   Fts5ExprNode *pExpr;            /* Result of a successful parse */
   int bPhraseToAnd;               /* Convert "a+b" to "a AND b" */
 };
+
+/*
+** Check that the Fts5ExprNode.iHeight variables are set correctly in
+** the expression tree passed as the only argument.
+*/
+#ifndef NDEBUG
+static void assert_expr_depth_ok(int rc, Fts5ExprNode *p){
+  if( rc==SQLITE_OK ){
+    if( p->eType==FTS5_TERM || p->eType==FTS5_STRING || p->eType==0 ){
+      assert( p->iHeight==0 );
+    }else{
+      int ii;
+      int iMaxChild = 0;
+      for(ii=0; ii<p->nChild; ii++){
+        Fts5ExprNode *pChild = p->apChild[ii];
+        iMaxChild = MAX(iMaxChild, pChild->iHeight);
+        assert_expr_depth_ok(SQLITE_OK, pChild);
+      }
+      assert( p->iHeight==iMaxChild+1 );
+    }
+  }
+}
+#else
+# define assert_expr_depth_ok(rc, p)
+#endif
 
 static void sqlite3Fts5ParseError(Fts5Parse *pParse, const char *zFmt, ...){
   va_list ap;
@@ -5378,6 +5413,8 @@ static int sqlite3Fts5ExprNew(
     sqlite3Fts5Parser(pEngine, t, token, &sParse);
   }while( sParse.rc==SQLITE_OK && t!=FTS5_EOF );
   sqlite3Fts5ParserFree(pEngine, fts5ParseFree);
+
+  assert_expr_depth_ok(sParse.rc, sParse.pExpr);
 
   /* If the LHS of the MATCH expression was a user column, apply the
   ** implicit column-filter.  */
@@ -7340,6 +7377,7 @@ static void fts5ExprAssignXNext(Fts5ExprNode *pNode){
 }
 
 static void fts5ExprAddChildren(Fts5ExprNode *p, Fts5ExprNode *pSub){
+  int ii = p->nChild;
   if( p->eType!=FTS5_NOT && pSub->eType==p->eType ){
     int nByte = sizeof(Fts5ExprNode*) * pSub->nChild;
     memcpy(&p->apChild[p->nChild], pSub->apChild, nByte);
@@ -7347,6 +7385,9 @@ static void fts5ExprAddChildren(Fts5ExprNode *p, Fts5ExprNode *pSub){
     sqlite3_free(pSub);
   }else{
     p->apChild[p->nChild++] = pSub;
+  }
+  for( ; ii<p->nChild; ii++){
+    p->iHeight = MAX(p->iHeight, p->apChild[ii]->iHeight + 1);
   }
 }
 
@@ -7378,6 +7419,7 @@ static Fts5ExprNode *fts5ParsePhraseToAnd(
   if( pRet ){
     pRet->eType = FTS5_AND;
     pRet->nChild = nTerm;
+    pRet->iHeight = 1;
     fts5ExprAssignXNext(pRet);
     pParse->nPhrase--;
     for(ii=0; ii<nTerm; ii++){
@@ -7483,6 +7525,14 @@ static Fts5ExprNode *sqlite3Fts5ParseNode(
         }else{
           fts5ExprAddChildren(pRet, pLeft);
           fts5ExprAddChildren(pRet, pRight);
+          if( pRet->iHeight>SQLITE_FTS5_MAX_EXPR_DEPTH ){
+            sqlite3Fts5ParseError(pParse, 
+                "fts5 expression tree is too large (maximum depth %d)", 
+                SQLITE_FTS5_MAX_EXPR_DEPTH
+            );
+            sqlite3_free(pRet);
+            pRet = 0;
+          }
         }
       }
     }
@@ -18880,7 +18930,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2023-05-03 14:10:05 b8a84a1bf53fa07ef01c57c6db6329ba439774a262b3adcbe94e7bd77525e296", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2023-05-16 12:36:15 831d0fb2836b71c9bc51067c49fee4b8f18047814f2ff22d817d25195cf350b0", -1, SQLITE_TRANSIENT);
 }
 
 /*

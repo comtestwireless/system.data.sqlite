@@ -6113,6 +6113,8 @@ namespace System.Data.SQLite
 #if INTEROP_CODEC || INTEROP_INCLUDE_SEE
         if (!String.IsNullOrEmpty(newPassword))
         {
+            byte[] newPasswordBytes;
+
             if (_passwordWasHex)
             {
                 string error = null;

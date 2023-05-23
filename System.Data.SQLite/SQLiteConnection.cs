@@ -1626,6 +1626,14 @@ namespace System.Data.SQLite
     /// password as a NUL-terminated text string.
     /// </summary>
     private bool _passwordWasText;
+
+    /// <summary>
+    /// This will be non-zero if the "HexPassword" or "TextHexPassword"
+    /// connection string properties were used.  When this value is non-zero,
+    /// <see cref="ChangePassword(String)" /> will retain treatment of the
+    /// password as a hexadecimal encoded string of byte values.
+    /// </summary>
+    private bool _passwordWasHex;
 #endif
 
     /// <summary>
@@ -4964,6 +4972,7 @@ namespace System.Data.SQLite
 
             _sql.SetPassword(textHexPasswordBytes, true);
             _passwordWasText = true;
+            _passwordWasHex = true;
         }
         else
         {
@@ -4978,6 +4987,7 @@ namespace System.Data.SQLite
 
                 _sql.SetPassword(textPasswordBytes, true);
                 _passwordWasText = true;
+                _passwordWasHex = false;
             }
             else
             {
@@ -5000,6 +5010,7 @@ namespace System.Data.SQLite
 
                     _sql.SetPassword(hexPasswordBytes, false);
                     _passwordWasText = false;
+                    _passwordWasHex = true;
                 }
                 else
                 {
@@ -5012,6 +5023,7 @@ namespace System.Data.SQLite
 
                         _sql.SetPassword(passwordBytes, false);
                         _passwordWasText = false;
+                        _passwordWasHex = false;
                     }
                     else if (_password != null)
                     {
@@ -6101,8 +6113,26 @@ namespace System.Data.SQLite
 #if INTEROP_CODEC || INTEROP_INCLUDE_SEE
         if (!String.IsNullOrEmpty(newPassword))
         {
-            byte[] newPasswordBytes = UTF8Encoding.UTF8.GetBytes(
-                newPassword); /* throw */
+            if (_passwordWasHex)
+            {
+                string error = null;
+
+                newPasswordBytes = FromHexString(
+                    newPassword, false, ref error);
+
+                if (newPasswordBytes == null)
+                {
+                    throw new FormatException(HelperMethods.StringFormat(
+                        CultureInfo.CurrentCulture,
+                        "Cannot parse new password value into byte values: {0}",
+                        error));
+                }
+            }
+            else
+            {
+                newPasswordBytes = UTF8Encoding.UTF8.GetBytes(
+                    newPassword); /* throw */
+            }
 
             ChangePassword(newPasswordBytes);
         }

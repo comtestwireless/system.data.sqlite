@@ -1,0 +1,85 @@
+###############################################################################
+#
+# tkt-e22d357a21.eagle --
+#
+# Written by Joe Mistachkin.
+# Released to the public domain, use at your own risk!
+#
+###############################################################################
+
+package require Eagle
+package require Eagle.Library
+package require Eagle.Test
+
+runTestPrologue
+
+###############################################################################
+
+package require System.Data.SQLite.Test
+runSQLiteTestPrologue
+
+###############################################################################
+
+runTest {test tkt-e22d357a21-1.1 {parameter name case-sensitivity} -setup {
+  setupDb [set fileName tkt-e22d357a21-1.1.db]
+} -body {
+  sql execute $db {
+    CREATE TABLE t1(x INTEGER PRIMARY KEY);
+  }
+
+  sql execute $db {
+    INSERT INTO t1 (x) VALUES(1);
+    INSERT INTO t1 (x) VALUES(2);
+    INSERT INTO t1 (x) VALUES(3);
+    INSERT INTO t1 (x) VALUES(4);
+    INSERT INTO t1 (x) VALUES(5);
+    INSERT INTO t1 (x) VALUES(6);
+    INSERT INTO t1 (x) VALUES(7);
+    INSERT INTO t1 (x) VALUES(8);
+  }
+
+  set result [list]
+
+  catch {
+    lappend result [sql execute -execute reader -format list $db \
+        "SELECT x FROM t1 WHERE x IN (?, ?, ?, ?);" \
+        [list param1 Int32 1] [list param2 Int32 2] \
+        [list param3 Int32 3] [list param4 Int32 4]]
+  }
+
+  catch {
+    lappend result [sql execute -execute reader -format list $db \
+        "SELECT x FROM t1 WHERE x = :id;" [list id Int32 1] \
+        [list ID Int32 2]]
+  }
+
+  catch {
+    lappend result [sql execute -execute reader -format list $db \
+        "SELECT x FROM t1 WHERE x = :iD;" [list id Int32 3] \
+        [list iD Int32 4]]
+  }
+
+  catch {
+    lappend result [sql execute -execute reader -format list $db \
+        "SELECT x FROM t1 WHERE x = :Id;" [list Id Int32 5] \
+        [list id Int32 6]]
+  }
+
+  catch {
+    lappend result [sql execute -execute reader -format list $db \
+        "SELECT x FROM t1 WHERE x = :ID;" [list id Int32 7] \
+        [list ID Int32 8]]
+  }
+
+  set result
+} -cleanup {
+  cleanupDb $fileName
+
+  unset -nocomplain result db fileName
+} -constraints {eagle command.object monoBug28 command.sql compile.DATA SQLite\
+System.Data.SQLite} -result {{1 2 3 4} 1 4 5 8}}
+
+###############################################################################
+
+runSQLiteTestEpilogue
+runTestEpilogue

@@ -51,7 +51,7 @@
     command similar to:
     <br />
     <br />
-    <b>cd /D &lt;root&gt;</b>
+    <b>CD /D &lt;root&gt;</b>
   </li>
 
   <li>
@@ -90,7 +90,7 @@
     command similar to:
     <br />
     <br />
-    <b>cd /D &lt;root&gt;</b>
+    <b>CD /D &lt;root&gt;</b>
   </li>
 
   <li>

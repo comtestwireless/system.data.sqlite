@@ -51,7 +51,7 @@
     command similar to:
     <br />
     <br />
-    <b>cd&nbsp;/D&nbsp;&lt;root&gt;</b>
+    <b>cd /D &lt;root&gt;</b>
   </li>
 
   <li>
@@ -60,7 +60,7 @@
     including the entire check-in history:
     <br />
     <br />
-    <b>fossil&nbsp;[https://www.fossil-scm.org/index.html/help/clone | clone]&nbsp;https://system.data.sqlite.org/&nbsp;&lt;repositories&gt;/sds.fossil</b>
+    <b>fossil [https://www.fossil-scm.org/index.html/help/clone | clone] https://system.data.sqlite.org/ &lt;repositories&gt;/sds.fossil</b>
   </li>
 
   <li>
@@ -90,7 +90,7 @@
     command similar to:
     <br />
     <br />
-    <b>cd&nbsp;/D&nbsp;&lt;root&gt;</b>
+    <b>cd /D &lt;root&gt;</b>
   </li>
 
   <li>
@@ -98,7 +98,7 @@
     that are currently part of the System.Data.SQLite project:
     <br />
     <br />
-    <b>fossil&nbsp;[https://www.fossil-scm.org/index.html/help/open | open]&nbsp;&lt;repositories&gt;/sds.fossil</b>
+    <b>fossil [https://www.fossil-scm.org/index.html/help/open | open] &lt;repositories&gt;/sds.fossil</b>
   </li>
 
   <li>
@@ -113,6 +113,6 @@
     directory where the working copy is located:
     <br />
     <br />
-    <b>fossil&nbsp;[https://www.fossil-scm.org/index.html/help/update | update]</b>
+    <b>fossil [https://www.fossil-scm.org/index.html/help/update | update]</b>
   </li>
 </ol>

@@ -36,6 +36,16 @@
     <b>SET BUILD_DEBUG=1</b>
     <br />
     <b>CALL build_all.bat</b>
+    <br />
+    <b>REM Copy 2015 core library interop assembly to .NET Standard 2.0...</b>
+    <b>REM Must be present for .NET Standard 2.0 release step, processor architecture is irrelevant.</b>
+    <b>XCOPY &quot;..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard20\DebugNetStandard20\bin\netstandard2.0&quot; /V /I /F /Y</b>
+    <b>XCOPY &quot;..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard20\ReleaseNetStandard20\bin\netstandard2.0&quot; /V /I /F /Y</b>
+    <br />
+    <b>REM Copy 2015 core library interop assembly to .NET Standard 2.1...</b>
+    <b>REM Must be present for .NET Standard 2.1 release step, processor architecture is irrelevant.</b>
+    <b>XCOPY &quot;..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard21\DebugNetStandard21\bin\netstandard2.1&quot; /V /I /F /Y</b>
+    <b>XCOPY &quot;..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard21\ReleaseNetStandard21\bin\netstandard2.1&quot; /V /I /F /Y</b>
   </li>
 
   <li>
@@ -318,7 +328,7 @@
     virtual table documentation:
     <br />
     <br />
-    <b>tclsh.exe&nbsp;vtab.tcl</b>
+    <b>tclsh.exe vtab.tcl</b>
     <br />
     <br />
     <i>This assumes that [https://www.activestate.com/activetcl | ActiveTcl]
@@ -345,7 +355,7 @@
     format:
     <br />
     <br />
-    <b>tclsh.exe&nbsp;buildChm.tcl</b>
+    <b>tclsh.exe buildChm.tcl</b>
     <br />
     <br />
     <i>This assumes that [https://www.activestate.com/activetcl | ActiveTcl]
@@ -656,7 +666,7 @@
     page based on all the built release packages:
     <br />
     <br />
-    <b>tclsh.exe&nbsp;updateFileInfo.tcl</b>
+    <b>tclsh.exe updateFileInfo.tcl</b>
     <br />
     <br />
     <i>This assumes that [https://www.activestate.com/activetcl | ActiveTcl]

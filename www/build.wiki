@@ -326,7 +326,7 @@
       Enter the following command to build the managed-only binaries:
       <br />
       <br />
-      <b>build.bat&nbsp;ReleaseManagedOnly</b>
+      <b>CALL build.bat&nbsp;ReleaseManagedOnly</b>
       <br />
       <br />
     </li>
@@ -341,7 +341,7 @@
       Enter the following command to build the binaries for Win32 (x86):&nbsp;
       <br />
       <br />
-      <b>build.bat&nbsp;ReleaseNativeOnly&nbsp;Win32</b>
+      <b>CALL build.bat&nbsp;ReleaseNativeOnly&nbsp;Win32</b>
       <br />
       <br />
       <i>You may need to enter the command &quot;<b>setenv&nbsp;/x86</b>&quot;
@@ -359,7 +359,7 @@
       Enter the following command to build the binaries for x64:
       <br />
       <br />
-      <b>build.bat&nbsp;ReleaseNativeOnly&nbsp;x64</b>
+      <b>CALL build.bat&nbsp;ReleaseNativeOnly&nbsp;x64</b>
       <br />
       <br />
       <i>You may need to enter the command&quot;<b>setenv&nbsp;/x64</b>&quot;
@@ -380,7 +380,7 @@
       tools due to its highly dynamic nature):
       <br />
       <br />
-      <b>bake_all.bat</b>
+      <b>CALL bake_all.bat</b>
       <br />
       <br />
     </li>
@@ -418,7 +418,7 @@
       Enter the following command to build the managed-only binaries for Mono:
       <br />
       <br />
-      <b>build_mono.bat</b>
+      <b>CALL build_mono.bat</b>
       <br />
       <br />
     </li>
@@ -454,7 +454,7 @@
       Standard 2.0:
       <br />
       <br />
-      <b>build_net_standard_20.bat</b>
+      <b>CALL build_net_standard_20.bat</b>
       <br />
       <br />
     </li>
@@ -490,7 +490,7 @@
       Standard 2.1:
       <br />
       <br />
-      <b>build_net_standard_21.bat</b>
+      <b>CALL build_net_standard_21.bat</b>
       <br />
       <br />
     </li>

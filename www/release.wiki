@@ -35,7 +35,7 @@
     <br />
     <b>SET BUILD_DEBUG=1</b>
     <br />
-    <b>build_all.bat</b>
+    <b>CALL build_all.bat</b>
   </li>
 
   <li>
@@ -65,7 +65,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_all.bat</b>
+    <b>CALL test_all.bat</b>
   </li>
 
   <li>
@@ -96,7 +96,7 @@
     <br />
     <b>SET BUILD_DEBUG=1</b>
     <br />
-    <b>build_ce_200x.bat</b>
+    <b>CALL build_ce_200x.bat</b>
     <br />
     <br />
     <i>This assumes that Visual Studio 2005 and/or Visual Studio 2008,
@@ -113,7 +113,7 @@
     <br />
     <b>SET BUILD_DEBUG=1</b>
     <br />
-    <b>build_ce_2013.bat</b>
+    <b>CALL build_ce_2013.bat</b>
     <br />
     <br />
     <i>This assumes that Visual Studio 2012, &quot;<b>Professional</b>&quot;
@@ -148,7 +148,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_ce_200x.bat</b>
+    <b>CALL test_ce_200x.bat</b>
   </li>
 
   <li>
@@ -230,7 +230,7 @@
     <br />
     <b>SET BUILD_DEBUG=1</b>
     <br />
-    <b>build_mono.bat</b>
+    <b>CALL build_mono.bat</b>
   </li>
 
   <li>
@@ -254,7 +254,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_net_core_20.bat</b>
+    <b>CALL test_net_core_20.bat</b>
   </li>
 
   <li>
@@ -278,7 +278,7 @@
     <br />
     <b>SET TEST_DEBUG=1</b>
     <br />
-    <b>test_net_core_30.bat</b>
+    <b>CALL test_net_core_30.bat</b>
   </li>
 
   <li>
@@ -375,7 +375,7 @@
     <br />
     <b>SET BAKE_DEBUG=1</b>
     <br />
-    <b>bake_all.bat</b>
+    <b>CALL bake_all.bat</b>
   </li>
 
   <li>
@@ -399,7 +399,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_all.bat</b>
+    <b>CALL release_all.bat</b>
   </li>
 
   <li>
@@ -423,7 +423,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_static.bat</b>
+    <b>CALL release_static.bat</b>
   </li>
 
   <li>
@@ -447,7 +447,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_ce_200x.bat</b>
+    <b>CALL release_ce_200x.bat</b>
   </li>
 
   <li>
@@ -457,7 +457,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_ce_2013.bat</b>
+    <b>CALL release_ce_2013.bat</b>
   </li>
 
   <li>
@@ -480,7 +480,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_mono.bat</b>
+    <b>CALL release_mono.bat</b>
   </li>
 
   <li>
@@ -504,7 +504,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_net_standard_20.bat</b>
+    <b>CALL release_net_standard_20.bat</b>
   </li>
 
   <li>
@@ -528,7 +528,7 @@
     <br />
     <b>SET RELEASE_DEBUG=1</b>
     <br />
-    <b>release_net_standard_21.bat</b>
+    <b>CALL release_net_standard_21.bat</b>
   </li>
 
   <li>
@@ -552,7 +552,7 @@
     <br />
     <b>SET ARCHIVE_FULL=</b>
     <br />
-    <b>archive.bat</b>
+    <b>CALL archive.bat</b>
   </li>
 
   <li>
@@ -562,7 +562,7 @@
     <br />
     <b>SET ARCHIVE_FULL=1</b>
     <br />
-    <b>archive.bat</b>
+    <b>CALL archive.bat</b>
   </li>
 
   <li>
@@ -587,7 +587,7 @@
     <br />
     <b>SET NUGET_LEGACY_ONLY=1</b>
     <br />
-    <b>build_nuget.bat</b>
+    <b>CALL build_nuget.bat</b>
     <br />
     <br />
     <i>This assumes that the NuGet binary is available somewhere along the

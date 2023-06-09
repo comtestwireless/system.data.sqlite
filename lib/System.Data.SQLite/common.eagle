@@ -1052,22 +1052,22 @@ namespace eval ::Eagle {
         #       1. Build the separate managed and native assemblies using some
         #          commands similar to:
         #
-        #          build.bat ${Configuration}ManagedOnly ${Platform}
-        #          build.bat ${Configuration}NativeOnly ${Platform}
+        #          CALL build.bat ${Configuration}ManagedOnly ${Platform}
+        #          CALL build.bat ${Configuration}NativeOnly ${Platform}
         #
         #          Where ${Configuration} is either "Debug" or "Release" and
         #          ${Platform} is either "Win32" or "x64".
         #
         #       2. Build the mixed-mode assembly using a command similar to:
         #
-        #          build.bat ${Configuration} ${Platform}
+        #          CALL build.bat ${Configuration} ${Platform}
         #
         #          Where ${Configuration} is either "Debug" or "Release" and
         #          ${Platform} is either "Win32" or "x64".  If this command is
         #          used, various tests that require supplementary managed
         #          assemblies (e.g. LINQ) may be skipped unless those binaries
         #          are subsequently copied into the correct directory (i.e. by
-        #          "test_all.bat").
+        #          "CALL test_all.bat").
         #
         #       Note that all of the build commands above will default to using
         #       the latest version of MSBuild available and the "test_year" may

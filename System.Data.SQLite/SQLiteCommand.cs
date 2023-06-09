@@ -1745,39 +1745,44 @@ namespace System.Data.SQLite
                 if (statement == null)
                     continue;
 
-                builder.AppendFormat(
+                builder.AppendFormat(CultureInfo.CurrentCulture,
                     "#{0}, sql = {{{1}}}", index,
                     statement._sqlStatement);
 
                 if (statement._prepareSchemaRetries > 0)
                 {
-                    builder.AppendFormat(
+                    builder.AppendFormat(CultureInfo.CurrentCulture,
                         ", prepareSchemaRetries = {0}",
                         statement._prepareSchemaRetries);
                 }
 
                 if (statement._prepareLockRetries > 0)
                 {
-                    builder.AppendFormat(
+                    builder.AppendFormat(CultureInfo.CurrentCulture,
                         ", prepareLockRetries = {0}",
                         statement._prepareLockRetries);
                 }
 
                 if (statement._stepSchemaRetries > 0)
                 {
-                    builder.AppendFormat(
+                    builder.AppendFormat(CultureInfo.CurrentCulture,
                         ", stepSchemaRetries = {0}",
                         statement._stepSchemaRetries);
                 }
 
                 if (statement._stepLockRetries > 0)
                 {
-                    builder.AppendFormat(
+                    builder.AppendFormat(CultureInfo.CurrentCulture,
                         ", stepLockRetries = {0}",
                         statement._stepLockRetries);
                 }
 
+#if !NET_COMPACT_20
                 builder.AppendLine();
+#else
+                builder.AppendFormat(CultureInfo.CurrentCulture,
+                    "\r\n");
+#endif
             }
         }
 

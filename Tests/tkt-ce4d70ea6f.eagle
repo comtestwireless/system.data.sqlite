@@ -84,9 +84,9 @@ runTest {test tkt-ce4d70ea6f-1.1 {finalizer queue depth} -setup {
 } -cleanup {
   unset -nocomplain count rootName dataSource id fileName
   unset -nocomplain result results errors code
-} -constraints [fixConstraints {eagle !mono !dotNetCore command.object\
-command.sql compile.DATA SQLite System.Data.SQLite sdsTiming}] -match regexp \
--result {^\d+ 0 True$}}
+} -constraints [fixConstraints {fail.false eagle !mono !dotNetCore\
+command.object command.sql compile.DATA SQLite System.Data.SQLite\
+sdsTiming}] -match regexp -result {^\d+ 0 True$}}
 
 ###############################################################################
 

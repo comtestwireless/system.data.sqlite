@@ -404,7 +404,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Debug\bin\$(PlatformName)\&quot; /D /E /V /I /F /H /Y &amp;&amp; IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Debug\bin\&quot; /D /E /V /I /F /H /Y"
+				CommandLine="XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Debug\bin\$(PlatformName)\&quot; /D /E /V /I /F /H /Y &amp;&amp; IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Debug\bin\&quot; /D /E /V /I /F /H /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -792,7 +792,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Release\bin\$(PlatformName)\&quot; /D /E /V /I /F /H /Y &amp;&amp; IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Release\bin\&quot; /D /E /V /I /F /H /Y"
+				CommandLine="XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Release\bin\$(PlatformName)\&quot; /D /E /V /I /F /H /Y &amp;&amp; IF /I &quot;%PROCESSOR_ARCHITECTURE%&quot; == &quot;x86&quot; IF /I &quot;%PROCESSOR_ARCHITEW6432%&quot; == &quot;AMD64&quot; XCOPY &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(TargetDir)..\..\Release\bin\&quot; /D /E /V /I /F /H /Y"
 			/>
 		</Configuration>
 	</Configurations>

@@ -636,8 +636,8 @@
     <br />
     <i>This assumes that the <a href="https://www.fossil-scm.org/">Fossil</a>,
     <a href="https://sourceforge.net/projects/innounp/">Inno Setup Unpacker</a>,
-    <a href="http://www.rarlab.com/">UnRAR</a>, and
-    <a href="http://www.info-zip.org/">UnZip</a> binaries are available in the
+    <a href="https://www.rarlab.com/">UnRAR</a>, and
+    <a href="https://infozip.sourceforge.net/">UnZip</a> binaries are available in the
     locations specified via the &quot;FossilTool&quot;,
     &quot;InnoUnpackTool&quot;, &quot;UnRARTool&quot;, and &quot;UnZipTool&quot;
     environment variables, respectively.</i>

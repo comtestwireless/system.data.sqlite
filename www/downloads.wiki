@@ -225,11 +225,11 @@
         <a href="https://en.wikipedia.org/wiki/.NET_Framework">.NET Framework</a>
         being targeted by the application.
         Generally, assembly binaries linked against the
-        <a href="http://go.microsoft.com/fwlink/?LinkID=32168">.NET Framework
+        <a href="https://go.microsoft.com/fwlink/?LinkID=32168">.NET Framework
         2.0</a> (or the
-        <a href="http://go.microsoft.com/fwlink/?LinkId=124150">.NET Framework
+        <a href="https://go.microsoft.com/fwlink/?LinkId=124150">.NET Framework
         3.5</a>) will work with the
-        <a href="http://go.microsoft.com/fwlink/?LinkID=186913">.NET Framework
+        <a href="https://go.microsoft.com/fwlink/?LinkID=186913">.NET Framework
         4.0</a> (or higher); however, this is less than ideal.  Furthermore,
         assemblies linked against the .NET Framework 4.0 (or higher)
         <b>cannot</b> be loaded by any versions of the .NET Framework prior to

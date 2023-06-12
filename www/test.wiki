@@ -62,7 +62,7 @@
 </p>
 
 <p>
-  The new unit tests have been setup using <a href="http://eagle.to/">Eagle</a>
+  The new unit tests have been setup using <a href="https://eagle.to/">Eagle</a>
   and its associated unit testing framework, named &quot;Eagle.Test&quot;.
   Eagle itself is an implementation of the <a href="https://www.tcl.tk/">Tcl</a>
   scripting language for the Common Language Runtime (CLR).

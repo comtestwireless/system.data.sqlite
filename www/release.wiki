@@ -42,18 +42,18 @@
     <br />
     <b>REM Must be present for .NET Standard 2.0 release step, processor architecture is irrelevant.</b>
     <br />
-    <b>XCOPY &quot;..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard20\DebugNetStandard20\bin\netstandard2.0&quot; /V /I /F /Y</b>
+    <b>XCOPY ..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.* ..\bin\NetStandard20\DebugNetStandard20\bin\netstandard2.0 /V /I /F /Y</b>
     <br />
-    <b>XCOPY &quot;..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard20\ReleaseNetStandard20\bin\netstandard2.0&quot; /V /I /F /Y</b>
+    <b>XCOPY ..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.* ..\bin\NetStandard20\ReleaseNetStandard20\bin\netstandard2.0 /V /I /F /Y</b>
     <br />
     <br />
     <b>REM Copy 2015 core library interop assembly to .NET Standard 2.1...</b>
     <br />
     <b>REM Must be present for .NET Standard 2.1 release step, processor architecture is irrelevant.</b>
     <br />
-    <b>XCOPY &quot;..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard21\DebugNetStandard21\bin\netstandard2.1&quot; /V /I /F /Y</b>
+    <b>XCOPY ..\bin\2015\Win32\DebugNativeOnlyStatic\SQLite.Interop.* ..\bin\NetStandard21\DebugNetStandard21\bin\netstandard2.1 /V /I /F /Y</b>
     <br />
-    <b>XCOPY &quot;..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.*&quot; &quot;..\bin\NetStandard21\ReleaseNetStandard21\bin\netstandard2.1&quot; /V /I /F /Y</b>
+    <b>XCOPY ..\bin\2015\Win32\ReleaseNativeOnlyStatic\SQLite.Interop.* ..\bin\NetStandard21\ReleaseNetStandard21\bin\netstandard2.1 /V /I /F /Y</b>
   </li>
 
   <li>

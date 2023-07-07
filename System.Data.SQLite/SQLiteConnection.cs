@@ -5723,13 +5723,13 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
-    /// Returns a string containing the define constants (i.e. compile-time
-    /// options) used to compile the core managed assembly, delimited with
-    /// spaces.
+    /// Returns a string containing the list of unified define constants
+    /// (i.e. compile-time options) used to compile the core managed and
+    /// interop assemblies, delimited with spaces.
     /// </summary>
     public static string DefineConstants
     {
-        get { return SQLite3.DefineConstants; }
+      get { return SQLite3.DefineConstants; }
     }
 
     /// <summary>
@@ -5756,7 +5756,7 @@ namespace System.Data.SQLite
     /// </summary>
     public static string SQLiteCompileOptions
     {
-        get { return SQLite3.SQLiteCompileOptions; }
+      get { return SQLite3.SQLiteCompileOptions; }
     }
 
     /// <summary>
@@ -5788,7 +5788,7 @@ namespace System.Data.SQLite
     /// </summary>
     public static string InteropCompileOptions
     {
-        get { return SQLite3.InteropCompileOptions; }
+      get { return SQLite3.InteropCompileOptions; }
     }
 
     /// <summary>
@@ -5858,6 +5858,18 @@ namespace System.Data.SQLite
                 return null;
             }
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Returns a string containing the define constants (i.e. compile-time
+    /// options) used to compile the core managed assembly, delimited with
+    /// spaces.
+    /// </summary>
+    public static string ProviderDefineConstants
+    {
+      get { return SQLite3.ProviderDefineConstants; }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

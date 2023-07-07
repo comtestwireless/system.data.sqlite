@@ -145,6 +145,9 @@ static const char * const azInteropCompileOpt[] = {
 #ifdef INTEROP_EXTENSION_FUNCTIONS
   "EXTENSION_FUNCTIONS",
 #endif
+#ifdef INTEROP_FTS5_EXTENSION
+  "FTS5_EXTENSION",
+#endif
 #ifdef INTEROP_INCLUDE_CEROD
   "INCLUDE_CEROD",
 #endif

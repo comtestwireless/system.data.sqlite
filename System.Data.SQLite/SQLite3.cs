@@ -18,6 +18,8 @@ namespace System.Data.SQLite
   using System.Runtime.InteropServices;
   using System.Text;
   using System.Threading;
+  using DefinePair = System.Collections.Generic.KeyValuePair<string, int>;
+  using DefineDictionary = System.Collections.Generic.Dictionary<string, int>;
 
   /// <summary>
   /// This is the method signature for the SQLite core library logging callback
@@ -643,28 +645,75 @@ namespace System.Data.SQLite
       }
     }
 
+    internal static string ProviderDefineConstants
+    {
+      get
+      {
+        return SQLiteConvert.ToString(SQLiteDefineConstants.OptionList, true);
+      }
+    }
+
     internal static string DefineConstants
     {
         get
         {
-            StringBuilder result = new StringBuilder();
-            IList<string> list = SQLiteDefineConstants.OptionList;
+            DefineDictionary dictionary = new DefineDictionary(
+                StringComparer.OrdinalIgnoreCase);
 
-            if (list != null)
+            foreach (IList<string> list in new IList<string>[] {
+                    SQLiteDefineConstants.OptionList,
+                    InteropCompileOptionList })
             {
-                foreach (string element in list)
+                if (list == null)
+                    continue;
+
+                foreach (string item in list)
                 {
-                    if (element == null)
+                    if (item == null)
                         continue;
 
-                    if (result.Length > 0)
-                        result.Append(' ');
+                    string interopItem = null;
+                    int count;
 
-                    result.Append(element);
+                    if (dictionary.TryGetValue(item, out count))
+                    {
+                        count++;
+                    }
+                    else if (!item.StartsWith("INTEROP_",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        interopItem = String.Format(
+                            "INTEROP_{0}", item);
+
+                        if (dictionary.TryGetValue(
+                                interopItem, out count))
+                        {
+                            count++;
+                        }
+                        else
+                        {
+                            count = 1;
+                        }
+                    }
+                    else
+                    {
+                        count = 1;
+                    }
+
+                    dictionary[item] = count;
+
+                    if (interopItem != null)
+                        dictionary[interopItem] = count;
                 }
             }
 
-            return result.ToString();
+            IList<string> result = new List<string>();
+
+            foreach (DefinePair pair in dictionary)
+                if (pair.Value >= 2)
+                    result.Add(pair.Key);
+
+            return SQLiteConvert.ToString(result, true);
         }
     }
 
@@ -692,25 +741,30 @@ namespace System.Data.SQLite
       }
     }
 
-    internal static string SQLiteCompileOptions
+    internal static IList<string> SQLiteCompileOptionList
     {
         get
         {
-            StringBuilder result = new StringBuilder();
+            IList<string> result = new List<string>();
             int index = 0;
             IntPtr zValue = UnsafeNativeMethods.sqlite3_compileoption_get(index++);
 
             while (zValue != IntPtr.Zero)
             {
-                if (result.Length > 0)
-                    result.Append(' ');
-
-                result.Append(UTF8ToString(zValue, -1));
+                result.Add(UTF8ToString(zValue, -1));
                 zValue = UnsafeNativeMethods.sqlite3_compileoption_get(index++);
             }
 
-            return result.ToString();
+            return result;
         }
+    }
+
+    internal static string SQLiteCompileOptions
+    {
+      get
+      {
+        return SQLiteConvert.ToString(SQLiteCompileOptionList, true);
+      }
     }
 
     internal static string InteropVersion
@@ -737,29 +791,34 @@ namespace System.Data.SQLite
         }
     }
 
-    internal static string InteropCompileOptions
+    internal static IList<string> InteropCompileOptionList
     {
         get
         {
 #if !SQLITE_STANDARD
-            StringBuilder result = new StringBuilder();
+            IList<string> result = new List<string>();
             int index = 0;
             IntPtr zValue = UnsafeNativeMethods.interop_compileoption_get(index++);
 
             while (zValue != IntPtr.Zero)
             {
-                if (result.Length > 0)
-                    result.Append(' ');
-
-                result.Append(UTF8ToString(zValue, -1));
+                result.Add(UTF8ToString(zValue, -1));
                 zValue = UnsafeNativeMethods.interop_compileoption_get(index++);
             }
 
-            return result.ToString();
+            return result;
 #else
             return null;
 #endif
         }
+    }
+
+    internal static string InteropCompileOptions
+    {
+      get
+      {
+        return SQLiteConvert.ToString(InteropCompileOptionList, true);
+      }
     }
 
     internal override bool AutoCommit

@@ -839,6 +839,54 @@ namespace System.Data.SQLite
     }
 
     /// <summary>
+    /// Build list-formatted string from a list of string elements.
+    /// </summary>
+    /// <param name="list">
+    /// The list of strings to process.
+    /// </param>
+    /// <param name="emptyOnNull">
+    /// Non-zero if this method should avoid returning a null value
+    /// when the input list is null.
+    /// </param>
+    /// <returns>
+    /// Either the list-formatted string -OR- null if it cannot be
+    /// determined.
+    /// </returns>
+    internal static string ToString(
+        IList<string> list,
+        bool emptyOnNull
+        )
+    {
+        StringBuilder result;
+
+        if (list != null)
+        {
+            result = new StringBuilder();
+
+            foreach (string element in list)
+            {
+                if (element == null)
+                    continue;
+
+                if (result.Length > 0)
+                    result.Append(' ');
+
+                result.Append(element);
+            }
+        }
+        else if (emptyOnNull)
+        {
+            result = new StringBuilder();
+        }
+        else
+        {
+            result = null;
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
     /// Converts a string into a DateTime, using the DateTimeFormat, DateTimeKind,
     /// and DateTimeFormatString specified for the connection when it was opened.
     /// </summary>

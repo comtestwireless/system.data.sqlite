@@ -2292,8 +2292,17 @@ namespace eval ::Eagle {
           "\"... "]
 
       if {[catch {
-        object invoke -flags +NonPublic \
-            System.Data.SQLite.SQLite3 DefineConstants
+        if {[string match INTEROP_* $name]} then {
+          #
+          # HACK: Use unified define constants list that takes into
+          #       account both the managed and interop assemblies.
+          #
+          object invoke -flags +NonPublic \
+              System.Data.SQLite.SQLite3 DefineConstants
+        } else {
+          object invoke -flags +NonPublic \
+              System.Data.SQLite.SQLite3 ProviderDefineConstants
+        }
       } defineConstants] == 0} then {
         if {[lsearch -exact -nocase $defineConstants $name] != -1} then {
           #
@@ -5952,7 +5961,7 @@ namespace eval ::Eagle {
 
           if {[catch {
             object invoke -flags +NonPublic \
-                System.Data.SQLite.SQLite3 DefineConstants
+                System.Data.SQLite.SQLite3 ProviderDefineConstants
           } defineConstants] == 0} then {
             tputs $::test_channel [appendArgs [formatList [lsort \
                 $defineConstants] <none>] \n]
@@ -6230,6 +6239,21 @@ namespace eval ::Eagle {
           } compileOptions] == 0} then {
             tputs $::test_channel [appendArgs [formatList [lsort \
                 $compileOptions] <none>] \n]
+          } else {
+            tputs $::test_channel unknown\n
+          }
+        }
+
+        catch {
+          tputs $::test_channel \
+              "---- shared define constants for SQLite... "
+
+          if {[catch {
+            object invoke -flags +NonPublic \
+                System.Data.SQLite.SQLite3 DefineConstants
+          } defineConstants] == 0} then {
+            tputs $::test_channel [appendArgs [formatList [lsort \
+                $defineConstants] <none>] \n]
           } else {
             tputs $::test_channel unknown\n
           }

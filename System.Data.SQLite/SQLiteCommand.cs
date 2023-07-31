@@ -691,18 +691,15 @@ namespace System.Data.SQLite
         if (_activeReader != null && _activeReader.IsAlive)
           throw new InvalidOperationException("Cannot set Connection while a DataReader is active");
 
-        if (_cnn != null)
-        {
-          ClearCommands();
-          //_cnn.RemoveCommand(this);
-        }
+        if (Object.ReferenceEquals(_cnn, value))
+          return;
+
+        ClearCommands();
 
         _cnn = value;
+
         if (_cnn != null)
           _version = _cnn._version;
-
-        //if (_cnn != null)
-        //  _cnn.AddCommand(this);
       }
     }
 

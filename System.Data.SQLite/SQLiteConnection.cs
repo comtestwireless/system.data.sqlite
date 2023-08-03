@@ -4923,6 +4923,13 @@ namespace System.Data.SQLite
             SetupSQLiteBase(opts);
         }
 
+        string vfsName = _vfsName;
+
+        stringValue = FindKey(opts, "VfsName", null);
+
+        if (stringValue != null)
+            vfsName = stringValue;
+
         SQLiteOpenFlagsEnum flags = SQLiteOpenFlagsEnum.None;
 
         if (!SQLiteConvert.ToBoolean(FindKey(opts, "FailIfMissing", DefaultFailIfMissing.ToString())))
@@ -4942,7 +4949,7 @@ namespace System.Data.SQLite
         if (fullUri)
             flags |= SQLiteOpenFlagsEnum.Uri;
 
-        _sql.Open(fileName, _vfsName, _flags, flags, maxPoolSize, usePooling);
+        _sql.Open(fileName, vfsName, _flags, flags, maxPoolSize, usePooling);
 
         stringValue = FindKey(opts, "BinaryGUID", null);
 

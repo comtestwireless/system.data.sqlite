@@ -4759,11 +4759,6 @@ namespace System.Data.SQLite
       if (stringValue != null)
         _defaultTypeName = stringValue;
 
-      stringValue = FindKey(opts, "VfsName", null);
-
-      if (stringValue != null)
-        _vfsName = stringValue;
-
 #if !NET_COMPACT_20 && TRACE_WARNING
       bool uri = false;
 #endif
@@ -4923,13 +4918,9 @@ namespace System.Data.SQLite
             SetupSQLiteBase(opts);
         }
 
-        string vfsName = _vfsName;
-
         stringValue = FindKey(opts, "VfsName", null);
 
-        if (stringValue != null)
-            vfsName = stringValue;
-
+        string vfsName = (stringValue != null) ? vfsName = stringValue : vfsName = _vfsName;
         SQLiteOpenFlagsEnum flags = SQLiteOpenFlagsEnum.None;
 
         if (!SQLiteConvert.ToBoolean(FindKey(opts, "FailIfMissing", DefaultFailIfMissing.ToString())))

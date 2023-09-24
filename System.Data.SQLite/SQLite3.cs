@@ -2150,7 +2150,7 @@ namespace System.Data.SQLite
                 }
             case SQLiteDateFormats.UnixEpoch:
                 {
-                    long value = Convert.ToInt64(dt.Subtract(UnixEpoch).TotalSeconds);
+                    long value = dt.Subtract(UnixEpoch).Ticks / TimeSpan.TicksPerSecond;
 
                     if (_forceLogPrepare || HelperMethods.LogBind(flags))
                     {

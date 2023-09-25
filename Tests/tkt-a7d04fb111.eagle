@@ -38,7 +38,7 @@ set instanceValue(2) [object create -alias DateTime $ticksValue(2) Local]
 
 set iso8601Value(0) [$instanceValue(0) ToString [getDateTimeFormat]]
 set iso8601Value(1) [$instanceValue(1) ToString [getDateTimeFormat]]
-set iso8601Value(2) [$instanceValue(2) ToString [getDateTimeFormat false]]
+set iso8601Value(2) [$instanceValue(2) ToString [getDateTimeFormat false false]]
 
 ###############################################################################
 

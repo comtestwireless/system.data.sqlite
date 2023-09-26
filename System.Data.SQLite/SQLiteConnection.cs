@@ -1380,6 +1380,16 @@ namespace System.Data.SQLite
   /// <description>3</description>
   /// </item>
   /// <item>
+  /// <description>StepRetries</description>
+  /// <description>
+  /// The maximum number of retries when stepping a SQL statement.  This
+  /// normally only applies to stepping errors resulting from the database
+  /// being locked or its schema being changed.
+  /// </description>
+  /// <description>N</description>
+  /// <description>40</description>
+  /// </item>
+  /// <item>
   /// <description>ProgressOps</description>
   /// <description>
   /// The approximate number of virtual machine instructions between progress
